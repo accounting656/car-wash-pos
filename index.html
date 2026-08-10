@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- PWA tags -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Wash POS">
@@ -11,14 +10,14 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#2563eb">
   
-  <title>A Plus Car Wash POS</title>
+  <title>Premium Car Wash POS</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     
     * { box-sizing: border-box; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
     body { background: #f3f4f6; display: flex; height: 100vh; overflow: hidden; color: #1f2937; }
     
-    /* Login Screen Overlay (Glassmorphism) */
+    /* Login Screen Overlay */
     #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(17,24,39,0.95), rgba(31,41,55,0.95)); backdrop-filter: blur(10px); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
     #loginOverlay h1 { font-weight: 700; font-size: 28px; margin-bottom: 10px; color: #f9fafb; }
     .numpad { display: grid; grid-template-columns: repeat(3, 90px); gap: 24px; margin-top: 10px; }
@@ -28,17 +27,16 @@
     
     /* Main Layout */
     .menu-section { flex: 1; padding: 30px 40px; overflow-y: auto; display: flex; flex-direction: column; }
-    .cart-section { width: 420px; background: #ffffff; margin: 20px 20px 20px 0; border-radius: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); display: flex; flex-direction: column; overflow: hidden; border: 1px solid #f3f4f6; }
+    .cart-section { width: 440px; background: #ffffff; margin: 20px 20px 20px 0; border-radius: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; border: 1px solid #f3f4f6; }
     
     /* Header Area */
     .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
     .header-title { font-size: 32px; font-weight: 800; color: #111827; letter-spacing: -1px; background: linear-gradient(135deg, #111827, #374151); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     .controls { display: flex; gap: 15px; align-items: center; }
-    .location-select { padding: 12px 16px; font-size: 15px; border-radius: 12px; border: 1px solid #e5e7eb; background: #fff; font-weight: 600; color: #374151; outline: none; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .location-select { padding: 12px 16px; font-size: 15px; border-radius: 12px; border: 1px solid #e5e7eb; background: #fff; font-weight: 600; color: #374151; outline: none; cursor: pointer; }
     .attendant-badge { background: #eff6ff; padding: 10px 18px; border-radius: 12px; font-weight: 600; font-size: 15px; color: #1e3a8a; display: flex; align-items: center; gap: 12px; border: 1px solid #bfdbfe; }
-    .logout-btn { background: #fee2e2; color: #b91c1c; border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; transition: background 0.2s; }
-    .logout-btn:hover { background: #fecaca; }
-
+    .logout-btn { background: #fee2e2; color: #b91c1c; border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; }
+    
     /* Service Grid Cards */
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 24px; padding-bottom: 40px; }
     .card { background: white; border-radius: 20px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); border: 2px solid transparent; display: flex; flex-direction: column; justify-content: space-between; height: 100%; position: relative; overflow: hidden; }
@@ -51,34 +49,45 @@
     .card .price { display: inline-block; background: #eff6ff; color: #2563eb; padding: 6px 14px; border-radius: 20px; font-size: 18px; font-weight: 700; align-self: flex-start; }
 
     /* Cart / Receipt Sidebar */
-    .cart-header { padding: 24px; border-bottom: 1px solid #e5e7eb; background: #f9fafb; }
+    .cart-header { padding: 20px 24px; border-bottom: 1px solid #e5e7eb; background: #f9fafb; }
     .cart-title { font-size: 20px; font-weight: 700; color: #111827; display: flex; justify-content: space-between; align-items: center; }
     .cart-items { flex-grow: 1; overflow-y: auto; padding: 24px; }
-    .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 16px; margin-bottom: 12px; background: #f9fafb; border-radius: 16px; border: 1px solid #f3f4f6; }
+    .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; margin-bottom: 10px; background: #f9fafb; border-radius: 12px; border: 1px solid #f3f4f6; }
     .cart-item-name { font-weight: 600; font-size: 15px; color: #1f2937; margin-bottom: 4px; }
     .cart-item-price { color: #6b7280; font-size: 14px; font-weight: 500; }
-    .remove-btn { color: #ef4444; border: none; background: #fee2e2; width: 32px; height: 32px; border-radius: 50%; font-size: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
-    .remove-btn:hover { background: #fca5a5; color: white; }
-    
-    /* Cart Footer */
-    .cart-footer { padding: 24px; background: white; border-top: 1px solid #e5e7eb; }
-    .input-field { width: 100%; padding: 14px 16px; margin-bottom: 12px; border: 1px solid #d1d5db; border-radius: 12px; font-size: 15px; background: #f9fafb; outline: none; transition: 0.2s; }
-    .input-field:focus { border-color: #3b82f6; background: white; box-shadow: 0 0 0 4px #eff6ff; }
-    .total-box { display: flex; justify-content: space-between; align-items: center; margin: 20px 0; }
-    .total-label { font-size: 18px; font-weight: 600; color: #6b7280; }
-    .total-amount { font-size: 32px; font-weight: 800; color: #111827; }
-    
-    .submit-btn { width: 100%; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 20px; font-size: 18px; border-radius: 16px; font-weight: 700; cursor: pointer; transition: 0.2s; box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3); }
-    .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -3px rgba(16, 185, 129, 0.4); }
-    .submit-btn:active { transform: scale(0.98); }
-    .submit-btn:disabled { background: #9ca3af; box-shadow: none; cursor: not-allowed; transform: none; }
-    .status-msg { margin-top: 12px; text-align: center; font-weight: 600; font-size: 14px; height: 20px; }
+    .remove-btn { color: #ef4444; border: none; background: #fee2e2; width: 30px; height: 30px; border-radius: 50%; font-size: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
-    /* Custom Scrollbar */
+    /* Cart Footer & Tax Settings */
+    .cart-footer { padding: 20px 24px; background: white; border-top: 1px solid #e5e7eb; }
+    .input-field { width: 100%; padding: 12px 16px; margin-bottom: 10px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px; background: #f9fafb; outline: none; transition: 0.2s; }
+    .input-field:focus { border-color: #3b82f6; background: white; box-shadow: 0 0 0 4px #eff6ff; }
+    
+    /* Toggle Switch */
+    .tax-exempt-bar { display: flex; justify-content: space-between; align-items: center; background: #f3f4f6; padding: 12px 16px; border-radius: 10px; margin-bottom: 10px; font-size: 14px; font-weight: 600; color: #4b5563; }
+    .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #d1d5db; transition: .3s; border-radius: 24px; }
+    .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+    input:checked + .slider { background-color: #3b82f6; }
+    input:checked + .slider:before { transform: translateX(20px); }
+    
+    #dealerInfoContainer { display: none; margin-bottom: 10px; }
+
+    /* Totals Breakdown */
+    .totals-breakdown { margin: 15px 0; padding-top: 15px; border-top: 1px dashed #d1d5db; }
+    .total-line { display: flex; justify-content: space-between; font-size: 14px; color: #6b7280; margin-bottom: 6px; font-weight: 500; }
+    .total-box { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+    .total-label { font-size: 18px; font-weight: 700; color: #111827; }
+    .total-amount { font-size: 28px; font-weight: 800; color: #111827; }
+    
+    .submit-btn { width: 100%; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 18px; font-size: 16px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.2s; box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3); }
+    .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -3px rgba(16, 185, 129, 0.4); }
+    .submit-btn:disabled { background: #9ca3af; box-shadow: none; cursor: not-allowed; transform: none; }
+    .status-msg { margin-top: 10px; text-align: center; font-weight: 600; font-size: 13px; height: 18px; }
+
     ::-webkit-scrollbar { width: 8px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
-    ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
   </style>
 </head>
 <body>
@@ -105,7 +114,6 @@
     </div>
   </div>
 
-  <!-- LEFT: Service Menu -->
   <div class="menu-section">
     <div class="header">
       <h2 class="header-title">WashOS</h2>
@@ -114,7 +122,7 @@
           <option value="Location 1 - Tampa Bay">📍 Tampa Bay</option>
           <option value="Location 2 - Columbus">📍 Columbus</option>
           <option value="Location 3 - South">📍 South</option>
-          <option value="Location 4 - Armenia1">📍 Armenia</option>
+          <option value="Location 4 - Armenia">📍 Armenia</option>
         </select>
         <div class="attendant-badge">
           👤 <span id="currentAttendantName">None</span>
@@ -122,11 +130,9 @@
         </div>
       </div>
     </div>
-
     <div class="grid" id="menuGrid"></div>
   </div>
 
-  <!-- RIGHT: Cart / Receipt Sidebar -->
   <div class="cart-section">
     <div class="cart-header">
       <div class="cart-title">
@@ -141,9 +147,32 @@
       <input type="text" id="vehicleInfo" class="input-field" placeholder="🚗 License Plate or Vehicle Model">
       <input type="text" id="orderNotes" class="input-field" placeholder="📝 Additional Notes (Optional)">
       
-      <div class="total-box">
-        <span class="total-label">Total</span>
-        <span class="total-amount" id="grandTotal">$0.00</span>
+      <!-- Tax Exempt Toggle Section -->
+      <div class="tax-exempt-bar">
+        <span>Tax Exempt (FL Resale)</span>
+        <label class="switch">
+          <input type="checkbox" id="taxExemptToggle" onchange="toggleTaxExempt()">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div id="dealerInfoContainer">
+        <input type="text" id="dealerInfo" class="input-field" style="border-color: #3b82f6; background: #eff6ff;" placeholder="🏢 Dealer Name & Certificate #">
+      </div>
+      
+      <!-- Totals Breakdown -->
+      <div class="totals-breakdown">
+        <div class="total-line">
+          <span>Subtotal</span>
+          <span id="subtotalAmount">$0.00</span>
+        </div>
+        <div class="total-line">
+          <span>Tax (7.5%)</span>
+          <span id="taxAmount">$0.00</span>
+        </div>
+        <div class="total-box">
+          <span class="total-label">Total</span>
+          <span class="total-amount" id="grandTotal">$0.00</span>
+        </div>
       </div>
       
       <button id="submitBtn" class="submit-btn" onclick="logOrder()">RECORD SALE</button>
@@ -155,12 +184,11 @@
     // --- 1. CONFIGURATION ---
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby7NcEyQG9ELtNt-YKjRXFIzemma-S8uAaA6PPvh8QUDgGX9VkGjBwqDLym6CWwEDgjHQ/exec"; // UPDATE THIS!
 
-    // EMPLOYEE PINS - Add your staff here
-    const employees = {
-      "1234": "Mike T.",
-      "5555": "Sarah J.",
-      "9999": "Manager Admin"
-    };
+    const STATE_TAX_RATE = 0.06;  // FL State Tax (6%)
+    const LOCAL_TAX_RATE = 0.015; // Local County Surtax (1.5%)
+    const TOTAL_TAX_RATE = STATE_TAX_RATE + LOCAL_TAX_RATE;
+
+    const employees = { "1234": "Mike T.", "5555": "Sarah J.", "9999": "Manager Admin" };
 
     const services = [
       { id: 1, name: "Express Exterior", price: 15.00, desc: "Basic exterior wash, spot-free rinse & air dry." },
@@ -177,21 +205,13 @@
     let cart = [];
     let enteredPin = "";
     let activeAttendant = "";
+    let isTaxExempt = false;
 
     // --- 3. LOGIN LOGIC ---
     function addPin(num) {
-      if(enteredPin.length < 4) {
-        enteredPin += num;
-        document.getElementById("pinDisplay").innerText = "•".repeat(enteredPin.length);
-      }
+      if(enteredPin.length < 4) { enteredPin += num; document.getElementById("pinDisplay").innerText = "•".repeat(enteredPin.length); }
     }
-    
-    function clearPin() {
-      enteredPin = "";
-      document.getElementById("pinDisplay").innerText = "";
-      document.getElementById("loginError").innerText = "";
-    }
-
+    function clearPin() { enteredPin = ""; document.getElementById("pinDisplay").innerText = ""; document.getElementById("loginError").innerText = ""; }
     function submitPin() {
       if (employees[enteredPin]) {
         activeAttendant = employees[enteredPin];
@@ -200,17 +220,12 @@
         clearPin();
       } else {
         document.getElementById("loginError").innerText = "Invalid PIN - Try Again";
-        enteredPin = "";
-        document.getElementById("pinDisplay").innerText = "";
+        enteredPin = ""; document.getElementById("pinDisplay").innerText = "";
       }
     }
-
     function logout() {
-      activeAttendant = "";
-      document.getElementById("currentAttendantName").innerText = "None";
-      document.getElementById("loginOverlay").style.display = "flex";
-      cart = [];
-      updateCart();
+      activeAttendant = ""; document.getElementById("currentAttendantName").innerText = "None";
+      document.getElementById("loginOverlay").style.display = "flex"; cart = []; updateCart();
     }
 
     // --- 4. POS LOGIC ---
@@ -218,20 +233,17 @@
       const grid = document.getElementById("menuGrid");
       grid.innerHTML = services.map(item => `
         <div class="card" onclick="addToCart(${item.id})">
-          <h3>${item.name}</h3>
-          <p>${item.desc}</p>
-          <div class="price">$${item.price.toFixed(2)}</div>
+          <h3>${item.name}</h3><p>${item.desc}</p><div class="price">$${item.price.toFixed(2)}</div>
         </div>
       `).join('');
     }
 
-    function addToCart(id) {
-      cart.push(services.find(s => s.id === id));
-      updateCart();
-    }
-
-    function removeFromCart(index) {
-      cart.splice(index, 1);
+    function addToCart(id) { cart.push(services.find(s => s.id === id)); updateCart(); }
+    function removeFromCart(index) { cart.splice(index, 1); updateCart(); }
+    
+    function toggleTaxExempt() {
+      isTaxExempt = document.getElementById("taxExemptToggle").checked;
+      document.getElementById("dealerInfoContainer").style.display = isTaxExempt ? "block" : "none";
       updateCart();
     }
 
@@ -240,47 +252,57 @@
       document.getElementById("itemCount").innerText = cart.length === 1 ? "1 item" : cart.length + " items";
       
       if (cart.length === 0) {
-        cartContainer.innerHTML = `
-          <div style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #9ca3af; text-align: center;">
-            <div style="font-size: 40px; margin-bottom: 10px;">🛒</div>
-            <p>Ticket is empty<br>Select a service to begin</p>
-          </div>`;
+        cartContainer.innerHTML = `<div style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #9ca3af; text-align: center;"><div style="font-size: 40px; margin-bottom: 10px;">🛒</div><p>Ticket is empty<br>Select a service to begin</p></div>`;
+        document.getElementById("subtotalAmount").innerText = "$0.00";
+        document.getElementById("taxAmount").innerText = "$0.00";
         document.getElementById("grandTotal").innerText = "$0.00";
         return;
       }
       
       cartContainer.innerHTML = cart.map((item, index) => `
         <div class="cart-item">
-          <div>
-            <div class="cart-item-name">${item.name}</div>
-            <div class="cart-item-price">$${item.price.toFixed(2)}</div>
-          </div>
+          <div><div class="cart-item-name">${item.name}</div><div class="cart-item-price">$${item.price.toFixed(2)}</div></div>
           <button class="remove-btn" onclick="removeFromCart(${index})">×</button>
         </div>
       `).join('');
       
-      document.getElementById("grandTotal").innerText = `$${cart.reduce((sum, item) => sum + item.price, 0).toFixed(2)}`;
+      // Calculate Math
+      const subtotal = cart.reduce((sum, item) => sum + item.price, 0);
+      const taxAmount = isTaxExempt ? 0 : (subtotal * TOTAL_TAX_RATE);
+      const grandTotal = subtotal + taxAmount;
+
+      document.getElementById("subtotalAmount").innerText = `$${subtotal.toFixed(2)}`;
+      document.getElementById("taxAmount").innerText = isTaxExempt ? "$0.00 (Exempt)" : `$${taxAmount.toFixed(2)}`;
+      document.getElementById("grandTotal").innerText = `$${grandTotal.toFixed(2)}`;
     }
 
     async function logOrder() {
       if (cart.length === 0) return alert("Please add a service to the ticket first.");
+      if (isTaxExempt && document.getElementById("dealerInfo").value.trim() === "") {
+        return alert("Please enter the Dealer Name and Certificate Number for tax-exempt transactions.");
+      }
       
       const submitBtn = document.getElementById("submitBtn");
       const statusMsg = document.getElementById("statusMsg");
       
-      submitBtn.disabled = true; 
-      submitBtn.innerText = "RECORDING...";
-      statusMsg.style.color = "#3b82f6"; 
-      statusMsg.innerText = "Sending to database...";
+      submitBtn.disabled = true; submitBtn.innerText = "RECORDING...";
+      statusMsg.style.color = "#3b82f6"; statusMsg.innerText = "Sending to database...";
+
+      const subtotal = cart.reduce((sum, item) => sum + item.price, 0);
+      const taxAmount = isTaxExempt ? 0 : (subtotal * TOTAL_TAX_RATE);
+      const grandTotal = subtotal + taxAmount;
 
       const payload = {
         location: document.getElementById("locationSelect").value,
         orderId: "ORD-" + Math.floor(100000 + Math.random() * 900000),
         services: cart.map(item => item.name).join(", "),
-        totalValue: cart.reduce((sum, item) => sum + item.price, 0),
+        subtotal: subtotal,
+        taxAmount: taxAmount,
+        grandTotal: grandTotal,
         vehicleInfo: document.getElementById("vehicleInfo").value,
         notes: document.getElementById("orderNotes").value,
-        attendant: activeAttendant
+        attendant: activeAttendant,
+        exemptDealer: isTaxExempt ? document.getElementById("dealerInfo").value : "N/A"
       };
 
       try {
@@ -289,22 +311,23 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         });
-        statusMsg.style.color = "#10b981"; 
-        statusMsg.innerText = "Order logged successfully!";
+        statusMsg.style.color = "#10b981"; statusMsg.innerText = "Order logged successfully!";
         
         // Reset everything
         cart = []; 
         document.getElementById("vehicleInfo").value = ""; 
         document.getElementById("orderNotes").value = "";
+        if(isTaxExempt) {
+          document.getElementById("taxExemptToggle").click(); // reset toggle
+          document.getElementById("dealerInfo").value = "";
+        }
         updateCart();
         
         setTimeout(() => { statusMsg.innerText = ""; }, 3000);
       } catch (err) {
-        statusMsg.style.color = "#ef4444"; 
-        statusMsg.innerText = "Network error. Try again.";
+        statusMsg.style.color = "#ef4444"; statusMsg.innerText = "Network error. Try again.";
       } finally {
-        submitBtn.disabled = false; 
-        submitBtn.innerText = "RECORD SALE";
+        submitBtn.disabled = false; submitBtn.innerText = "RECORD SALE";
       }
     }
 
