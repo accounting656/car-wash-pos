@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Car Wash POS - Data Collection</title>
+  <style>
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { margin: 0; background: #f0f2f5; display: flex; height: 100vh; overflow: hidden; }
+    
+    /* Layout */
+    .menu-section { flex: 2; padding: 20px; overflow-y: auto; }
+    .cart-section { flex: 1; background: #ffffff; border-left: 2px solid #e0e0e0; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; }
+    
+    /* Header & Location Switcher */
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .location-select { padding: 10px 14px; font-size: 16px; border-radius: 8px; border: 1px solid #ccc; background: #fff; font-weight: bold; }
+
+    /* Service Grid */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+    .card { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); cursor: pointer; transition: transform 0.1s, border-color 0.1s; border: 2px solid transparent; }
+    .card:active { transform: scale(0.98); }
+    .card:hover { border-color: #007bff; }
+    .card h3 { margin: 0 0 8px 0; color: #1a1a1a; font-size: 18px; }
+    .card p { margin: 0 0 12px 0; color: #666; font-size: 13px; min-height: 36px; }
+    .card .price { font-size: 20px; font-weight: bold; color: #007bff; }
+
+    /* Cart & Order Form */
+    .cart-title { font-size: 22px; font-weight: bold; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+    .cart-items { flex-grow: 1; overflow-y: auto; margin-bottom: 15px; }
+    .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+    .remove-btn { color: #ff4d4f; border: none; background: none; font-size: 18px; cursor: pointer; font-weight: bold; }
+    
+    .input-field { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
+    .total-box { font-size: 24px; font-weight: bold; display: flex; justify-content: space-between; margin: 15px 0; }
+    
+    .submit-btn { width: 100%; background: #28a745; color: white; border: none; padding: 16px; font-size: 18px; border-radius: 10px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+    .submit-btn:disabled { background: #a5d6a7; cursor: not-allowed; }
+    .status-msg { margin-top: 10px; text-align: center; font-weight: bold; font-size: 14px; }
+  </style>
+</head>
+<body>
+
+  <!-- LEFT: Service Menu -->
+  <div class="menu-section">
+    <div class="header">
+      <h2>Car Wash Express POS</h2>
+      <div>
+        <label>Location: </label>
+        <select id="locationSelect" class="location-select">
+          <option value="Location 1 - Main St">Location 1 - Main St</option>
+          <option value="Location 2 - Northside">Location 2 - Northside</option>
+          <option value="Location 3 - West End">Location 3 - West End</option>
+          <option value="Location 4 - Highway 10">Location 4 - Highway 10</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid" id="menuGrid"></div>
+  </div>
+
+  <!-- RIGHT: Order Summary & Data Collection -->
+  <div class="cart-section">
+    <div>
+      <div class="cart-title">Current Ticket</div>
+      <div class="cart-items" id="cartItems">
+        <p style="color: #888;">Select services from the left screen...</p>
+      </div>
+    </div>
+
+    <div>
+      <input type="text" id="vehicleInfo" class="input-field" placeholder="Vehicle License Plate / Model (e.g. ABC-1234 Silver SUV)">
+      <input type="text" id="orderNotes" class="input-field" placeholder="Notes / Attendant ID (Optional)">
+
+      <div class="total-box">
+        <span>Total Value:</span>
+        <span id="grandTotal">$0.00</span>
+      </div>
+
+      <button id="submitBtn" class="submit-btn" onclick="logOrder()">RECORD SALE (NO CHARGE)</button>
+      <div id="statusMsg" class="status-msg"></div>
+    </div>
+  </div>
+
+  <script>
+    // 1. REPLACE THIS URL WITH YOUR GOOGLE APPS SCRIPT WEB APP URL
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/library/d/1vbdk5jgHiGm48k2fv7wyCoAfE2_HATa9Qd4gAypG8DJi7q0ka416QWcz/1";
+
+    // 2. Car Wash Service Menu Config
+    const services = [
+      { id: 1, name: "Express Exterior", price: 15.00, desc: "Basic exterior wash, spot-free rinse & air dry." },
+      { id: 2, name: "Deluxe Wash", price: 25.00, desc: "Express wash + tire shine, wheel cleaner & underbody wash." },
+      { id: 3, name: "Ultimate Shine & Seal", price: 40.00, desc: "Deluxe wash + hot ceramic wax protection & rain repellant." },
+      { id: 4, name: "Interior Quick Clean", price: 30.00, desc: "Vacuum seats/mats, console wipe-down & window cleaning." },
+      { id: 5, name: "Full Detail Package", price: 85.00, desc: "Ultimate exterior wash + deep interior vacuum, shampoo & leather treatment." },
+      { id: 6, name: "Tire & Rim Shine Add-on", price: 8.00, desc: "Hand-applied tire dressing & brake dust cleaner." },
+      { id: 7, name: "Ceramic Shield Add-on", price: 15.00, desc: "Hydrophobic spray sealant layer for multi-week protection." },
+      { id: 8, name: "Pet Hair Removal", price: 20.00, desc: "Specialized brush & suction interior pet hair extraction." }
+    ];
+
+    let cart = [];
+
+    // Render Menu
+    function renderMenu() {
+      const grid = document.getElementById("menuGrid");
+      grid.innerHTML = services.map(item => `
+        <div class="card" onclick="addToCart(${item.id})">
+          <h3>${item.name}</h3>
+          <p>${item.desc}</p>
+          <div class="price">$${item.price.toFixed(2)}</div>
+        </div>
+      `).join('');
+    }
+
+    // Cart Management
+    function addToCart(id) {
+      const item = services.find(s => s.id === id);
+      cart.push(item);
+      updateCart();
+    }
+
+    function removeFromCart(index) {
+      cart.splice(index, 1);
+      updateCart();
+    }
+
+    function updateCart() {
+      const cartContainer = document.getElementById("cartItems");
+      if (cart.length === 0) {
+        cartContainer.innerHTML = `<p style="color: #888;">Select services from the left screen...</p>`;
+        document.getElementById("grandTotal").innerText = "$0.00";
+        return;
+      }
+
+      cartContainer.innerHTML = cart.map((item, index) => `
+        <div class="cart-item">
+          <div>
+            <strong>${item.name}</strong><br>
+            <small style="color:#666;">$${item.price.toFixed(2)}</small>
+          </div>
+          <button class="remove-btn" onclick="removeFromCart(${index})">&times;</button>
+        </div>
+      `).join('');
+
+      const total = cart.reduce((sum, item) => sum + item.price, 0);
+      document.getElementById("grandTotal").innerText = `$${total.toFixed(2)}`;
+    }
+
+    // Submit Order to Google Sheets Database
+    async function logOrder() {
+      if (cart.length === 0) {
+        alert("Please add at least one service before recording.");
+        return;
+      }
+
+      const submitBtn = document.getElementById("submitBtn");
+      const statusMsg = document.getElementById("statusMsg");
+      
+      submitBtn.disabled = true;
+      submitBtn.innerText = "RECORDING DATA...";
+      statusMsg.style.color = "#007bff";
+      statusMsg.innerText = "Sending to Google Sheets...";
+
+      const payload = {
+        location: document.getElementById("locationSelect").value,
+        orderId: "ORD-" + Math.floor(100000 + Math.random() * 900000),
+        services: cart.map(item => item.name).join(", "),
+        totalValue: cart.reduce((sum, item) => sum + item.price, 0),
+        vehicleInfo: document.getElementById("vehicleInfo").value,
+        notes: document.getElementById("orderNotes").value
+      };
+
+      try {
+        await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          mode: "no-cors", // Bypasses CORS restriction for Apps Script endpoints
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        // Feedback & Reset
+        statusMsg.style.color = "#28a745";
+        statusMsg.innerText = "Order successfully logged!";
+        cart = [];
+        document.getElementById("vehicleInfo").value = "";
+        document.getElementById("orderNotes").value = "";
+        updateCart();
+
+        setTimeout(() => { statusMsg.innerText = ""; }, 3000);
+      } catch (err) {
+        statusMsg.style.color = "#dc3545";
+        statusMsg.innerText = "Error recording order. Check internet connection.";
+        console.error(err);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = "RECORD SALE (NO CHARGE)";
+      }
+    }
+
+    renderMenu();
+  </script>
+</body>
+</html>
