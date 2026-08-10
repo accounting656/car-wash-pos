@@ -3,27 +3,35 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- PWA tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Wash POS">
+  <link rel="apple-touch-icon" href="icon.png">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#007bff">
+  
   <title>Car Wash POS - Data Collection</title>
-  <!-- iOS Home Screen Support -->
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Wash POS">
-<link rel="apple-touch-icon" href="icon.png">
-
-<!-- Android Home Screen Support -->
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#007bff">
   <style>
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { margin: 0; background: #f0f2f5; display: flex; height: 100vh; overflow: hidden; }
+    
+    /* Login Screen Overlay */
+    #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1a252f; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
+    .numpad { display: grid; grid-template-columns: repeat(3, 90px); gap: 20px; margin-top: 20px; }
+    .num-btn { width: 90px; height: 90px; font-size: 32px; border-radius: 50%; border: none; background: #2c3e50; color: white; cursor: pointer; transition: 0.1s; }
+    .num-btn:active { background: #007bff; transform: scale(0.95); }
+    #pinDisplay { font-size: 50px; letter-spacing: 15px; margin: 20px 0; height: 60px; color: #007bff; }
     
     /* Layout */
     .menu-section { flex: 2; padding: 20px; overflow-y: auto; }
     .cart-section { flex: 1; background: #ffffff; border-left: 2px solid #e0e0e0; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; }
     
-    /* Header & Location Switcher */
+    /* Header */
     .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
     .location-select { padding: 10px 14px; font-size: 16px; border-radius: 8px; border: 1px solid #ccc; background: #fff; font-weight: bold; }
+    .attendant-badge { background: #e9ecef; padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 14px; display: flex; align-items: center; gap: 10px; }
+    .logout-btn { background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; }
 
     /* Service Grid */
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
@@ -34,12 +42,11 @@
     .card p { margin: 0 0 12px 0; color: #666; font-size: 13px; min-height: 36px; }
     .card .price { font-size: 20px; font-weight: bold; color: #007bff; }
 
-    /* Cart & Order Form */
+    /* Cart */
     .cart-title { font-size: 22px; font-weight: bold; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
     .cart-items { flex-grow: 1; overflow-y: auto; margin-bottom: 15px; }
     .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
     .remove-btn { color: #ff4d4f; border: none; background: none; font-size: 18px; cursor: pointer; font-weight: bold; }
-    
     .input-field { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
     .total-box { font-size: 24px; font-weight: bold; display: flex; justify-content: space-between; margin: 15px 0; }
     
@@ -50,66 +57,126 @@
 </head>
 <body>
 
+  <!-- LOGIN SCREEN -->
+  <div id="loginOverlay">
+    <h1>Enter Employee PIN</h1>
+    <div id="pinDisplay"></div>
+    <div id="loginError" style="color: #ff4d4f; height: 20px; font-weight: bold;"></div>
+    
+    <div class="numpad">
+      <button class="num-btn" onclick="addPin('1')">1</button>
+      <button class="num-btn" onclick="addPin('2')">2</button>
+      <button class="num-btn" onclick="addPin('3')">3</button>
+      <button class="num-btn" onclick="addPin('4')">4</button>
+      <button class="num-btn" onclick="addPin('5')">5</button>
+      <button class="num-btn" onclick="addPin('6')">6</button>
+      <button class="num-btn" onclick="addPin('7')">7</button>
+      <button class="num-btn" onclick="addPin('8')">8</button>
+      <button class="num-btn" onclick="addPin('9')">9</button>
+      <button class="num-btn" style="background: #e74c3c;" onclick="clearPin()">C</button>
+      <button class="num-btn" onclick="addPin('0')">0</button>
+      <button class="num-btn" style="background: #27ae60;" onclick="submitPin()">OK</button>
+    </div>
+  </div>
+
   <!-- LEFT: Service Menu -->
   <div class="menu-section">
     <div class="header">
-      <h2>Car Wash Express POS</h2>
-      <div>
-        <label>Location: </label>
+      <div style="display: flex; gap: 15px; align-items: center;">
         <select id="locationSelect" class="location-select">
           <option value="Location 1 - Tampa Bay">Location 1 - Tampa Bay</option>
           <option value="Location 2 - Columbus">Location 2 - Columbus</option>
           <option value="Location 3 - South">Location 3 - South</option>
           <option value="Location 4 - Armenia">Location 4 - Armenia</option>
         </select>
+        <div class="attendant-badge">
+          👤 <span id="currentAttendantName">None</span>
+          <button class="logout-btn" onclick="logout()">Log Out</button>
+        </div>
       </div>
     </div>
 
     <div class="grid" id="menuGrid"></div>
   </div>
 
-  <!-- RIGHT: Order Summary & Data Collection -->
+  <!-- RIGHT: Order Summary -->
   <div class="cart-section">
     <div>
       <div class="cart-title">Current Ticket</div>
-      <div class="cart-items" id="cartItems">
-        <p style="color: #888;">Select services from the left screen...</p>
-      </div>
+      <div class="cart-items" id="cartItems"></div>
     </div>
 
     <div>
-      <input type="text" id="vehicleInfo" class="input-field" placeholder="Vehicle License Plate / Model (e.g. ABC-1234 Silver SUV)">
-      <input type="text" id="orderNotes" class="input-field" placeholder="Notes / Attendant ID (Optional)">
-
+      <input type="text" id="vehicleInfo" class="input-field" placeholder="Vehicle License Plate / Model">
+      <input type="text" id="orderNotes" class="input-field" placeholder="Additional Notes (Optional)">
       <div class="total-box">
         <span>Total Value:</span>
         <span id="grandTotal">$0.00</span>
       </div>
-
-      <button id="submitBtn" class="submit-btn" onclick="logOrder()">RECORD SALE (NO CHARGE)</button>
+      <button id="submitBtn" class="submit-btn" onclick="logOrder()">RECORD SALE</button>
       <div id="statusMsg" class="status-msg"></div>
     </div>
   </div>
 
   <script>
-    // 1. REPLACE THIS URL WITH YOUR GOOGLE APPS SCRIPT WEB APP URL
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby7NcEyQG9ELtNt-YKjRXFIzemma-S8uAaA6PPvh8QUDgGX9VkGjBwqDLym6CWwEDgjHQ/exec";
+    // --- 1. CONFIGURATION ---
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby7NcEyQG9ELtNt-YKjRXFIzemma-S8uAaA6PPvh8QUDgGX9VkGjBwqDLym6CWwEDgjHQ/exec"; // UPDATE THIS!
 
-    // 2. Car Wash Service Menu Config
+    // EMPLOYEE PINS - Add your staff here
+    const employees = {
+      "1234": "Mike T.",
+      "5555": "Sarah J.",
+      "9999": "Manager Admin"
+    };
+
     const services = [
       { id: 1, name: "Express Exterior", price: 15.00, desc: "Basic exterior wash, spot-free rinse & air dry." },
       { id: 2, name: "Deluxe Wash", price: 25.00, desc: "Express wash + tire shine, wheel cleaner & underbody wash." },
       { id: 3, name: "Ultimate Shine & Seal", price: 40.00, desc: "Deluxe wash + hot ceramic wax protection & rain repellant." },
-      { id: 4, name: "Interior Quick Clean", price: 30.00, desc: "Vacuum seats/mats, console wipe-down & window cleaning." },
-      { id: 5, name: "Full Detail Package", price: 85.00, desc: "Ultimate exterior wash + deep interior vacuum, shampoo & leather treatment." },
-      { id: 6, name: "Tire & Rim Shine Add-on", price: 8.00, desc: "Hand-applied tire dressing & brake dust cleaner." },
-      { id: 7, name: "Ceramic Shield Add-on", price: 15.00, desc: "Hydrophobic spray sealant layer for multi-week protection." },
-      { id: 8, name: "Pet Hair Removal", price: 20.00, desc: "Specialized brush & suction interior pet hair extraction." }
+      { id: 4, name: "Interior Quick Clean", price: 30.00, desc: "Vacuum seats/mats, console wipe-down & window cleaning." }
     ];
 
+    // --- 2. STATE VARIABLES ---
     let cart = [];
+    let enteredPin = "";
+    let activeAttendant = "";
 
-    // Render Menu
+    // --- 3. LOGIN LOGIC ---
+    function addPin(num) {
+      if(enteredPin.length < 4) {
+        enteredPin += num;
+        document.getElementById("pinDisplay").innerText = "•".repeat(enteredPin.length);
+      }
+    }
+    
+    function clearPin() {
+      enteredPin = "";
+      document.getElementById("pinDisplay").innerText = "";
+      document.getElementById("loginError").innerText = "";
+    }
+
+    function submitPin() {
+      if (employees[enteredPin]) {
+        activeAttendant = employees[enteredPin];
+        document.getElementById("currentAttendantName").innerText = activeAttendant;
+        document.getElementById("loginOverlay").style.display = "none";
+        clearPin(); // reset for next time
+      } else {
+        document.getElementById("loginError").innerText = "Invalid PIN";
+        enteredPin = "";
+        document.getElementById("pinDisplay").innerText = "";
+      }
+    }
+
+    function logout() {
+      activeAttendant = "";
+      document.getElementById("currentAttendantName").innerText = "None";
+      document.getElementById("loginOverlay").style.display = "flex";
+      cart = [];
+      updateCart();
+    }
+
+    // --- 4. POS LOGIC ---
     function renderMenu() {
       const grid = document.getElementById("menuGrid");
       grid.innerHTML = services.map(item => `
@@ -121,10 +188,8 @@
       `).join('');
     }
 
-    // Cart Management
     function addToCart(id) {
-      const item = services.find(s => s.id === id);
-      cart.push(item);
+      cart.push(services.find(s => s.id === id));
       updateCart();
     }
 
@@ -140,35 +205,23 @@
         document.getElementById("grandTotal").innerText = "$0.00";
         return;
       }
-
       cartContainer.innerHTML = cart.map((item, index) => `
         <div class="cart-item">
-          <div>
-            <strong>${item.name}</strong><br>
-            <small style="color:#666;">$${item.price.toFixed(2)}</small>
-          </div>
+          <div><strong>${item.name}</strong><br><small style="color:#666;">$${item.price.toFixed(2)}</small></div>
           <button class="remove-btn" onclick="removeFromCart(${index})">&times;</button>
         </div>
       `).join('');
-
-      const total = cart.reduce((sum, item) => sum + item.price, 0);
-      document.getElementById("grandTotal").innerText = `$${total.toFixed(2)}`;
+      document.getElementById("grandTotal").innerText = `$${cart.reduce((sum, item) => sum + item.price, 0).toFixed(2)}`;
     }
 
-    // Submit Order to Google Sheets Database
     async function logOrder() {
-      if (cart.length === 0) {
-        alert("Please add at least one service before recording.");
-        return;
-      }
-
+      if (cart.length === 0) return alert("Add a service first.");
+      
       const submitBtn = document.getElementById("submitBtn");
       const statusMsg = document.getElementById("statusMsg");
       
-      submitBtn.disabled = true;
-      submitBtn.innerText = "RECORDING DATA...";
-      statusMsg.style.color = "#007bff";
-      statusMsg.innerText = "Sending to Google Sheets...";
+      submitBtn.disabled = true; submitBtn.innerText = "RECORDING...";
+      statusMsg.style.color = "#007bff"; statusMsg.innerText = "Sending...";
 
       const payload = {
         location: document.getElementById("locationSelect").value,
@@ -176,37 +229,29 @@
         services: cart.map(item => item.name).join(", "),
         totalValue: cart.reduce((sum, item) => sum + item.price, 0),
         vehicleInfo: document.getElementById("vehicleInfo").value,
-        notes: document.getElementById("orderNotes").value
+        notes: document.getElementById("orderNotes").value,
+        attendant: activeAttendant // <-- The new variable being sent
       };
 
       try {
         await fetch(GOOGLE_SCRIPT_URL, {
-          method: "POST",
-          mode: "no-cors", // Bypasses CORS restriction for Apps Script endpoints
+          method: "POST", mode: "no-cors",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         });
-
-        // Feedback & Reset
-        statusMsg.style.color = "#28a745";
-        statusMsg.innerText = "Order successfully logged!";
-        cart = [];
-        document.getElementById("vehicleInfo").value = "";
-        document.getElementById("orderNotes").value = "";
+        statusMsg.style.color = "#28a745"; statusMsg.innerText = "Logged!";
+        cart = []; document.getElementById("vehicleInfo").value = ""; document.getElementById("orderNotes").value = "";
         updateCart();
-
         setTimeout(() => { statusMsg.innerText = ""; }, 3000);
       } catch (err) {
-        statusMsg.style.color = "#dc3545";
-        statusMsg.innerText = "Error recording order. Check internet connection.";
-        console.error(err);
+        statusMsg.style.color = "#dc3545"; statusMsg.innerText = "Error recording order.";
       } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerText = "RECORD SALE (NO CHARGE)";
+        submitBtn.disabled = false; submitBtn.innerText = "RECORD SALE";
       }
     }
 
     renderMenu();
+    updateCart();
   </script>
 </body>
 </html>
