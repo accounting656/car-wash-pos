@@ -47,6 +47,9 @@
     .card h3 { margin-bottom: 10px; color: #111827; font-size: 20px; font-weight: 700; }
     .card p { color: #6b7280; font-size: 14px; line-height: 1.5; margin-bottom: 20px; flex-grow: 1; }
     .card .price { display: inline-block; background: #eff6ff; color: #2563eb; padding: 6px 14px; border-radius: 20px; font-size: 18px; font-weight: 700; align-self: flex-start; }
+    
+    /* Dealer Mode Banner */
+    .dealer-banner { background: #fef08a; padding: 10px; border-radius: 12px; text-align: center; font-weight: 600; color: #854d0e; margin-bottom: 20px; display: none; }
 
     /* Cart / Receipt Sidebar */
     .cart-header { padding: 20px 24px; border-bottom: 1px solid #e5e7eb; background: #f9fafb; }
@@ -71,7 +74,8 @@
     input:checked + .slider { background-color: #3b82f6; }
     input:checked + .slider:before { transform: translateX(20px); }
     
-    #dealerInfoContainer { display: none; margin-bottom: 10px; }
+    #dealerSelectContainer { display: none; margin-bottom: 10px; }
+    .dealer-select { width: 100%; padding: 12px 16px; border: 1px solid #3b82f6; border-radius: 10px; background: #eff6ff; font-size: 14px; font-weight: 600; color: #1e3a8a; outline: none; cursor: pointer; }
 
     /* Totals Breakdown */
     .totals-breakdown { margin: 15px 0; padding-top: 15px; border-top: 1px dashed #d1d5db; }
@@ -130,6 +134,11 @@
         </div>
       </div>
     </div>
+    
+    <div id="dealerBanner" class="dealer-banner">
+      ⚠️ DEALER PRICING ACTIVE: Menus reflect negotiated rates for <span id="activeDealerName">Selected Dealer</span>
+    </div>
+
     <div class="grid" id="menuGrid"></div>
   </div>
 
@@ -155,8 +164,13 @@
           <span class="slider"></span>
         </label>
       </div>
-      <div id="dealerInfoContainer">
-        <input type="text" id="dealerInfo" class="input-field" style="border-color: #3b82f6; background: #eff6ff;" placeholder="🏢 Dealer Name & Certificate #">
+      
+      <!-- Dealer Dropdown -->
+      <div id="dealerSelectContainer">
+        <select id="dealerSelect" class="dealer-select" onchange="handleDealerChange()">
+          <option value="">-- Select Exempt Dealer --</option>
+          <!-- Options populated by JS -->
+        </select>
       </div>
       
       <!-- Totals Breakdown -->
@@ -184,30 +198,49 @@
     // --- 1. CONFIGURATION ---
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby7NcEyQG9ELtNt-YKjRXFIzemma-S8uAaA6PPvh8QUDgGX9VkGjBwqDLym6CWwEDgjHQ/exec"; // UPDATE THIS!
 
-    const STATE_TAX_RATE = 0.06;  // FL State Tax (6%)
-    const LOCAL_TAX_RATE = 0.015; // Local County Surtax (1.5%)
+    const STATE_TAX_RATE = 0.06;
+    const LOCAL_TAX_RATE = 0.015;
     const TOTAL_TAX_RATE = STATE_TAX_RATE + LOCAL_TAX_RATE;
 
     const employees = { "1234": "Mike T.", "5555": "Sarah J.", "9999": "Manager Admin" };
 
-    const services = [
+    // --- 2. DEALER DATA ---
+    // Extracted from A_Plus_Car_Wash_Detailing_II_I_Tax-Exempt_Customers.csv
+    const taxExemptDealers = {
+      "Comfort Car Inc": { id: "39-8018970140-0", discountRate: 0.20 }, // Example: 20% off standard pricing
+      "Eva Auto Sales LLC": { id: "39-8019226656-9", discountRate: 0.15 },
+      "Monduy Auto Sales Inc": { id: "39-8018066865-0", discountRate: 0.25 },
+      "Ramon Gomez": { id: "39-123456789-0", discountRate: 0.10 }
+    };
+
+    // Standard Retail Pricing
+    const standardServices = [
       { id: 1, name: "Express Exterior", price: 15.00, desc: "Basic exterior wash, spot-free rinse & air dry." },
       { id: 2, name: "Deluxe Wash", price: 25.00, desc: "Express wash + tire shine, wheel cleaner & underbody wash." },
       { id: 3, name: "Ultimate Shine & Seal", price: 40.00, desc: "Deluxe wash + hot ceramic wax protection & rain repellant." },
       { id: 4, name: "Interior Quick Clean", price: 30.00, desc: "Vacuum seats/mats, console wipe-down & window cleaning." },
       { id: 5, name: "Full Detail Package", price: 85.00, desc: "Ultimate exterior wash + deep interior vacuum, shampoo & leather treatment." },
-      { id: 6, name: "Tire & Rim Shine", price: 8.00, desc: "Hand-applied tire dressing & brake dust cleaner." },
-      { id: 7, name: "Ceramic Shield", price: 15.00, desc: "Hydrophobic spray sealant layer for multi-week protection." },
-      { id: 8, name: "Pet Hair Removal", price: 20.00, desc: "Specialized brush & suction interior pet hair extraction." }
+      { id: 6, name: "Tire & Rim Shine", price: 8.00, desc: "Hand-applied tire dressing & brake dust cleaner." }
     ];
 
-    // --- 2. STATE VARIABLES ---
+    // --- 3. STATE VARIABLES ---
     let cart = [];
     let enteredPin = "";
     let activeAttendant = "";
     let isTaxExempt = false;
+    let selectedDealer = null; // Holds the dealer key
+    let activeServices = JSON.parse(JSON.stringify(standardServices)); // Clone standard initially
 
-    // --- 3. LOGIN LOGIC ---
+    // Populate Dealer Dropdown
+    const dealerSelect = document.getElementById("dealerSelect");
+    Object.keys(taxExemptDealers).forEach(dealerName => {
+      const option = document.createElement("option");
+      option.value = dealerName;
+      option.text = `${dealerName} (${taxExemptDealers[dealerName].id})`;
+      dealerSelect.add(option);
+    });
+
+    // --- 4. LOGIN LOGIC ---
     function addPin(num) {
       if(enteredPin.length < 4) { enteredPin += num; document.getElementById("pinDisplay").innerText = "•".repeat(enteredPin.length); }
     }
@@ -225,27 +258,71 @@
     }
     function logout() {
       activeAttendant = ""; document.getElementById("currentAttendantName").innerText = "None";
-      document.getElementById("loginOverlay").style.display = "flex"; cart = []; updateCart();
+      document.getElementById("loginOverlay").style.display = "flex"; cart = []; 
+      resetToRetail(); updateCart();
     }
 
-    // --- 4. POS LOGIC ---
+    // --- 5. DEALER PRICING LOGIC ---
+    function toggleTaxExempt() {
+      isTaxExempt = document.getElementById("taxExemptToggle").checked;
+      document.getElementById("dealerSelectContainer").style.display = isTaxExempt ? "block" : "none";
+      
+      if (!isTaxExempt) {
+        document.getElementById("dealerSelect").value = "";
+        resetToRetail();
+      }
+      updateCart();
+    }
+
+    function handleDealerChange() {
+      const dealerKey = document.getElementById("dealerSelect").value;
+      if (dealerKey && taxExemptDealers[dealerKey]) {
+        selectedDealer = dealerKey;
+        applyDealerPricing(dealerKey);
+      } else {
+        resetToRetail();
+      }
+      // Clear cart when changing modes to prevent mixing retail and wholesale items
+      cart = [];
+      updateCart();
+    }
+
+    function applyDealerPricing(dealerKey) {
+      const discount = taxExemptDealers[dealerKey].discountRate;
+      
+      // Calculate special pricing for this specific dealer
+      activeServices = standardServices.map(service => {
+        return {
+          ...service,
+          price: service.price * (1 - discount),
+          name: service.name + " (Dealer Rate)"
+        };
+      });
+
+      document.getElementById("dealerBanner").style.display = "block";
+      document.getElementById("activeDealerName").innerText = dealerKey;
+      renderMenu();
+    }
+
+    function resetToRetail() {
+      selectedDealer = null;
+      activeServices = JSON.parse(JSON.stringify(standardServices));
+      document.getElementById("dealerBanner").style.display = "none";
+      renderMenu();
+    }
+
+    // --- 6. POS UI LOGIC ---
     function renderMenu() {
       const grid = document.getElementById("menuGrid");
-      grid.innerHTML = services.map(item => `
+      grid.innerHTML = activeServices.map(item => `
         <div class="card" onclick="addToCart(${item.id})">
           <h3>${item.name}</h3><p>${item.desc}</p><div class="price">$${item.price.toFixed(2)}</div>
         </div>
       `).join('');
     }
 
-    function addToCart(id) { cart.push(services.find(s => s.id === id)); updateCart(); }
+    function addToCart(id) { cart.push(activeServices.find(s => s.id === id)); updateCart(); }
     function removeFromCart(index) { cart.splice(index, 1); updateCart(); }
-    
-    function toggleTaxExempt() {
-      isTaxExempt = document.getElementById("taxExemptToggle").checked;
-      document.getElementById("dealerInfoContainer").style.display = isTaxExempt ? "block" : "none";
-      updateCart();
-    }
 
     function updateCart() {
       const cartContainer = document.getElementById("cartItems");
@@ -266,7 +343,6 @@
         </div>
       `).join('');
       
-      // Calculate Math
       const subtotal = cart.reduce((sum, item) => sum + item.price, 0);
       const taxAmount = isTaxExempt ? 0 : (subtotal * TOTAL_TAX_RATE);
       const grandTotal = subtotal + taxAmount;
@@ -278,8 +354,8 @@
 
     async function logOrder() {
       if (cart.length === 0) return alert("Please add a service to the ticket first.");
-      if (isTaxExempt && document.getElementById("dealerInfo").value.trim() === "") {
-        return alert("Please enter the Dealer Name and Certificate Number for tax-exempt transactions.");
+      if (isTaxExempt && !selectedDealer) {
+        return alert("Please select a valid Dealer from the dropdown for tax-exempt transactions.");
       }
       
       const submitBtn = document.getElementById("submitBtn");
@@ -302,7 +378,8 @@
         vehicleInfo: document.getElementById("vehicleInfo").value,
         notes: document.getElementById("orderNotes").value,
         attendant: activeAttendant,
-        exemptDealer: isTaxExempt ? document.getElementById("dealerInfo").value : "N/A"
+        // Send the formatted string "Name (Certificate ID)" to Google Sheets
+        exemptDealer: isTaxExempt ? `${selectedDealer} (${taxExemptDealers[selectedDealer].id})` : "N/A"
       };
 
       try {
@@ -313,13 +390,12 @@
         });
         statusMsg.style.color = "#10b981"; statusMsg.innerText = "Order logged successfully!";
         
-        // Reset everything
         cart = []; 
         document.getElementById("vehicleInfo").value = ""; 
         document.getElementById("orderNotes").value = "";
+        
         if(isTaxExempt) {
-          document.getElementById("taxExemptToggle").click(); // reset toggle
-          document.getElementById("dealerInfo").value = "";
+          document.getElementById("taxExemptToggle").click(); // toggle off
         }
         updateCart();
         
