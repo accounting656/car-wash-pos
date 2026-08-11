@@ -204,14 +204,36 @@
 
     const employees = { "1234": "Mike T.", "5555": "Sarah J.", "9999": "Manager Admin" };
 
-    // --- 2. DEALER DATA ---
-    // Extracted from A_Plus_Car_Wash_Detailing_II_I_Tax-Exempt_Customers.csv
-    const taxExemptDealers = {
-      "Comfort Car Inc": { id: "39-8018970140-0", discountRate: 0.20 }, // Example: 20% off standard pricing
-      "Eva Auto Sales LLC": { id: "39-8019226656-9", discountRate: 0.15 },
-      "Monduy Auto Sales Inc": { id: "39-8018066865-0", discountRate: 0.25 },
-      "Ramon Gomez": { id: "39-123456789-0", discountRate: 0.10 }
-    };
+    // --- 2. DEALER DATA (DYNAMIC) ---
+    let taxExemptDealers = {}; // Now starts empty
+
+    // Fetch the live dealer list from Google Sheets on load
+    async function loadDealers() {
+      const dealerSelect = document.getElementById("dealerSelect");
+      dealerSelect.innerHTML = '<option value="">⏳ Syncing with Google Sheets...</option>';
+      dealerSelect.disabled = true;
+
+      try {
+        const response = await fetch(GOOGLE_SCRIPT_URL);
+        taxExemptDealers = await response.json();
+        
+        // Rebuild the dropdown with the live data
+        dealerSelect.innerHTML = '<option value="">-- Select Exempt Dealer --</option>';
+        Object.keys(taxExemptDealers).forEach(dealerName => {
+          const option = document.createElement("option");
+          option.value = dealerName;
+          // Converts the decimal to a percentage for the display text
+          const discountPct = (taxExemptDealers[dealerName].discountRate * 100).toFixed(0);
+          option.text = `${dealerName} (${taxExemptDealers[dealerName].id}) - ${discountPct}% off`;
+          dealerSelect.add(option);
+        });
+        
+        dealerSelect.disabled = false;
+      } catch (error) {
+        console.error("Failed to load dealers:", error);
+        dealerSelect.innerHTML = '<option value="">❌ Error loading dealers. Check internet.</option>';
+      }
+    }
 
     // Standard Retail Pricing
     const standardServices = [
@@ -222,7 +244,6 @@
       { id: 5, name: "Full Detail Package", price: 85.00, desc: "Ultimate exterior wash + deep interior vacuum, shampoo & leather treatment." },
       { id: 6, name: "Tire & Rim Shine", price: 8.00, desc: "Hand-applied tire dressing & brake dust cleaner." }
     ];
-
     // --- 3. STATE VARIABLES ---
     let cart = [];
     let enteredPin = "";
@@ -409,6 +430,7 @@
 
     renderMenu();
     updateCart();
+    loadDealers();
   </script>
 </body>
 </html>
