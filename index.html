@@ -181,7 +181,7 @@
     <div class="cart-items" id="cartItems"></div>
 
     <div class="cart-footer">
-    <!-- Quick-Tap Colors -->
+  <!-- Quick-Tap Colors -->
       <div class="color-badges">
         <button class="color-badge" onclick="addColor('⚪️ White')">White</button>
         <button class="color-badge" onclick="addColor('⚫️ Black')">Black</button>
@@ -190,30 +190,32 @@
         <button class="color-badge" onclick="addColor('🔵 Blue')">Blue</button>
       </div>
 
-      <!-- Vehicle Autocomplete Input -->
-      <input list="carMakes" id="vehicleInfo" class="input-field" placeholder="🚗 Make, Color, or Plate (e.g. Silver Ford)">
-      <datalist id="carMakes">
-        <option value="Toyota">
-        <option value="Ford">
-        <option value="Chevrolet">
-        <option value="Honda">
-        <option value="Nissan">
-        <option value="Jeep">
-        <option value="Hyundai">
-        <option value="Kia">
-        <option value="Subaru">
-        <option value="Ram">
-        <option value="GMC">
-        <option value="Mercedes-Benz">
-        <option value="BMW">
-        <option value="Volkswagen">
-        <option value="Lexus">
-        <option value="Audi">
-        <option value="Tesla">
-        <option value="Mazda">
-        <option value="Dodge">
-        <option value="Chrysler">
-      </datalist>
+      <!-- Vehicle Dropdown & Plate -->
+      <select id="vehicleMake" class="input-field" style="cursor: pointer;">
+        <option value="">-- Select Vehicle Make --</option>
+        <option value="Toyota">Toyota</option>
+        <option value="Ford">Ford</option>
+        <option value="Chevrolet">Chevrolet</option>
+        <option value="Honda">Honda</option>
+        <option value="Nissan">Nissan</option>
+        <option value="Jeep">Jeep</option>
+        <option value="Hyundai">Hyundai</option>
+        <option value="Kia">Kia</option>
+        <option value="Subaru">Subaru</option>
+        <option value="Ram">Ram</option>
+        <option value="GMC">GMC</option>
+        <option value="Mercedes-Benz">Mercedes-Benz</option>
+        <option value="BMW">BMW</option>
+        <option value="Volkswagen">Volkswagen</option>
+        <option value="Lexus">Lexus</option>
+        <option value="Audi">Audi</option>
+        <option value="Tesla">Tesla</option>
+        <option value="Mazda">Mazda</option>
+        <option value="Dodge">Dodge</option>
+        <option value="Chrysler">Chrysler</option>
+        <option value="Other">Other...</option>
+      </select>
+      <input type="text" id="vehiclePlate" class="input-field" placeholder="🚗 License Plate (e.g. ABC-123)">
       <input type="text" id="orderNotes" class="input-field" placeholder="📝 Additional Notes (Optional)">
       
       <div class="tax-exempt-bar">
@@ -429,7 +431,7 @@
 
     // --- QUICK-TAP COLOR LOGIC ---
     function addColor(colorStr) {
-      const input = document.getElementById("vehicleInfo");
+      const input = document.getElementById("vehiclePlate");
       // If they already typed something, put the color in front of it
       if (input.value) {
         input.value = colorStr + " " + input.value;
@@ -468,6 +470,10 @@
       const taxAmount = isTaxExempt ? 0 : (subtotal * TOTAL_TAX_RATE);
       const grandTotal = subtotal + taxAmount;
 
+      const make = document.getElementById("vehicleMake").value;
+      const plate = document.getElementById("vehiclePlate").value;
+      const combinedVehicle = (make || plate) ? `${make} ${plate}`.trim() : "N/A";
+
       const payload = {
         location: document.getElementById("locationSelect").value,
         orderId: "ORD-" + Math.floor(100000 + Math.random() * 900000),
@@ -475,11 +481,11 @@
         subtotal: subtotal,
         taxAmount: taxAmount,
         grandTotal: grandTotal,
-        vehicleInfo: document.getElementById("vehicleInfo").value,
+        vehicleInfo: combinedVehicle, // Uses the combined dropdown + text string
         notes: document.getElementById("orderNotes").value,
         attendant: activeAttendant,
         exemptDealer: isTaxExempt ? `${selectedDealer} (${taxExemptDealers[selectedDealer].id})` : "N/A",
-        paymentType: selectedPaymentType // Add the payment type here
+        paymentType: selectedPaymentType
       };
 
       try {
@@ -491,7 +497,8 @@
         statusMsg.style.color = "#10b981"; statusMsg.innerText = "Order logged successfully!";
         
         cart = []; 
-        document.getElementById("vehicleInfo").value = ""; 
+        document.getElementById("vehicleMake").value = ""; 
+        document.getElementById("vehiclePlate").value = ""; 
         document.getElementById("orderNotes").value = "";
         
         if(isTaxExempt) {
