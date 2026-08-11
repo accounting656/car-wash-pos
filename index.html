@@ -175,7 +175,30 @@
     <div class="cart-items" id="cartItems"></div>
 
     <div class="cart-footer">
-      <input type="text" id="vehicleInfo" class="input-field" placeholder="🚗 License Plate or Vehicle Model">
+      <!-- Vehicle Autocomplete Input -->
+      <input list="carMakes" id="vehicleInfo" class="input-field" placeholder="🚗 Make, Color, or Plate (e.g. Silver Ford)">
+      <datalist id="carMakes">
+        <option value="Toyota">
+        <option value="Ford">
+        <option value="Chevrolet">
+        <option value="Honda">
+        <option value="Nissan">
+        <option value="Jeep">
+        <option value="Hyundai">
+        <option value="Kia">
+        <option value="Subaru">
+        <option value="Ram">
+        <option value="GMC">
+        <option value="Mercedes-Benz">
+        <option value="BMW">
+        <option value="Volkswagen">
+        <option value="Lexus">
+        <option value="Audi">
+        <option value="Tesla">
+        <option value="Mazda">
+        <option value="Dodge">
+        <option value="Chrysler">
+      </datalist>
       <input type="text" id="orderNotes" class="input-field" placeholder="📝 Additional Notes (Optional)">
       
       <div class="tax-exempt-bar">
