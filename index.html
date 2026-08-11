@@ -74,6 +74,12 @@
     .cart-footer { padding: 20px 24px; background: white; border-top: 1px solid #e5e7eb; }
     .input-field { width: 100%; padding: 12px 16px; margin-bottom: 10px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px; background: #f9fafb; outline: none; transition: 0.2s; }
     .input-field:focus { border-color: #3b82f6; background: white; box-shadow: 0 0 0 4px #eff6ff; }
+
+    /* Quick-Tap Color Badges */
+    .color-badges { display: flex; gap: 8px; margin-bottom: 10px; overflow-x: auto; padding-bottom: 4px; }
+    .color-badge { padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1px solid #d1d5db; background: white; color: #374151; white-space: nowrap; transition: 0.2s; display: flex; align-items: center; gap: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .color-badge:hover { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; }
+    .color-badge:active { transform: scale(0.95); }
     
     /* Toggle Switch */
     .tax-exempt-bar { display: flex; justify-content: space-between; align-items: center; background: #f3f4f6; padding: 12px 16px; border-radius: 10px; margin-bottom: 10px; font-size: 14px; font-weight: 600; color: #4b5563; }
@@ -175,6 +181,15 @@
     <div class="cart-items" id="cartItems"></div>
 
     <div class="cart-footer">
+    <!-- Quick-Tap Colors -->
+      <div class="color-badges">
+        <button class="color-badge" onclick="addColor('⚪️ White')">White</button>
+        <button class="color-badge" onclick="addColor('⚫️ Black')">Black</button>
+        <button class="color-badge" onclick="addColor('🔘 Silver')">Silver</button>
+        <button class="color-badge" onclick="addColor('🔴 Red')">Red</button>
+        <button class="color-badge" onclick="addColor('🔵 Blue')">Blue</button>
+      </div>
+
       <!-- Vehicle Autocomplete Input -->
       <input list="carMakes" id="vehicleInfo" class="input-field" placeholder="🚗 Make, Color, or Plate (e.g. Silver Ford)">
       <datalist id="carMakes">
@@ -412,6 +427,18 @@
       document.getElementById("grandTotal").innerText = `$${grandTotal.toFixed(2)}`;
     }
 
+    // --- QUICK-TAP COLOR LOGIC ---
+    function addColor(colorStr) {
+      const input = document.getElementById("vehicleInfo");
+      // If they already typed something, put the color in front of it
+      if (input.value) {
+        input.value = colorStr + " " + input.value;
+      } else {
+        input.value = colorStr + " ";
+      }
+      input.focus(); // Automatically brings up the keyboard/autocomplete
+    }
+    
     // --- 7. PAYMENT & SUBMISSION LOGIC ---
     function promptPayment() {
       if (cart.length === 0) return alert("Please add a service to the ticket first.");
