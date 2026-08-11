@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="A Plus Car Wash POS">
+  <meta name="apple-mobile-web-app-title" content="Wash POS">
   <link rel="apple-touch-icon" href="icon.png">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#2563eb">
   
-  <title>A Plus Car Wash POS</title>
+  <title>Premium Car Wash POS</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     
@@ -120,7 +120,7 @@
 
   <div class="menu-section">
     <div class="header">
-      <h2 class="header-title">A Plus Car Wash POS</h2>
+      <h2 class="header-title">WashOS</h2>
       <div class="controls">
         <select id="locationSelect" class="location-select">
           <option value="Location 1 - Tampa Bay">📍 Tampa Bay</option>
@@ -169,7 +169,6 @@
       <div id="dealerSelectContainer">
         <select id="dealerSelect" class="dealer-select" onchange="handleDealerChange()">
           <option value="">-- Select Exempt Dealer --</option>
-          <!-- Options populated by JS -->
         </select>
       </div>
       
@@ -205,9 +204,8 @@
     const employees = { "1234": "Mike T.", "5555": "Sarah J.", "9999": "Manager Admin" };
 
     // --- 2. DEALER DATA (DYNAMIC) ---
-    let taxExemptDealers = {}; // Now starts empty
+    let taxExemptDealers = {};
 
-    // Fetch the live dealer list from Google Sheets on load
     async function loadDealers() {
       const dealerSelect = document.getElementById("dealerSelect");
       dealerSelect.innerHTML = '<option value="">⏳ Syncing with Google Sheets...</option>';
@@ -217,17 +215,14 @@
         const response = await fetch(GOOGLE_SCRIPT_URL);
         taxExemptDealers = await response.json();
         
-        // Rebuild the dropdown with the live data
         dealerSelect.innerHTML = '<option value="">-- Select Exempt Dealer --</option>';
         Object.keys(taxExemptDealers).forEach(dealerName => {
           const option = document.createElement("option");
           option.value = dealerName;
-          // Converts the decimal to a percentage for the display text
           const discountPct = (taxExemptDealers[dealerName].discountRate * 100).toFixed(0);
           option.text = `${dealerName} (${taxExemptDealers[dealerName].id}) - ${discountPct}% off`;
           dealerSelect.add(option);
         });
-        
         dealerSelect.disabled = false;
       } catch (error) {
         console.error("Failed to load dealers:", error);
@@ -235,7 +230,6 @@
       }
     }
 
-    // Standard Retail Pricing
     const standardServices = [
       { id: 1, name: "Express Exterior", price: 15.00, desc: "Basic exterior wash, spot-free rinse & air dry." },
       { id: 2, name: "Deluxe Wash", price: 25.00, desc: "Express wash + tire shine, wheel cleaner & underbody wash." },
@@ -243,30 +237,30 @@
       { id: 4, name: "Interior Quick Clean", price: 30.00, desc: "Vacuum seats/mats, console wipe-down & window cleaning." },
       { id: 5, name: "Full Detail Package", price: 85.00, desc: "Ultimate exterior wash + deep interior vacuum, shampoo & leather treatment." },
       { id: 6, name: "Tire & Rim Shine", price: 8.00, desc: "Hand-applied tire dressing & brake dust cleaner." }
-      { id: 7, name: "Dealer Clean in and out", price: 250.00, desc: "Dealer Contracted Pricing" }
     ];
+
     // --- 3. STATE VARIABLES ---
     let cart = [];
     let enteredPin = "";
     let activeAttendant = "";
     let isTaxExempt = false;
-    let selectedDealer = null; // Holds the dealer key
-    let activeServices = JSON.parse(JSON.stringify(standardServices)); // Clone standard initially
-
-    // Populate Dealer Dropdown
-    const dealerSelect = document.getElementById("dealerSelect");
-    Object.keys(taxExemptDealers).forEach(dealerName => {
-      const option = document.createElement("option");
-      option.value = dealerName;
-      option.text = `${dealerName} (${taxExemptDealers[dealerName].id})`;
-      dealerSelect.add(option);
-    });
+    let selectedDealer = null;
+    let activeServices = JSON.parse(JSON.stringify(standardServices));
 
     // --- 4. LOGIN LOGIC ---
     function addPin(num) {
-      if(enteredPin.length < 4) { enteredPin += num; document.getElementById("pinDisplay").innerText = "•".repeat(enteredPin.length); }
+      if(enteredPin.length < 4) { 
+        enteredPin += num; 
+        document.getElementById("pinDisplay").innerText = "•".repeat(enteredPin.length); 
+      }
     }
-    function clearPin() { enteredPin = ""; document.getElementById("pinDisplay").innerText = ""; document.getElementById("loginError").innerText = ""; }
+    
+    function clearPin() { 
+      enteredPin = ""; 
+      document.getElementById("pinDisplay").innerText = ""; 
+      document.getElementById("loginError").innerText = ""; 
+    }
+    
     function submitPin() {
       if (employees[enteredPin]) {
         activeAttendant = employees[enteredPin];
@@ -275,13 +269,18 @@
         clearPin();
       } else {
         document.getElementById("loginError").innerText = "Invalid PIN - Try Again";
-        enteredPin = ""; document.getElementById("pinDisplay").innerText = "";
+        enteredPin = ""; 
+        document.getElementById("pinDisplay").innerText = "";
       }
     }
+    
     function logout() {
-      activeAttendant = ""; document.getElementById("currentAttendantName").innerText = "None";
-      document.getElementById("loginOverlay").style.display = "flex"; cart = []; 
-      resetToRetail(); updateCart();
+      activeAttendant = ""; 
+      document.getElementById("currentAttendantName").innerText = "None";
+      document.getElementById("loginOverlay").style.display = "flex"; 
+      cart = []; 
+      resetToRetail(); 
+      updateCart();
     }
 
     // --- 5. DEALER PRICING LOGIC ---
@@ -293,6 +292,7 @@
         document.getElementById("dealerSelect").value = "";
         resetToRetail();
       }
+      cart = [];
       updateCart();
     }
 
@@ -304,15 +304,12 @@
       } else {
         resetToRetail();
       }
-      // Clear cart when changing modes to prevent mixing retail and wholesale items
       cart = [];
       updateCart();
     }
 
     function applyDealerPricing(dealerKey) {
       const discount = taxExemptDealers[dealerKey].discountRate;
-      
-      // Calculate special pricing for this specific dealer
       activeServices = standardServices.map(service => {
         return {
           ...service,
@@ -320,7 +317,6 @@
           name: service.name + " (Dealer Rate)"
         };
       });
-
       document.getElementById("dealerBanner").style.display = "block";
       document.getElementById("activeDealerName").innerText = dealerKey;
       renderMenu();
@@ -400,7 +396,6 @@
         vehicleInfo: document.getElementById("vehicleInfo").value,
         notes: document.getElementById("orderNotes").value,
         attendant: activeAttendant,
-        // Send the formatted string "Name (Certificate ID)" to Google Sheets
         exemptDealer: isTaxExempt ? `${selectedDealer} (${taxExemptDealers[selectedDealer].id})` : "N/A"
       };
 
@@ -417,7 +412,7 @@
         document.getElementById("orderNotes").value = "";
         
         if(isTaxExempt) {
-          document.getElementById("taxExemptToggle").click(); // toggle off
+          document.getElementById("taxExemptToggle").click();
         }
         updateCart();
         
