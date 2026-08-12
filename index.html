@@ -41,7 +41,7 @@
     
     /* Header Area */
     .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-    .header-title { font-size: 32px; font-weight: 800; color: #111827; letter-spacing: -1px; background: linear-gradient(135deg, #111827, #374151); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .header-title { font-size: 32px; font-weight: 800; color: #111827; letter-spacing: -1px; background: linear-gradient(135deg, #111827, #374151); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; }
     .controls { display: flex; gap: 15px; align-items: center; }
     .location-select { padding: 12px 16px; font-size: 15px; border-radius: 12px; border: 1px solid #e5e7eb; background: #fff; font-weight: 600; color: #374151; outline: none; cursor: pointer; }
     .attendant-badge { background: #eff6ff; padding: 10px 18px; border-radius: 12px; font-weight: 600; font-size: 15px; color: #1e3a8a; display: flex; align-items: center; gap: 12px; border: 1px solid #bfdbfe; }
@@ -74,13 +74,13 @@
     .cart-footer { padding: 20px 24px; background: white; border-top: 1px solid #e5e7eb; }
     .input-field { width: 100%; padding: 12px 16px; margin-bottom: 10px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px; background: #f9fafb; outline: none; transition: 0.2s; }
     .input-field:focus { border-color: #3b82f6; background: white; box-shadow: 0 0 0 4px #eff6ff; }
-
+    
     /* Quick-Tap Color Badges */
     .color-badges { display: flex; gap: 8px; margin-bottom: 10px; overflow-x: auto; padding-bottom: 4px; }
     .color-badge { padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1px solid #d1d5db; background: white; color: #374151; white-space: nowrap; transition: 0.2s; display: flex; align-items: center; gap: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
     .color-badge:hover { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; }
     .color-badge:active { transform: scale(0.95); }
-    
+
     /* Toggle Switch */
     .tax-exempt-bar { display: flex; justify-content: space-between; align-items: center; background: #f3f4f6; padding: 12px 16px; border-radius: 10px; margin-bottom: 10px; font-size: 14px; font-weight: 600; color: #4b5563; }
     .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
@@ -148,7 +148,10 @@
 
   <div class="menu-section">
     <div class="header">
-      <h2 class="header-title">WashOS</h2>
+      <div style="display: flex; gap: 15px; align-items: center;">
+        <h2 class="header-title">WashOS</h2>
+        <button id="backBtn" style="display:none; background: #e5e7eb; color: #374151; border: none; padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;" onclick="clearVehicleType()">⬅ Back to Vehicles</button>
+      </div>
       <div class="controls">
         <select id="locationSelect" class="location-select">
           <option value="Location 1 - Tampa Bay">📍 Tampa Bay</option>
@@ -181,7 +184,7 @@
     <div class="cart-items" id="cartItems"></div>
 
     <div class="cart-footer">
-  <!-- Quick-Tap Colors -->
+      <!-- Quick-Tap Colors -->
       <div class="color-badges">
         <button class="color-badge" onclick="addColor('⚪️ White')">White</button>
         <button class="color-badge" onclick="addColor('⚫️ Black')">Black</button>
@@ -254,7 +257,7 @@
 
   <script>
     // --- 1. CONFIGURATION ---
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby7NcEyQG9ELtNt-YKjRXFIzemma-S8uAaA6PPvh8QUDgGX9VkGjBwqDLym6CWwEDgjHQ/exec"; // UPDATE THIS!
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/YOUR_SCRIPT_ID_HERE/exec"; // UPDATE THIS!
 
     const STATE_TAX_RATE = 0.06;
     const LOCAL_TAX_RATE = 0.015;
@@ -289,13 +292,19 @@
       }
     }
 
+    // A Plus Car Wash - Multi-Tier Pricing Logic 
     const standardServices = [
-      { id: 1, name: "Express Exterior", price: 15.00, desc: "Basic exterior wash, spot-free rinse & air dry." },
-      { id: 2, name: "Deluxe Wash", price: 25.00, desc: "Express wash + tire shine, wheel cleaner & underbody wash." },
-      { id: 3, name: "Ultimate Shine & Seal", price: 40.00, desc: "Deluxe wash + hot ceramic wax protection & rain repellant." },
-      { id: 4, name: "Interior Quick Clean", price: 30.00, desc: "Vacuum seats/mats, console wipe-down & window cleaning." },
-      { id: 5, name: "Full Detail Package", price: 85.00, desc: "Ultimate exterior wash + deep interior vacuum, shampoo & leather treatment." },
-      { id: 6, name: "Tire & Rim Shine", price: 8.00, desc: "Hand-applied tire dressing & brake dust cleaner." }
+      { id: 1, name: "Exterior", desc: "Outside hand wash, clean exterior windows, rims tire dressing.", prices: { "Car": 15, "SUV": 20, "Van/Large SUV": 25, "Truck": 25 } },
+      { id: 2, name: "Interior and Exterior", desc: "Outside hand wash, full vacuum, door jams, dashboard & console spray detailing, windows, perfume.", prices: { "Car": 20, "SUV": 25, "Van/Large SUV": 30, "Truck": 30 } },
+      { id: 3, name: "Deluxe", desc: "Interior and exterior with more detail, liquid wax, leather conditioner.", prices: { "Car": 30, "SUV": 40, "Van/Large SUV": 50, "Truck": 50 } },
+      { id: 4, name: "Speed Ceramic", desc: "Deluxe + Ceramic Spray Sealant, Meguiar's Ultimate, Microfiber Buff.", prices: { "Car": 50, "SUV": 60, "Van/Large SUV": 70, "Truck": 70 } },
+      { id: 5, name: "Ultimate Exterior", desc: "Deluxe, cream wax with orbital polisher, leather conditioner.", prices: { "Car": 70, "SUV": 80, "Van/Large SUV": 90, "Truck": 90 } },
+      { id: 6, name: "Engine Wash", desc: "Degreaser, steam clean, plastic dressing. Customer responsible if something happens.", prices: { "Car": 30, "SUV": 30, "Van/Large SUV": 30, "Truck": 30 } },
+      { id: 7, name: "Lights Restoration", desc: "Full restoration of foggy or yellowed headlights.", prices: { "Car": 40, "SUV": 40, "Van/Large SUV": 40, "Truck": 40 } },
+      { id: 8, name: "Clay Bar", desc: "Remove paint impurities.", prices: { "Car": 150, "SUV": 150, "Van/Large SUV": 150, "Truck": 150 } },
+      { id: 9, name: "Exterior and Shampoo", desc: "Ultimate exterior plus deep interior shampoo treatment.", prices: { "Car": 160, "SUV": 180, "Van/Large SUV": 200, "Truck": 200 } },
+      { id: 10, name: "Supreme", desc: "Ultimate exterior and shampoo, engine wash.", prices: { "Car": 180, "SUV": 200, "Van/Large SUV": 220, "Truck": 220 } },
+      { id: 11, name: "A Plus House Pack", desc: "Hand wash, compound, wax and nano sealant polish, lights restoration, shampoo & leather cond., engine wash.", prices: { "Car": 240, "SUV": 260, "Van/Large SUV": 280, "Truck": 280 } }
     ];
 
     // --- 3. STATE VARIABLES ---
@@ -304,7 +313,18 @@
     let activeAttendant = "";
     let isTaxExempt = false;
     let selectedDealer = null;
+    let selectedVehicleType = null;
     let activeServices = JSON.parse(JSON.stringify(standardServices));
+
+    // --- QUICK-TAP COLOR LOGIC ---
+    function addColor(colorStr) {
+      const input = document.getElementById("vehiclePlate");
+      if (input.value) {
+        input.value = colorStr + " " + input.value;
+      } else {
+        input.value = colorStr + " ";
+      }
+    }
 
     // --- 4. LOGIN LOGIC ---
     function addPin(num) {
@@ -338,6 +358,7 @@
       document.getElementById("currentAttendantName").innerText = "None";
       document.getElementById("loginOverlay").style.display = "flex"; 
       cart = []; 
+      selectedVehicleType = null;
       resetToRetail(); 
       updateCart();
     }
@@ -370,9 +391,13 @@
     function applyDealerPricing(dealerKey) {
       const discount = taxExemptDealers[dealerKey].discountRate;
       activeServices = standardServices.map(service => {
+        let newPrices = {};
+        for(let type in service.prices) {
+            newPrices[type] = service.prices[type] * (1 - discount);
+        }
         return {
           ...service,
-          price: service.price * (1 - discount),
+          prices: newPrices,
           name: service.name + " (Dealer Rate)"
         };
       });
@@ -388,17 +413,64 @@
       renderMenu();
     }
 
-    // --- 6. POS UI LOGIC ---
-    function renderMenu() {
-      const grid = document.getElementById("menuGrid");
-      grid.innerHTML = activeServices.map(item => `
-        <div class="card" onclick="addToCart(${item.id})">
-          <h3>${item.name}</h3><p>${item.desc}</p><div class="price">$${item.price.toFixed(2)}</div>
-        </div>
-      `).join('');
+    // --- 6. POS UI LOGIC (VEHICLE CATEGORIES & MENU) ---
+    function selectVehicleType(type) {
+      selectedVehicleType = type;
+      renderMenu();
     }
 
-    function addToCart(id) { cart.push(activeServices.find(s => s.id === id)); updateCart(); }
+    function clearVehicleType() {
+      selectedVehicleType = null;
+      renderMenu();
+    }
+
+    function renderMenu() {
+      const grid = document.getElementById("menuGrid");
+      const backBtn = document.getElementById("backBtn");
+
+      if (!selectedVehicleType) {
+        backBtn.style.display = "none";
+        grid.innerHTML = `
+          <div class="card" style="text-align:center; padding: 40px 20px;" onclick="selectVehicleType('Car')">
+            <div style="font-size: 50px; margin-bottom: 15px;">🚗</div>
+            <h3>Car</h3>
+          </div>
+          <div class="card" style="text-align:center; padding: 40px 20px;" onclick="selectVehicleType('SUV')">
+            <div style="font-size: 50px; margin-bottom: 15px;">🚙</div>
+            <h3>SUV</h3>
+          </div>
+          <div class="card" style="text-align:center; padding: 40px 20px;" onclick="selectVehicleType('Van/Large SUV')">
+            <div style="font-size: 50px; margin-bottom: 15px;">🚐</div>
+            <h3>Van / Large SUV</h3>
+          </div>
+          <div class="card" style="text-align:center; padding: 40px 20px;" onclick="selectVehicleType('Truck')">
+            <div style="font-size: 50px; margin-bottom: 15px;">🛻</div>
+            <h3>Truck</h3>
+          </div>
+        `;
+      } else {
+        backBtn.style.display = "inline-block";
+        grid.innerHTML = activeServices.map(item => `
+          <div class="card" onclick="addToCart(${item.id})">
+            <h3>${item.name}</h3><p>${item.desc}</p>
+            <div class="price">$${item.prices[selectedVehicleType].toFixed(2)}</div>
+          </div>
+        `).join('');
+      }
+    }
+
+    function addToCart(id) { 
+      const item = activeServices.find(s => s.id === id); 
+      // Push specific vehicle name and price into cart
+      const cartItem = {
+        id: item.id,
+        name: `${selectedVehicleType} - ${item.name}`,
+        price: item.prices[selectedVehicleType]
+      };
+      cart.push(cartItem); 
+      updateCart(); 
+    }
+    
     function removeFromCart(index) { cart.splice(index, 1); updateCart(); }
 
     function updateCart() {
@@ -406,7 +478,7 @@
       document.getElementById("itemCount").innerText = cart.length === 1 ? "1 item" : cart.length + " items";
       
       if (cart.length === 0) {
-        cartContainer.innerHTML = `<div style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #9ca3af; text-align: center;"><div style="font-size: 40px; margin-bottom: 10px;">🛒</div><p>Ticket is empty<br>Select a service to begin</p></div>`;
+        cartContainer.innerHTML = `<div style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #9ca3af; text-align: center;"><div style="font-size: 40px; margin-bottom: 10px;">🛒</div><p>Ticket is empty<br>Select a vehicle type to begin</p></div>`;
         document.getElementById("subtotalAmount").innerText = "$0.00";
         document.getElementById("taxAmount").innerText = "$0.00";
         document.getElementById("grandTotal").innerText = "$0.00";
@@ -429,18 +501,6 @@
       document.getElementById("grandTotal").innerText = `$${grandTotal.toFixed(2)}`;
     }
 
-    // --- QUICK-TAP COLOR LOGIC ---
-    function addColor(colorStr) {
-      const input = document.getElementById("vehiclePlate");
-      // If they already typed something, put the color in front of it
-      if (input.value) {
-        input.value = colorStr + " " + input.value;
-      } else {
-        input.value = colorStr + " ";
-      }
-      input.focus(); // Automatically brings up the keyboard/autocomplete
-    }
-    
     // --- 7. PAYMENT & SUBMISSION LOGIC ---
     function promptPayment() {
       if (cart.length === 0) return alert("Please add a service to the ticket first.");
@@ -481,7 +541,7 @@
         subtotal: subtotal,
         taxAmount: taxAmount,
         grandTotal: grandTotal,
-        vehicleInfo: combinedVehicle, // Uses the combined dropdown + text string
+        vehicleInfo: combinedVehicle,
         notes: document.getElementById("orderNotes").value,
         attendant: activeAttendant,
         exemptDealer: isTaxExempt ? `${selectedDealer} (${taxExemptDealers[selectedDealer].id})` : "N/A",
@@ -496,7 +556,9 @@
         });
         statusMsg.style.color = "#10b981"; statusMsg.innerText = "Order logged successfully!";
         
+        // Reset Everything
         cart = []; 
+        selectedVehicleType = null;
         document.getElementById("vehicleMake").value = ""; 
         document.getElementById("vehiclePlate").value = ""; 
         document.getElementById("orderNotes").value = "";
@@ -505,6 +567,7 @@
           document.getElementById("taxExemptToggle").click();
         }
         updateCart();
+        renderMenu(); // Return to the vehicle selection screen
         
         setTimeout(() => { statusMsg.innerText = ""; }, 3000);
       } catch (err) {
