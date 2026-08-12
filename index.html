@@ -424,6 +424,29 @@
       renderMenu();
     }
 
+    function addCustomItem() {
+      const nameInput = document.getElementById("customItemName");
+      const priceInput = document.getElementById("customItemPrice");
+      
+      const name = nameInput.value.trim();
+      const price = parseFloat(priceInput.value);
+      
+      if (!name || isNaN(price) || price < 0) {
+        alert("Please enter a valid description and price.");
+        return;
+      }
+      
+      cart.push({
+        id: 'custom-' + Date.now(),
+        name: "Custom - " + name,
+        price: price
+      });
+      
+      nameInput.value = "";
+      priceInput.value = "";
+      updateCart();
+    }
+
     function renderMenu() {
       const grid = document.getElementById("menuGrid");
       const backBtn = document.getElementById("backBtn");
@@ -446,6 +469,22 @@
           <div class="card" style="text-align:center; padding: 40px 20px;" onclick="selectVehicleType('Truck')">
             <div style="font-size: 50px; margin-bottom: 15px;">🛻</div>
             <h3>Truck</h3>
+          </div>
+          <div class="card" style="text-align:center; padding: 40px 20px;" onclick="selectVehicleType('Custom')">
+            <div style="font-size: 50px; margin-bottom: 15px;">✏️</div>
+            <h3>Custom Pricing</h3>
+          </div>
+        `;
+      } else if (selectedVehicleType === 'Custom') {
+        backBtn.style.display = "inline-block";
+        grid.innerHTML = `
+          <div style="grid-column: 1 / -1; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); text-align: center;">
+            <h3 style="margin-bottom: 20px; font-size: 22px;">Add Custom Item or Extra Service</h3>
+            <div style="max-width: 400px; margin: 0 auto;">
+              <input type="text" id="customItemName" class="input-field" placeholder="Description (e.g., Extra Floor Mats, Boat Wash)">
+              <input type="number" id="customItemPrice" class="input-field" placeholder="Price ($)" step="0.01" style="font-size: 20px; font-weight: bold;">
+              <button class="submit-btn" style="padding: 16px; margin-top: 15px;" onclick="addCustomItem()">ADD TO TICKET</button>
+            </div>
           </div>
         `;
       } else {
