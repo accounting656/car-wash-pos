@@ -25,15 +25,19 @@
     .num-btn:active { background: #2563eb; transform: scale(0.92); border-color: #2563eb; }
     #pinDisplay { font-size: 60px; letter-spacing: 20px; margin: 15px 0; height: 70px; color: #60a5fa; text-shadow: 0 0 20px rgba(96,165,250,0.4); }
     
-    /* Payment Method Modal Overlay */
-    #paymentModalOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17,24,39,0.7); backdrop-filter: blur(5px); z-index: 9998; display: none; align-items: center; justify-content: center; }
-    .payment-modal { background: white; width: 400px; border-radius: 24px; padding: 30px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); text-align: center; }
-    .payment-modal h2 { margin-bottom: 24px; font-size: 24px; color: #111827; font-weight: 800; }
-    .payment-btn { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; border: 2px solid #e5e7eb; background: white; color: #374151; transition: 0.2s; }
-    .payment-btn:hover { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; }
-    .payment-btn:active { transform: scale(0.98); }
-    .payment-cancel { background: #fee2e2; color: #b91c1c; border: none; margin-top: 10px; }
-    .payment-cancel:hover { background: #fca5a5; color: white; border-color: transparent; }
+    /* Modals */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17,24,39,0.7); backdrop-filter: blur(5px); z-index: 9998; display: none; align-items: center; justify-content: center; }
+    .modal-box { background: white; width: 400px; border-radius: 24px; padding: 30px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); text-align: center; }
+    .modal-box h2 { margin-bottom: 24px; font-size: 24px; color: #111827; font-weight: 800; }
+    .modal-btn { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; border: 2px solid #e5e7eb; background: white; color: #374151; transition: 0.2s; }
+    .modal-btn:hover { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; }
+    .modal-btn:active { transform: scale(0.98); }
+    .btn-cancel { background: #fee2e2; color: #b91c1c; border: none; margin-top: 10px; }
+    
+    .clock-in-btn { background: #10b981; color: white; border: none; }
+    .clock-in-btn:hover { background: #059669; color: white; }
+    .clock-out-btn { background: #f59e0b; color: white; border: none; }
+    .clock-out-btn:hover { background: #d97706; color: white; }
 
     /* Main Layout */
     .menu-section { flex: 1; padding: 30px 40px; overflow-y: auto; display: flex; flex-direction: column; }
@@ -45,7 +49,11 @@
     .controls { display: flex; gap: 15px; align-items: center; }
     .location-select { padding: 12px 16px; font-size: 15px; border-radius: 12px; border: 1px solid #e5e7eb; background: #fff; font-weight: 600; color: #374151; outline: none; cursor: pointer; }
     .attendant-badge { background: #eff6ff; padding: 10px 18px; border-radius: 12px; font-weight: 600; font-size: 15px; color: #1e3a8a; display: flex; align-items: center; gap: 12px; border: 1px solid #bfdbfe; }
-    .logout-btn { background: #fee2e2; color: #b91c1c; border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; }
+    
+    .header-btn { border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; transition: 0.2s; }
+    .logout-btn { background: #fee2e2; color: #b91c1c; }
+    .timeclock-btn { background: #e0e7ff; color: #4338ca; }
+    .timeclock-btn:hover { background: #c7d2fe; }
     
     /* Service Grid Cards */
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 24px; padding-bottom: 40px; }
@@ -75,13 +83,10 @@
     .input-field { width: 100%; padding: 12px 16px; margin-bottom: 10px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px; background: #f9fafb; outline: none; transition: 0.2s; }
     .input-field:focus { border-color: #3b82f6; background: white; box-shadow: 0 0 0 4px #eff6ff; }
     
-    /* Quick-Tap Color Badges */
     .color-badges { display: flex; gap: 8px; margin-bottom: 10px; overflow-x: auto; padding-bottom: 4px; }
-    .color-badge { padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1px solid #d1d5db; background: white; color: #374151; white-space: nowrap; transition: 0.2s; display: flex; align-items: center; gap: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .color-badge { padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1px solid #d1d5db; background: white; color: #374151; white-space: nowrap; transition: 0.2s; display: flex; align-items: center; gap: 6px; }
     .color-badge:hover { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; }
-    .color-badge:active { transform: scale(0.95); }
-
-    /* Toggle Switch */
+    
     .tax-exempt-bar { display: flex; justify-content: space-between; align-items: center; background: #f3f4f6; padding: 12px 16px; border-radius: 10px; margin-bottom: 10px; font-size: 14px; font-weight: 600; color: #4b5563; }
     .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
     .switch input { opacity: 0; width: 0; height: 0; }
@@ -135,25 +140,35 @@
   </div>
 
   <!-- PAYMENT METHOD MODAL -->
-  <div id="paymentModalOverlay">
-    <div class="payment-modal">
+  <div id="paymentModalOverlay" class="modal-overlay">
+    <div class="modal-box">
       <h2>Select Payment Method</h2>
-      <button class="payment-btn" onclick="processOrder('Cash')">💵 Cash</button>
-      <button class="payment-btn" onclick="processOrder('Credit Card')">💳 Credit Card</button>
-      <button class="payment-btn" onclick="processOrder('Check')">📝 Check</button>
-      <button class="payment-btn" onclick="processOrder('Pending')">⏳ Pending / Bill Later</button>
-      <button class="payment-btn payment-cancel" onclick="closePaymentModal()">Cancel</button>
+      <button class="modal-btn" onclick="processOrder('Cash')">💵 Cash</button>
+      <button class="modal-btn" onclick="processOrder('Credit Card')">💳 Credit Card</button>
+      <button class="modal-btn" onclick="processOrder('Check')">📝 Check</button>
+      <button class="modal-btn" onclick="processOrder('Pending')">⏳ Pending / Bill Later</button>
+      <button class="modal-btn btn-cancel" onclick="closeModals()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- TIMECLOCK MODAL -->
+  <div id="timeclockModalOverlay" class="modal-overlay">
+    <div class="modal-box">
+      <h2>Timeclock</h2>
+      <p style="margin-bottom: 20px; color: #4b5563;">Employee: <strong id="tcName" style="color: #111827;"></strong></p>
+      <button class="modal-btn clock-in-btn" onclick="logTimeclock('Clock In')">🟢 Clock In</button>
+      <button class="modal-btn clock-out-btn" onclick="logTimeclock('Clock Out')">🔴 Clock Out</button>
+      <button class="modal-btn btn-cancel" onclick="closeModals()">Cancel</button>
+      <div id="tcStatus" style="margin-top: 15px; font-weight: 600; font-size: 14px;"></div>
     </div>
   </div>
 
   <div class="menu-section">
     <div class="header">
       <div style="display: flex; gap: 15px; align-items: center;">
-        <!-- Car Wash Logo -->
         <img src="logo.png" alt="A+ Logo" style="height: 100px; border-radius: 8px; object-fit: contain;">
         <h2 class="header-title">A+ WashOS</h2>
-        
-        <button id="backBtn" style="display:none; background: #e5e7eb; color: #374151; border: none; padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;" onclick="clearVehicleType()">⬅ Back to Vehicles</button>
+        <button id="backBtn" style="display:none; background: #e5e7eb; color: #374151; border: none; padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;" onclick="clearVehicleType()">⬅ Back</button>
       </div>
       <div class="controls">
         <select id="locationSelect" class="location-select">
@@ -164,7 +179,10 @@
         </select>
         <div class="attendant-badge">
           👤 <span id="currentAttendantName">None</span>
-          <button class="logout-btn" onclick="logout()">Log Out</button>
+          <div style="display: flex; gap: 8px;">
+            <button class="header-btn timeclock-btn" onclick="openTimeclock()">🕒 Timeclock</button>
+            <button class="header-btn logout-btn" onclick="logout()">Log Out</button>
+          </div>
         </div>
       </div>
     </div>
@@ -187,7 +205,6 @@
     <div class="cart-items" id="cartItems"></div>
 
     <div class="cart-footer">
-      <!-- Quick-Tap Colors -->
       <div class="color-badges">
         <button class="color-badge" onclick="addColor('⚪️ White')">White</button>
         <button class="color-badge" onclick="addColor('⚫️ Black')">Black</button>
@@ -196,7 +213,6 @@
         <button class="color-badge" onclick="addColor('🔵 Blue')">Blue</button>
       </div>
 
-      <!-- Vehicle Dropdown & Plate -->
       <select id="vehicleMake" class="input-field" style="cursor: pointer;">
         <option value="">-- Select Vehicle Make --</option>
         <option value="Toyota">Toyota</option>
@@ -216,9 +232,6 @@
         <option value="Lexus">Lexus</option>
         <option value="Audi">Audi</option>
         <option value="Tesla">Tesla</option>
-        <option value="Mazda">Mazda</option>
-        <option value="Dodge">Dodge</option>
-        <option value="Chrysler">Chrysler</option>
         <option value="Other">Other...</option>
       </select>
       <input type="text" id="vehiclePlate" class="input-field" placeholder="🚗 License Plate (e.g. ABC-123)">
@@ -231,7 +244,6 @@
           <span class="slider"></span>
         </label>
       </div>
-      
       <div id="dealerSelectContainer">
         <select id="dealerSelect" class="dealer-select" onchange="handleDealerChange()">
           <option value="">-- Select Exempt Dealer --</option>
@@ -239,18 +251,9 @@
       </div>
       
       <div class="totals-breakdown">
-        <div class="total-line">
-          <span>Subtotal</span>
-          <span id="subtotalAmount">$0.00</span>
-        </div>
-        <div class="total-line">
-          <span>Tax (7.5%)</span>
-          <span id="taxAmount">$0.00</span>
-        </div>
-        <div class="total-box">
-          <span class="total-label">Total</span>
-          <span class="total-amount" id="grandTotal">$0.00</span>
-        </div>
+        <div class="total-line"><span>Subtotal</span><span id="subtotalAmount">$0.00</span></div>
+        <div class="total-line"><span>Tax (7.5%)</span><span id="taxAmount">$0.00</span></div>
+        <div class="total-box"><span class="total-label">Total</span><span class="total-amount" id="grandTotal">$0.00</span></div>
       </div>
       
       <button id="submitBtn" class="submit-btn" onclick="promptPayment()">RECORD SALE</button>
@@ -268,18 +271,13 @@
 
     const employees = { "1234": "Mike T.", "5555": "Sarah J.", "9999": "Manager Admin" };
 
-    // --- 2. DEALER DATA (DYNAMIC) ---
     let taxExemptDealers = {};
 
     async function loadDealers() {
       const dealerSelect = document.getElementById("dealerSelect");
-      dealerSelect.innerHTML = '<option value="">⏳ Syncing with Google Sheets...</option>';
-      dealerSelect.disabled = true;
-
       try {
         const response = await fetch(GOOGLE_SCRIPT_URL);
         taxExemptDealers = await response.json();
-        
         dealerSelect.innerHTML = '<option value="">-- Select Exempt Dealer --</option>';
         Object.keys(taxExemptDealers).forEach(dealerName => {
           const option = document.createElement("option");
@@ -288,29 +286,23 @@
           option.text = `${dealerName} (${taxExemptDealers[dealerName].id}) - ${discountPct}% off`;
           dealerSelect.add(option);
         });
-        dealerSelect.disabled = false;
-      } catch (error) {
-        console.error("Failed to load dealers:", error);
-        dealerSelect.innerHTML = '<option value="">❌ Error loading dealers. Check internet.</option>';
-      }
+      } catch (error) { console.error("Failed to load dealers"); }
     }
 
-    // A Plus Car Wash - Multi-Tier Pricing Logic 
     const standardServices = [
       { id: 1, name: "Exterior", desc: "Outside hand wash, clean exterior windows, rims tire dressing.", prices: { "Car": 15, "SUV": 20, "Van/Large SUV": 25, "Truck": 25 } },
       { id: 2, name: "Interior and Exterior", desc: "Outside hand wash, full vacuum, door jams, dashboard & console spray detailing, windows, perfume.", prices: { "Car": 20, "SUV": 25, "Van/Large SUV": 30, "Truck": 30 } },
       { id: 3, name: "Deluxe", desc: "Interior and exterior with more detail, liquid wax, leather conditioner.", prices: { "Car": 30, "SUV": 40, "Van/Large SUV": 50, "Truck": 50 } },
       { id: 4, name: "Speed Ceramic", desc: "Deluxe + Ceramic Spray Sealant, Meguiar's Ultimate, Microfiber Buff.", prices: { "Car": 50, "SUV": 60, "Van/Large SUV": 70, "Truck": 70 } },
       { id: 5, name: "Ultimate Exterior", desc: "Deluxe, cream wax with orbital polisher, leather conditioner.", prices: { "Car": 70, "SUV": 80, "Van/Large SUV": 90, "Truck": 90 } },
-      { id: 6, name: "Engine Wash", desc: "Degreaser, steam clean, plastic dressing. Customer responsible if something happens.", prices: { "Car": 30, "SUV": 30, "Van/Large SUV": 30, "Truck": 30 } },
+      { id: 6, name: "Engine Wash", desc: "Degreaser, steam clean, plastic dressing.", prices: { "Car": 30, "SUV": 30, "Van/Large SUV": 30, "Truck": 30 } },
       { id: 7, name: "Lights Restoration", desc: "Full restoration of foggy or yellowed headlights.", prices: { "Car": 40, "SUV": 40, "Van/Large SUV": 40, "Truck": 40 } },
       { id: 8, name: "Clay Bar", desc: "Remove paint impurities.", prices: { "Car": 150, "SUV": 150, "Van/Large SUV": 150, "Truck": 150 } },
       { id: 9, name: "Exterior and Shampoo", desc: "Ultimate exterior plus deep interior shampoo treatment.", prices: { "Car": 160, "SUV": 180, "Van/Large SUV": 200, "Truck": 200 } },
       { id: 10, name: "Supreme", desc: "Ultimate exterior and shampoo, engine wash.", prices: { "Car": 180, "SUV": 200, "Van/Large SUV": 220, "Truck": 220 } },
-      { id: 11, name: "A Plus House Pack", desc: "Hand wash, compound, wax and nano sealant polish, lights restoration, shampoo & leather cond., engine wash.", prices: { "Car": 240, "SUV": 260, "Van/Large SUV": 280, "Truck": 280 } }
+      { id: 11, name: "A Plus House Pack", desc: "Hand wash, compound, wax and nano sealant polish.", prices: { "Car": 240, "SUV": 260, "Van/Large SUV": 280, "Truck": 280 } }
     ];
 
-    // --- 3. STATE VARIABLES ---
     let cart = [];
     let enteredPin = "";
     let activeAttendant = "";
@@ -319,28 +311,19 @@
     let selectedVehicleType = null;
     let activeServices = JSON.parse(JSON.stringify(standardServices));
 
-    // --- QUICK-TAP COLOR LOGIC ---
     function addColor(colorStr) {
       const input = document.getElementById("vehiclePlate");
-      if (input.value) {
-        input.value = colorStr + " " + input.value;
-      } else {
-        input.value = colorStr + " ";
-      }
+      input.value = input.value ? colorStr + " " + input.value : colorStr + " ";
     }
 
-    // --- 4. LOGIN LOGIC ---
     function addPin(num) {
       if(enteredPin.length < 4) { 
-        enteredPin += num; 
-        document.getElementById("pinDisplay").innerText = "•".repeat(enteredPin.length); 
+        enteredPin += num; document.getElementById("pinDisplay").innerText = "•".repeat(enteredPin.length); 
       }
     }
     
     function clearPin() { 
-      enteredPin = ""; 
-      document.getElementById("pinDisplay").innerText = ""; 
-      document.getElementById("loginError").innerText = ""; 
+      enteredPin = ""; document.getElementById("pinDisplay").innerText = ""; document.getElementById("loginError").innerText = ""; 
     }
     
     function submitPin() {
@@ -350,59 +333,69 @@
         document.getElementById("loginOverlay").style.display = "none";
         clearPin();
       } else {
-        document.getElementById("loginError").innerText = "Invalid PIN - Try Again";
-        enteredPin = ""; 
-        document.getElementById("pinDisplay").innerText = "";
+        document.getElementById("loginError").innerText = "Invalid PIN";
+        clearPin();
       }
     }
     
     function logout() {
-      activeAttendant = ""; 
-      document.getElementById("currentAttendantName").innerText = "None";
-      document.getElementById("loginOverlay").style.display = "flex"; 
-      cart = []; 
-      selectedVehicleType = null;
-      resetToRetail(); 
-      updateCart();
+      activeAttendant = ""; document.getElementById("currentAttendantName").innerText = "None";
+      document.getElementById("loginOverlay").style.display = "flex"; cart = []; selectedVehicleType = null;
+      resetToRetail(); updateCart();
     }
 
-    // --- 5. DEALER PRICING LOGIC ---
+    // --- TIMECLOCK LOGIC ---
+    function openTimeclock() {
+      document.getElementById("tcName").innerText = activeAttendant;
+      document.getElementById("timeclockModalOverlay").style.display = "flex";
+    }
+
+    async function logTimeclock(actionType) {
+      const statusDiv = document.getElementById("tcStatus");
+      statusDiv.style.color = "#3b82f6";
+      statusDiv.innerText = "Recording punch...";
+      
+      const payload = {
+        recordType: "timeclock",
+        location: document.getElementById("locationSelect").value,
+        attendant: activeAttendant,
+        action: actionType
+      };
+
+      try {
+        await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST", mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        statusDiv.style.color = "#10b981";
+        statusDiv.innerText = `${actionType} recorded successfully!`;
+        setTimeout(() => { closeModals(); statusDiv.innerText = ""; }, 1500);
+      } catch (err) {
+        statusDiv.style.color = "#ef4444";
+        statusDiv.innerText = "Error. Check internet connection.";
+      }
+    }
+
     function toggleTaxExempt() {
       isTaxExempt = document.getElementById("taxExemptToggle").checked;
       document.getElementById("dealerSelectContainer").style.display = isTaxExempt ? "block" : "none";
-      
-      if (!isTaxExempt) {
-        document.getElementById("dealerSelect").value = "";
-        resetToRetail();
-      }
-      cart = [];
-      updateCart();
+      if (!isTaxExempt) { document.getElementById("dealerSelect").value = ""; resetToRetail(); }
+      cart = []; updateCart();
     }
 
     function handleDealerChange() {
       const dealerKey = document.getElementById("dealerSelect").value;
-      if (dealerKey && taxExemptDealers[dealerKey]) {
-        selectedDealer = dealerKey;
-        applyDealerPricing(dealerKey);
-      } else {
-        resetToRetail();
-      }
-      cart = [];
-      updateCart();
+      if (dealerKey && taxExemptDealers[dealerKey]) { selectedDealer = dealerKey; applyDealerPricing(dealerKey); } 
+      else { resetToRetail(); }
+      cart = []; updateCart();
     }
 
     function applyDealerPricing(dealerKey) {
       const discount = taxExemptDealers[dealerKey].discountRate;
       activeServices = standardServices.map(service => {
-        let newPrices = {};
-        for(let type in service.prices) {
-            newPrices[type] = service.prices[type] * (1 - discount);
-        }
-        return {
-          ...service,
-          prices: newPrices,
-          name: service.name + " (Dealer Rate)"
-        };
+        let newPrices = {}; for(let type in service.prices) newPrices[type] = service.prices[type] * (1 - discount);
+        return { ...service, prices: newPrices, name: service.name + " (Dealer Rate)" };
       });
       document.getElementById("dealerBanner").style.display = "block";
       document.getElementById("activeDealerName").innerText = dealerKey;
@@ -410,82 +403,41 @@
     }
 
     function resetToRetail() {
-      selectedDealer = null;
-      activeServices = JSON.parse(JSON.stringify(standardServices));
-      document.getElementById("dealerBanner").style.display = "none";
-      renderMenu();
+      selectedDealer = null; activeServices = JSON.parse(JSON.stringify(standardServices));
+      document.getElementById("dealerBanner").style.display = "none"; renderMenu();
     }
 
-    // --- 6. POS UI LOGIC (VEHICLE CATEGORIES & MENU) ---
-    function selectVehicleType(type) {
-      selectedVehicleType = type;
-      renderMenu();
-    }
-
-    function clearVehicleType() {
-      selectedVehicleType = null;
-      renderMenu();
-    }
+    function selectVehicleType(type) { selectedVehicleType = type; renderMenu(); }
+    function clearVehicleType() { selectedVehicleType = null; renderMenu(); }
 
     function addCustomItem() {
-      const nameInput = document.getElementById("customItemName");
-      const priceInput = document.getElementById("customItemPrice");
-      
-      const name = nameInput.value.trim();
-      const price = parseFloat(priceInput.value);
-      
-      if (!name || isNaN(price) || price < 0) {
-        alert("Please enter a valid description and price.");
-        return;
-      }
-      
-      cart.push({
-        id: 'custom-' + Date.now(),
-        name: "Custom - " + name,
-        price: price
-      });
-      
-      nameInput.value = "";
-      priceInput.value = "";
+      const name = document.getElementById("customItemName").value.trim();
+      const price = parseFloat(document.getElementById("customItemPrice").value);
+      if (!name || isNaN(price) || price < 0) return alert("Enter valid description and price.");
+      cart.push({ id: 'custom-' + Date.now(), name: "Custom - " + name, price: price });
+      document.getElementById("customItemName").value = ""; document.getElementById("customItemPrice").value = "";
       updateCart();
     }
 
     function renderMenu() {
-      const grid = document.getElementById("menuGrid");
-      const backBtn = document.getElementById("backBtn");
-
+      const grid = document.getElementById("menuGrid"); const backBtn = document.getElementById("backBtn");
       if (!selectedVehicleType) {
         backBtn.style.display = "none";
         grid.innerHTML = `
-          <div class="card" style="text-align:center; padding: 40px 20px;" onclick="selectVehicleType('Car')">
-            <div style="font-size: 50px; margin-bottom: 15px;">🚗</div>
-            <h3>Car</h3>
-          </div>
-          <div class="card" style="text-align:center; padding: 40px 20px;" onclick="selectVehicleType('SUV')">
-            <div style="font-size: 50px; margin-bottom: 15px;">🚙</div>
-            <h3>SUV</h3>
-          </div>
-          <div class="card" style="text-align:center; padding: 40px 20px;" onclick="selectVehicleType('Van/Large SUV')">
-            <div style="font-size: 50px; margin-bottom: 15px;">🚐</div>
-            <h3>Van / Large SUV</h3>
-          </div>
-          <div class="card" style="text-align:center; padding: 40px 20px;" onclick="selectVehicleType('Truck')">
-            <div style="font-size: 50px; margin-bottom: 15px;">🛻</div>
-            <h3>Truck</h3>
-          </div>
-          <div class="card" style="text-align:center; padding: 40px 20px;" onclick="selectVehicleType('Custom')">
-            <div style="font-size: 50px; margin-bottom: 15px;">✏️</div>
-            <h3>Custom Pricing</h3>
-          </div>
+          <div class="card" style="text-align:center; padding: 40px 20px;" onclick="selectVehicleType('Car')"><div style="font-size: 50px; margin-bottom: 15px;">🚗</div><h3>Car</h3></div>
+          <div class="card" style="text-align:center; padding: 40px 20px;" onclick="selectVehicleType('SUV')"><div style="font-size: 50px; margin-bottom: 15px;">🚙</div><h3>SUV</h3></div>
+          <div class="card" style="text-align:center; padding: 40px 20px;" onclick="selectVehicleType('Van/Large SUV')"><div style="font-size: 50px; margin-bottom: 15px;">🚐</div><h3>Van / Large SUV</h3></div>
+          <div class="card" style="text-align:center; padding: 40px 20px;" onclick="selectVehicleType('Truck')"><div style="font-size: 50px; margin-bottom: 15px;">🛻</div><h3>Truck</h3></div>
+          <div class="card" style="text-align:center; padding: 40px 20px;" onclick="selectVehicleType('Custom')"><div style="font-size: 50px; margin-bottom: 15px;">✏️</div><h3>Custom Pricing</h3></div>
         `;
       } else if (selectedVehicleType === 'Custom') {
         backBtn.style.display = "inline-block";
         grid.innerHTML = `
           <div style="grid-column: 1 / -1; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); text-align: center;">
-            <h3 style="margin-bottom: 20px; font-size: 22px;">Add Custom Item or Extra Service</h3>
+            <h3 style="margin-bottom: 20px; font-size: 22px;">Add Custom Item</h3>
             <div style="max-width: 400px; margin: 0 auto;">
-              <input type="text" id="customItemName" class="input-field" placeholder="Description (e.g., Extra Floor Mats, Boat Wash)">
-              <input type="number" id="customItemPrice" class="input-field" placeholder="Price ($)" step="0.01" style="font-size: 20px; font-weight: bold;">
+              <input type="text" id="customItemName" class="input-field" placeholder="Description (e.g., Boat Wash)">
+              <input type="number" id="customItemPrice" class="input-field" placeholder="Price ($)" step="0.01">
               <button class="submit-btn" style="padding: 16px; margin-top: 15px;" onclick="addCustomItem()">ADD TO TICKET</button>
             </div>
           </div>
@@ -494,8 +446,7 @@
         backBtn.style.display = "inline-block";
         grid.innerHTML = activeServices.map(item => `
           <div class="card" onclick="addToCart(${item.id})">
-            <h3>${item.name}</h3><p>${item.desc}</p>
-            <div class="price">$${item.prices[selectedVehicleType].toFixed(2)}</div>
+            <h3>${item.name}</h3><p>${item.desc}</p><div class="price">$${item.prices[selectedVehicleType].toFixed(2)}</div>
           </div>
         `).join('');
       }
@@ -503,14 +454,7 @@
 
     function addToCart(id) { 
       const item = activeServices.find(s => s.id === id); 
-      // Push specific vehicle name and price into cart
-      const cartItem = {
-        id: item.id,
-        name: `${selectedVehicleType} - ${item.name}`,
-        price: item.prices[selectedVehicleType]
-      };
-      cart.push(cartItem); 
-      updateCart(); 
+      cart.push({ id: item.id, name: `${selectedVehicleType} - ${item.name}`, price: item.prices[selectedVehicleType] }); updateCart(); 
     }
     
     function removeFromCart(index) { cart.splice(index, 1); updateCart(); }
@@ -520,10 +464,8 @@
       document.getElementById("itemCount").innerText = cart.length === 1 ? "1 item" : cart.length + " items";
       
       if (cart.length === 0) {
-        cartContainer.innerHTML = `<div style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #9ca3af; text-align: center;"><div style="font-size: 40px; margin-bottom: 10px;">🛒</div><p>Ticket is empty<br>Select a vehicle type to begin</p></div>`;
-        document.getElementById("subtotalAmount").innerText = "$0.00";
-        document.getElementById("taxAmount").innerText = "$0.00";
-        document.getElementById("grandTotal").innerText = "$0.00";
+        cartContainer.innerHTML = `<div style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #9ca3af; text-align: center;"><div style="font-size: 40px; margin-bottom: 10px;">🛒</div><p>Ticket is empty</p></div>`;
+        document.getElementById("subtotalAmount").innerText = "$0.00"; document.getElementById("taxAmount").innerText = "$0.00"; document.getElementById("grandTotal").innerText = "$0.00";
         return;
       }
       
@@ -543,47 +485,34 @@
       document.getElementById("grandTotal").innerText = `$${grandTotal.toFixed(2)}`;
     }
 
-    // --- 7. PAYMENT & SUBMISSION LOGIC ---
     function promptPayment() {
-      if (cart.length === 0) return alert("Please add a service to the ticket first.");
-      if (isTaxExempt && !selectedDealer) {
-        return alert("Please select a valid Dealer from the dropdown for tax-exempt transactions.");
-      }
-      
-      // Open the modal
+      if (cart.length === 0) return alert("Add a service first.");
+      if (isTaxExempt && !selectedDealer) return alert("Select an Exempt Dealer.");
       document.getElementById("paymentModalOverlay").style.display = "flex";
     }
     
-    function closePaymentModal() {
+    function closeModals() {
       document.getElementById("paymentModalOverlay").style.display = "none";
+      document.getElementById("timeclockModalOverlay").style.display = "none";
     }
 
     async function processOrder(selectedPaymentType) {
-      // Hide modal immediately
-      closePaymentModal();
-      
-      const submitBtn = document.getElementById("submitBtn");
-      const statusMsg = document.getElementById("statusMsg");
-      
-      submitBtn.disabled = true; submitBtn.innerText = "RECORDING...";
-      statusMsg.style.color = "#3b82f6"; statusMsg.innerText = "Sending to database...";
+      closeModals();
+      const submitBtn = document.getElementById("submitBtn"); const statusMsg = document.getElementById("statusMsg");
+      submitBtn.disabled = true; submitBtn.innerText = "RECORDING..."; statusMsg.style.color = "#3b82f6"; statusMsg.innerText = "Sending to database...";
 
       const subtotal = cart.reduce((sum, item) => sum + item.price, 0);
       const taxAmount = isTaxExempt ? 0 : (subtotal * TOTAL_TAX_RATE);
       const grandTotal = subtotal + taxAmount;
-
-      const make = document.getElementById("vehicleMake").value;
-      const plate = document.getElementById("vehiclePlate").value;
-      const combinedVehicle = (make || plate) ? `${make} ${plate}`.trim() : "N/A";
+      const make = document.getElementById("vehicleMake").value; const plate = document.getElementById("vehiclePlate").value;
 
       const payload = {
+        recordType: "sale",
         location: document.getElementById("locationSelect").value,
         orderId: "ORD-" + Math.floor(100000 + Math.random() * 900000),
         services: cart.map(item => item.name).join(", "),
-        subtotal: subtotal,
-        taxAmount: taxAmount,
-        grandTotal: grandTotal,
-        vehicleInfo: combinedVehicle,
+        subtotal: subtotal, taxAmount: taxAmount, grandTotal: grandTotal,
+        vehicleInfo: (make || plate) ? `${make} ${plate}`.trim() : "N/A",
         notes: document.getElementById("orderNotes").value,
         attendant: activeAttendant,
         exemptDealer: isTaxExempt ? `${selectedDealer} (${taxExemptDealers[selectedDealer].id})` : "N/A",
@@ -592,37 +521,18 @@
 
       try {
         await fetch(GOOGLE_SCRIPT_URL, {
-          method: "POST", mode: "no-cors",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
+          method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
         });
         statusMsg.style.color = "#10b981"; statusMsg.innerText = "Order logged successfully!";
-        
-        // Reset Everything
-        cart = []; 
-        selectedVehicleType = null;
-        document.getElementById("vehicleMake").value = ""; 
-        document.getElementById("vehiclePlate").value = ""; 
-        document.getElementById("orderNotes").value = "";
-        
-        if(isTaxExempt) {
-          document.getElementById("taxExemptToggle").click();
-        }
-        updateCart();
-        renderMenu(); // Return to the vehicle selection screen
-        
+        cart = []; selectedVehicleType = null; document.getElementById("vehicleMake").value = ""; document.getElementById("vehiclePlate").value = ""; document.getElementById("orderNotes").value = "";
+        if(isTaxExempt) document.getElementById("taxExemptToggle").click();
+        updateCart(); renderMenu(); 
         setTimeout(() => { statusMsg.innerText = ""; }, 3000);
-      } catch (err) {
-        statusMsg.style.color = "#ef4444"; statusMsg.innerText = "Network error. Try again.";
-      } finally {
-        submitBtn.disabled = false; submitBtn.innerText = "RECORD SALE";
-      }
+      } catch (err) { statusMsg.style.color = "#ef4444"; statusMsg.innerText = "Network error. Try again."; } 
+      finally { submitBtn.disabled = false; submitBtn.innerText = "RECORD SALE"; }
     }
 
-    // Initialize
-    renderMenu();
-    updateCart();
-    loadDealers();
+    renderMenu(); updateCart(); loadDealers();
   </script>
 </body>
 </html>
