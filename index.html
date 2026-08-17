@@ -269,24 +269,36 @@
     const LOCAL_TAX_RATE = 0.015;
     const TOTAL_TAX_RATE = STATE_TAX_RATE + LOCAL_TAX_RATE;
 
-    const employees = { "1234": "Mike T.", "5555": "Sarah J.", "9999": "Manager Admin" };
+    let employees = {};
 
     let taxExemptDealers = {};
 
-    async function loadDealers() {
+   async function loadAppData() {
       const dealerSelect = document.getElementById("dealerSelect");
       try {
         const response = await fetch(GOOGLE_SCRIPT_URL);
-        taxExemptDealers = await response.json();
-        dealerSelect.innerHTML = '<option value="">-- Select Exempt Dealer --</option>';
-        Object.keys(taxExemptDealers).forEach(dealerName => {
-          const option = document.createElement("option");
-          option.value = dealerName;
-          const discountPct = (taxExemptDealers[dealerName].discountRate * 100).toFixed(0);
-          option.text = `${dealerName} (${taxExemptDealers[dealerName].id}) - ${discountPct}% off`;
-          dealerSelect.add(option);
-        });
-      } catch (error) { console.error("Failed to load dealers"); }
+        const data = await response.json();
+        
+        // Load the Employees dynamically from the sheet
+        if (data.employees) {
+          employees = data.employees;
+        }
+
+        // Load the Dealers dynamically
+        if (data.dealers) {
+          taxExemptDealers = data.dealers;
+          dealerSelect.innerHTML = '<option value="">-- Select Exempt Dealer --</option>';
+          Object.keys(taxExemptDealers).forEach(dealerName => {
+            const option = document.createElement("option");
+            option.value = dealerName;
+            const discountPct = (taxExemptDealers[dealerName].discountRate * 100).toFixed(0);
+            option.text = `${dealerName} (${taxExemptDealers[dealerName].id}) - ${discountPct}% off`;
+            dealerSelect.add(option);
+          });
+        }
+      } catch (error) { 
+        console.error("Failed to load app data from Google Sheets."); 
+      }
     }
 
     const standardServices = [
