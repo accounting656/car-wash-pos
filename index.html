@@ -204,16 +204,14 @@
           <option value="Location 3 - South">📍 South</option>
           <option value="Location 4 - Armenia">📍 Armenia</option>
         </select>
+
         <div class="attendant-badge">
           👤 <span id="currentAttendantName">None</span>
-          <div style="display: flex; gap: 8px;">
-            <button class="header-btn promo-btn" onclick="openPromoModal()">🎁 Promos</button>
+          <div style="display: flex; gap: 10px;">
             <button class="header-btn timeclock-btn" onclick="openTimeclock()">🕒 Timeclock</button>
             <button class="header-btn logout-btn" onclick="logout()">Log Out</button>
           </div>
         </div>
-      </div>
-    </div>
     
     <div id="dealerBanner" class="dealer-banner">
       ⚠️ DEALER PRICING ACTIVE: Menus reflect negotiated rates for <span id="activeDealerName">Selected Dealer</span>
@@ -539,9 +537,7 @@
       updateCart();
     }
 
-    function renderMenu() {
-      const grid = document.getElementById("menuGrid"); const backBtn = document.getElementById("backBtn");
-      if (!selectedVehicleType) {
+if (!selectedVehicleType) {
         backBtn.style.display = "none";
         grid.innerHTML = `
           <div class="card" style="text-align:center; padding: 40px 20px;" onclick="selectVehicleType('Car')"><div style="font-size: 50px; margin-bottom: 15px;">🚗</div><h3>Car</h3></div>
@@ -549,6 +545,7 @@
           <div class="card" style="text-align:center; padding: 40px 20px;" onclick="selectVehicleType('Van/Large SUV')"><div style="font-size: 50px; margin-bottom: 15px;">🚐</div><h3>Van / Large SUV</h3></div>
           <div class="card" style="text-align:center; padding: 40px 20px;" onclick="selectVehicleType('Truck')"><div style="font-size: 50px; margin-bottom: 15px;">🛻</div><h3>Truck</h3></div>
           <div class="card" style="text-align:center; padding: 40px 20px;" onclick="selectVehicleType('Custom')"><div style="font-size: 50px; margin-bottom: 15px;">✏️</div><h3>Custom Pricing</h3></div>
+          <div class="card" style="text-align:center; padding: 40px 20px; background: #fdf4ff; border: 2px dashed #f0abfc;" onclick="openPromoModal()"><div style="font-size: 50px; margin-bottom: 15px;">🎁</div><h3 style="color: #a21caf;">Seasonal Promos</h3></div>
         `;
       } else if (selectedVehicleType === 'Custom') {
         backBtn.style.display = "inline-block";
