@@ -54,6 +54,8 @@
     .logout-btn { background: #fee2e2; color: #b91c1c; }
     .timeclock-btn { background: #e0e7ff; color: #4338ca; }
     .timeclock-btn:hover { background: #c7d2fe; }
+    .promo-btn { background: #fdf4ff; color: #a21caf; }
+    .promo-btn:hover { background: #fae8ff; }
     
     /* Service Grid Cards */
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 24px; padding-bottom: 40px; }
@@ -66,8 +68,9 @@
     .card p { color: #6b7280; font-size: 14px; line-height: 1.5; margin-bottom: 20px; flex-grow: 1; }
     .card .price { display: inline-block; background: #eff6ff; color: #2563eb; padding: 6px 14px; border-radius: 20px; font-size: 18px; font-weight: 700; align-self: flex-start; }
     
-    /* Dealer Mode Banner */
-    .dealer-banner { background: #fef08a; padding: 10px; border-radius: 12px; text-align: center; font-weight: 600; color: #854d0e; margin-bottom: 20px; display: none; }
+    /* Banners */
+    .dealer-banner { background: #fef08a; padding: 10px; border-radius: 12px; text-align: center; font-weight: 600; color: #854d0e; margin-bottom: 15px; display: none; }
+    .promo-banner { background: #ecfeff; padding: 10px; border-radius: 12px; text-align: center; font-weight: 600; color: #0e7490; margin-bottom: 20px; display: none; border: 1px solid #a5f3fc; }
 
     /* Cart / Receipt Sidebar */
     .cart-header { padding: 20px 24px; border-bottom: 1px solid #e5e7eb; background: #f9fafb; }
@@ -163,6 +166,30 @@
     </div>
   </div>
 
+  <!-- PROMO MODAL -->
+  <div id="promoModalOverlay" class="modal-overlay">
+    <div class="modal-box">
+      <h2>Seasonal Promotion</h2>
+      <p style="margin-bottom: 20px; color: #4b5563; font-size: 14px;">Discount will automatically apply to services $50 and up.</p>
+      
+      <select id="promoHoliday" class="input-field" style="margin-bottom: 15px; cursor: pointer;">
+        <option value="">-- Select Holiday --</option>
+        <option value="Christmas">🎄 Christmas</option>
+        <option value="Labor Day">🛠️ Labor Day</option>
+        <option value="4th of July">🎆 4th of July</option>
+        <option value="Veterans Day">🎖️ Veterans Day</option>
+        <option value="St. Valentines Day">❤️ St. Valentines Day</option>
+        <option value="Thanksgiving Week">🦃 Thanksgiving Week</option>
+      </select>
+      
+      <input type="number" id="promoPercent" class="input-field" placeholder="Discount % (e.g. 15)" style="margin-bottom: 25px;">
+      
+      <button class="modal-btn clock-in-btn" onclick="applyPromo()">Activate Promo</button>
+      <button class="modal-btn clock-out-btn" onclick="clearPromo()" style="margin-top: 0;">Turn Off Promo</button>
+      <button class="modal-btn btn-cancel" onclick="closeModals()">Cancel</button>
+    </div>
+  </div>
+
   <div class="menu-section">
     <div class="header">
       <div style="display: flex; gap: 15px; align-items: center;">
@@ -180,6 +207,7 @@
         <div class="attendant-badge">
           👤 <span id="currentAttendantName">None</span>
           <div style="display: flex; gap: 8px;">
+            <button class="header-btn promo-btn" onclick="openPromoModal()">🎁 Promos</button>
             <button class="header-btn timeclock-btn" onclick="openTimeclock()">🕒 Timeclock</button>
             <button class="header-btn logout-btn" onclick="logout()">Log Out</button>
           </div>
@@ -189,6 +217,10 @@
     
     <div id="dealerBanner" class="dealer-banner">
       ⚠️ DEALER PRICING ACTIVE: Menus reflect negotiated rates for <span id="activeDealerName">Selected Dealer</span>
+    </div>
+
+    <div id="promoBanner" class="promo-banner">
+      🎉 HOLIDAY PROMO ACTIVE: <span id="activePromoName">None</span>
     </div>
 
     <div class="grid" id="menuGrid"></div>
@@ -270,21 +302,18 @@
     const TOTAL_TAX_RATE = STATE_TAX_RATE + LOCAL_TAX_RATE;
 
     let employees = {};
-
     let taxExemptDealers = {};
 
-   async function loadAppData() {
+    async function loadAppData() {
       const dealerSelect = document.getElementById("dealerSelect");
       try {
         const response = await fetch(GOOGLE_SCRIPT_URL);
         const data = await response.json();
         
-        // Load the Employees dynamically from the sheet
         if (data.employees) {
           employees = data.employees;
         }
 
-        // Load the Dealers dynamically
         if (data.dealers) {
           taxExemptDealers = data.dealers;
           dealerSelect.innerHTML = '<option value="">-- Select Exempt Dealer --</option>';
@@ -318,16 +347,17 @@
     let cart = [];
     let enteredPin = "";
     let activeAttendant = "";
+    
+    // Pricing States
     let isTaxExempt = false;
     let selectedDealer = null;
+    let activePromo = null;
+    let promoDiscountPercent = 0;
+    
     let selectedVehicleType = null;
     let activeServices = JSON.parse(JSON.stringify(standardServices));
 
-    function addColor(colorStr) {
-      const input = document.getElementById("vehiclePlate");
-      input.value = input.value ? colorStr + " " + input.value : colorStr + " ";
-    }
-
+    // --- LOGIN LOGIC ---
     function addPin(num) {
       if(enteredPin.length < 4) { 
         enteredPin += num; document.getElementById("pinDisplay").innerText = "•".repeat(enteredPin.length); 
@@ -356,12 +386,28 @@
       resetToRetail(); updateCart();
     }
 
-    // --- TIMECLOCK LOGIC ---
+    function addColor(colorStr) {
+      const input = document.getElementById("vehiclePlate");
+      input.value = input.value ? colorStr + " " + input.value : colorStr + " ";
+    }
+
+    // --- MODAL CONTROLS ---
     function openTimeclock() {
       document.getElementById("tcName").innerText = activeAttendant;
       document.getElementById("timeclockModalOverlay").style.display = "flex";
     }
 
+    function openPromoModal() {
+      document.getElementById("promoModalOverlay").style.display = "flex";
+    }
+
+    function closeModals() {
+      document.getElementById("paymentModalOverlay").style.display = "none";
+      document.getElementById("timeclockModalOverlay").style.display = "none";
+      document.getElementById("promoModalOverlay").style.display = "none";
+    }
+
+    // --- TIMECLOCK LOGIC ---
     async function logTimeclock(actionType) {
       const statusDiv = document.getElementById("tcStatus");
       statusDiv.style.color = "#3b82f6";
@@ -389,36 +435,98 @@
       }
     }
 
+    // --- DYNAMIC PRICING LOGIC (DEALER & PROMOS) ---
     function toggleTaxExempt() {
       isTaxExempt = document.getElementById("taxExemptToggle").checked;
       document.getElementById("dealerSelectContainer").style.display = isTaxExempt ? "block" : "none";
-      if (!isTaxExempt) { document.getElementById("dealerSelect").value = ""; resetToRetail(); }
-      cart = []; updateCart();
+      if (!isTaxExempt) { document.getElementById("dealerSelect").value = ""; selectedDealer = null; }
+      cart = []; 
+      recalculatePricing();
+      updateCart();
     }
 
     function handleDealerChange() {
       const dealerKey = document.getElementById("dealerSelect").value;
-      if (dealerKey && taxExemptDealers[dealerKey]) { selectedDealer = dealerKey; applyDealerPricing(dealerKey); } 
-      else { resetToRetail(); }
-      cart = []; updateCart();
+      selectedDealer = (dealerKey && taxExemptDealers[dealerKey]) ? dealerKey : null;
+      cart = []; 
+      recalculatePricing();
+      updateCart();
     }
 
-    function applyDealerPricing(dealerKey) {
-      const discount = taxExemptDealers[dealerKey].discountRate;
-      activeServices = standardServices.map(service => {
-        let newPrices = {}; for(let type in service.prices) newPrices[type] = service.prices[type] * (1 - discount);
-        return { ...service, prices: newPrices, name: service.name + " (Dealer Rate)" };
-      });
-      document.getElementById("dealerBanner").style.display = "block";
-      document.getElementById("activeDealerName").innerText = dealerKey;
-      renderMenu();
+    function applyPromo() {
+      const holiday = document.getElementById("promoHoliday").value;
+      const pct = parseFloat(document.getElementById("promoPercent").value);
+
+      if (!holiday) return alert("Please select a holiday.");
+      if (isNaN(pct) || pct <= 0 || pct > 100) return alert("Please enter a valid discount percentage.");
+
+      activePromo = holiday;
+      promoDiscountPercent = pct;
+      cart = []; 
+      recalculatePricing();
+      updateCart();
+      closeModals();
+    }
+
+    function clearPromo() {
+      activePromo = null;
+      promoDiscountPercent = 0;
+      cart = [];
+      recalculatePricing();
+      updateCart();
+      closeModals();
     }
 
     function resetToRetail() {
-      selectedDealer = null; activeServices = JSON.parse(JSON.stringify(standardServices));
-      document.getElementById("dealerBanner").style.display = "none"; renderMenu();
+      selectedDealer = null; 
+      activePromo = null;
+      promoDiscountPercent = 0;
+      if (document.getElementById("taxExemptToggle").checked) document.getElementById("taxExemptToggle").click();
+      recalculatePricing();
     }
 
+    function recalculatePricing() {
+      const dDiscount = (selectedDealer && taxExemptDealers[selectedDealer]) ? taxExemptDealers[selectedDealer].discountRate : 0;
+      const pDiscount = activePromo ? (promoDiscountPercent / 100) : 0;
+
+      activeServices = standardServices.map(service => {
+        let newPrices = {};
+        let wasPromoApplied = false;
+        
+        for(let type in service.prices) {
+          let price = service.prices[type];
+          
+          // 1. Dealer discount applies to base rate
+          if (dDiscount > 0) price = price * (1 - dDiscount);
+          
+          // 2. Promo applies ONLY if original standard base price is $50 or more
+          if (pDiscount > 0 && service.prices[type] >= 50) {
+            price = price * (1 - pDiscount);
+            wasPromoApplied = true;
+          }
+          
+          newPrices[type] = price;
+        }
+
+        let newName = service.name;
+        if (dDiscount > 0) newName += " (Dealer)";
+        if (wasPromoApplied) newName += ` (${activePromo} Promo)`;
+
+        return { ...service, prices: newPrices, name: newName };
+      });
+
+      // Show/Hide Banners
+      document.getElementById("dealerBanner").style.display = dDiscount > 0 ? "block" : "none";
+      if(selectedDealer) document.getElementById("activeDealerName").innerText = selectedDealer;
+
+      document.getElementById("promoBanner").style.display = activePromo ? "block" : "none";
+      if(activePromo) document.getElementById("activePromoName").innerText = `${activePromo} (${promoDiscountPercent}% off $50+)`;
+
+      renderMenu();
+    }
+
+
+    // --- MENU NAVIGATION & CART LOGIC ---
     function selectVehicleType(type) { selectedVehicleType = type; renderMenu(); }
     function clearVehicleType() { selectedVehicleType = null; renderMenu(); }
 
@@ -497,15 +605,11 @@
       document.getElementById("grandTotal").innerText = `$${grandTotal.toFixed(2)}`;
     }
 
+    // --- CHECKOUT LOGIC ---
     function promptPayment() {
       if (cart.length === 0) return alert("Add a service first.");
       if (isTaxExempt && !selectedDealer) return alert("Select an Exempt Dealer.");
       document.getElementById("paymentModalOverlay").style.display = "flex";
-    }
-    
-    function closeModals() {
-      document.getElementById("paymentModalOverlay").style.display = "none";
-      document.getElementById("timeclockModalOverlay").style.display = "none";
     }
 
     async function processOrder(selectedPaymentType) {
@@ -537,14 +641,20 @@
         });
         statusMsg.style.color = "#10b981"; statusMsg.innerText = "Order logged successfully!";
         cart = []; selectedVehicleType = null; document.getElementById("vehicleMake").value = ""; document.getElementById("vehiclePlate").value = ""; document.getElementById("orderNotes").value = "";
+        
+        // Return toggle switch back to retail if it was flipped for that order
         if(isTaxExempt) document.getElementById("taxExemptToggle").click();
+        
         updateCart(); renderMenu(); 
         setTimeout(() => { statusMsg.innerText = ""; }, 3000);
       } catch (err) { statusMsg.style.color = "#ef4444"; statusMsg.innerText = "Network error. Try again."; } 
       finally { submitBtn.disabled = false; submitBtn.innerText = "RECORD SALE"; }
     }
 
-    renderMenu(); updateCart(); loadAppData();
+    // Initialize UI
+    renderMenu(); 
+    updateCart(); 
+    loadAppData();
   </script>
 </body>
 </html>
