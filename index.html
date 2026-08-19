@@ -367,13 +367,14 @@
     }
     
     function submitPin() {
-      if (employees[enteredPin]) {
-        activeAttendant = employees[enteredPin];
+      // Checks Google Sheets OR uses 9999 as a permanent Admin backup
+      if (employees[enteredPin] || enteredPin === "9999") {
+        activeAttendant = employees[enteredPin] || "Admin Override";
         document.getElementById("currentAttendantName").innerText = activeAttendant;
         document.getElementById("loginOverlay").style.display = "none";
         clearPin();
       } else {
-        document.getElementById("loginError").innerText = "Invalid PIN";
+        document.getElementById("loginError").innerText = "Invalid PIN - Check Connection";
         clearPin();
       }
     }
