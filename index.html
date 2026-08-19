@@ -13,19 +13,17 @@
   <title>Premium Car Wash POS</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-    
     * { box-sizing: border-box; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
     body { background: #f3f4f6; display: flex; height: 100vh; overflow: hidden; color: #1f2937; }
     
-    /* Login Screen Overlay */
     #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(17,24,39,0.95), rgba(31,41,55,0.95)); backdrop-filter: blur(10px); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
     #loginOverlay h1 { font-weight: 700; font-size: 28px; margin-bottom: 10px; color: #f9fafb; }
     .numpad { display: grid; grid-template-columns: repeat(3, 90px); gap: 24px; margin-top: 10px; }
     .num-btn { width: 90px; height: 90px; font-size: 32px; font-weight: 600; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: white; cursor: pointer; transition: all 0.15s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
     .num-btn:active { background: #2563eb; transform: scale(0.92); border-color: #2563eb; }
     #pinDisplay { font-size: 60px; letter-spacing: 20px; margin: 15px 0; height: 70px; color: #60a5fa; text-shadow: 0 0 20px rgba(96,165,250,0.4); }
+    #systemStatus { margin-top: 30px; font-size: 14px; color: #9ca3af; }
     
-    /* Modals */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17,24,39,0.7); backdrop-filter: blur(5px); z-index: 9998; display: none; align-items: center; justify-content: center; }
     .modal-box { background: white; width: 400px; border-radius: 24px; padding: 30px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); text-align: center; }
     .modal-box h2 { margin-bottom: 24px; font-size: 24px; color: #111827; font-weight: 800; }
@@ -39,11 +37,9 @@
     .clock-out-btn { background: #f59e0b; color: white; border: none; }
     .clock-out-btn:hover { background: #d97706; color: white; }
 
-    /* Main Layout */
     .menu-section { flex: 1; padding: 30px 40px; overflow-y: auto; display: flex; flex-direction: column; }
     .cart-section { width: 440px; background: #ffffff; margin: 20px 20px 20px 0; border-radius: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; border: 1px solid #f3f4f6; }
     
-    /* Header Area */
     .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
     .header-title { font-size: 32px; font-weight: 800; color: #111827; letter-spacing: -1px; background: linear-gradient(135deg, #111827, #374151); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; }
     .controls { display: flex; gap: 15px; align-items: center; }
@@ -54,10 +50,7 @@
     .logout-btn { background: #fee2e2; color: #b91c1c; }
     .timeclock-btn { background: #e0e7ff; color: #4338ca; }
     .timeclock-btn:hover { background: #c7d2fe; }
-    .promo-btn { background: #fdf4ff; color: #a21caf; }
-    .promo-btn:hover { background: #fae8ff; }
     
-    /* Service Grid Cards */
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 24px; padding-bottom: 40px; }
     .card { background: white; border-radius: 20px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); border: 2px solid transparent; display: flex; flex-direction: column; justify-content: space-between; height: 100%; position: relative; overflow: hidden; }
     .card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: #e5e7eb; transition: 0.3s; }
@@ -68,11 +61,9 @@
     .card p { color: #6b7280; font-size: 14px; line-height: 1.5; margin-bottom: 20px; flex-grow: 1; }
     .card .price { display: inline-block; background: #eff6ff; color: #2563eb; padding: 6px 14px; border-radius: 20px; font-size: 18px; font-weight: 700; align-self: flex-start; }
     
-    /* Banners */
     .dealer-banner { background: #fef08a; padding: 10px; border-radius: 12px; text-align: center; font-weight: 600; color: #854d0e; margin-bottom: 15px; display: none; }
     .promo-banner { background: #ecfeff; padding: 10px; border-radius: 12px; text-align: center; font-weight: 600; color: #0e7490; margin-bottom: 20px; display: none; border: 1px solid #a5f3fc; }
 
-    /* Cart / Receipt Sidebar */
     .cart-header { padding: 20px 24px; border-bottom: 1px solid #e5e7eb; background: #f9fafb; }
     .cart-title { font-size: 20px; font-weight: 700; color: #111827; display: flex; justify-content: space-between; align-items: center; }
     .cart-items { flex-grow: 1; overflow-y: auto; padding: 24px; }
@@ -81,14 +72,12 @@
     .cart-item-price { color: #6b7280; font-size: 14px; font-weight: 500; }
     .remove-btn { color: #ef4444; border: none; background: #fee2e2; width: 30px; height: 30px; border-radius: 50%; font-size: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
-    /* Cart Footer & Tax Settings */
     .cart-footer { padding: 20px 24px; background: white; border-top: 1px solid #e5e7eb; }
     .input-field { width: 100%; padding: 12px 16px; margin-bottom: 10px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px; background: #f9fafb; outline: none; transition: 0.2s; }
     .input-field:focus { border-color: #3b82f6; background: white; box-shadow: 0 0 0 4px #eff6ff; }
     
     .color-badges { display: flex; gap: 8px; margin-bottom: 10px; overflow-x: auto; padding-bottom: 4px; }
     .color-badge { padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1px solid #d1d5db; background: white; color: #374151; white-space: nowrap; transition: 0.2s; display: flex; align-items: center; gap: 6px; }
-    .color-badge:hover { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; }
     
     .tax-exempt-bar { display: flex; justify-content: space-between; align-items: center; background: #f3f4f6; padding: 12px 16px; border-radius: 10px; margin-bottom: 10px; font-size: 14px; font-weight: 600; color: #4b5563; }
     .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
@@ -101,7 +90,6 @@
     #dealerSelectContainer { display: none; margin-bottom: 10px; }
     .dealer-select { width: 100%; padding: 12px 16px; border: 1px solid #3b82f6; border-radius: 10px; background: #eff6ff; font-size: 14px; font-weight: 600; color: #1e3a8a; outline: none; cursor: pointer; }
 
-    /* Totals Breakdown */
     .totals-breakdown { margin: 15px 0; padding-top: 15px; border-top: 1px dashed #d1d5db; }
     .total-line { display: flex; justify-content: space-between; font-size: 14px; color: #6b7280; margin-bottom: 6px; font-weight: 500; }
     .total-box { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
@@ -109,13 +97,8 @@
     .total-amount { font-size: 28px; font-weight: 800; color: #111827; }
     
     .submit-btn { width: 100%; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 18px; font-size: 16px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.2s; box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3); }
-    .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -3px rgba(16, 185, 129, 0.4); }
-    .submit-btn:disabled { background: #9ca3af; box-shadow: none; cursor: not-allowed; transform: none; }
+    .submit-btn:disabled { background: #9ca3af; box-shadow: none; cursor: not-allowed; }
     .status-msg { margin-top: 10px; text-align: center; font-weight: 600; font-size: 13px; height: 18px; }
-
-    ::-webkit-scrollbar { width: 8px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
   </style>
 </head>
 <body>
@@ -140,9 +123,10 @@
       <button class="num-btn" onclick="addPin('0')">0</button>
       <button class="num-btn" style="background: rgba(16,185,129,0.2); color: #6ee7b7; border-color: rgba(16,185,129,0.4);" onclick="submitPin()">OK</button>
     </div>
+    <div id="systemStatus">🟢 System Initializing...</div>
   </div>
 
-  <!-- PAYMENT METHOD MODAL -->
+  <!-- PAYMENT MODAL -->
   <div id="paymentModalOverlay" class="modal-overlay">
     <div class="modal-box">
       <h2>Select Payment Method</h2>
@@ -171,7 +155,6 @@
     <div class="modal-box">
       <h2>Seasonal Promotion</h2>
       <p style="margin-bottom: 20px; color: #4b5563; font-size: 14px;">Discount will automatically apply to services $50 and up.</p>
-      
       <select id="promoHoliday" class="input-field" style="margin-bottom: 15px; cursor: pointer;">
         <option value="">-- Select Holiday --</option>
         <option value="Christmas">🎄 Christmas</option>
@@ -181,9 +164,7 @@
         <option value="St. Valentines Day">❤️ St. Valentines Day</option>
         <option value="Thanksgiving Week">🦃 Thanksgiving Week</option>
       </select>
-      
       <input type="number" id="promoPercent" class="input-field" placeholder="Discount % (e.g. 15)" style="margin-bottom: 25px;">
-      
       <button class="modal-btn clock-in-btn" onclick="applyPromo()">Activate Promo</button>
       <button class="modal-btn clock-out-btn" onclick="clearPromo()" style="margin-top: 0;">Turn Off Promo</button>
       <button class="modal-btn btn-cancel" onclick="closeModals()">Cancel</button>
@@ -204,23 +185,18 @@
           <option value="Location 3 - South">📍 South</option>
           <option value="Location 4 - Armenia">📍 Armenia</option>
         </select>
-
         <div class="attendant-badge">
           👤 <span id="currentAttendantName">None</span>
-          <div style="display: flex; gap: 10px;">
+          <div style="display: flex; gap: 8px;">
             <button class="header-btn timeclock-btn" onclick="openTimeclock()">🕒 Timeclock</button>
             <button class="header-btn logout-btn" onclick="logout()">Log Out</button>
           </div>
         </div>
+      </div>
+    </div>
     
-    <div id="dealerBanner" class="dealer-banner">
-      ⚠️ DEALER PRICING ACTIVE: Menus reflect negotiated rates for <span id="activeDealerName">Selected Dealer</span>
-    </div>
-
-    <div id="promoBanner" class="promo-banner">
-      🎉 HOLIDAY PROMO ACTIVE: <span id="activePromoName">None</span>
-    </div>
-
+    <div id="dealerBanner" class="dealer-banner">⚠️ DEALER PRICING ACTIVE: Menus reflect negotiated rates for <span id="activeDealerName">Selected Dealer</span></div>
+    <div id="promoBanner" class="promo-banner">🎉 HOLIDAY PROMO ACTIVE: <span id="activePromoName">None</span></div>
     <div class="grid" id="menuGrid"></div>
   </div>
 
@@ -231,7 +207,6 @@
         <span style="background: #e5e7eb; padding: 4px 10px; border-radius: 12px; font-size: 13px; color: #4b5563;" id="itemCount">0 items</span>
       </div>
     </div>
-    
     <div class="cart-items" id="cartItems"></div>
 
     <div class="cart-footer">
@@ -292,8 +267,8 @@
   </div>
 
   <script>
-    // --- 1. CONFIGURATION ---
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby7NcEyQG9ELtNt-YKjRXFIzemma-S8uAaA6PPvh8QUDgGX9VkGjBwqDLym6CWwEDgjHQ/exec"; // UPDATE THIS!
+    // --- 1. CONFIGURATION (REPLACE URL CAREFULLY, KEEP THE QUOTES!) ---
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby7NcEyQG9ELtNt-YKjRXFIzemma-S8uAaA6PPvh8QUDgGX9VkGjBwqDLym6CWwEDgjHQ/exec"; 
 
     const STATE_TAX_RATE = 0.06;
     const LOCAL_TAX_RATE = 0.015;
@@ -302,32 +277,17 @@
     let employees = {};
     let taxExemptDealers = {};
 
-    async function loadAppData() {
-      const dealerSelect = document.getElementById("dealerSelect");
-      try {
-        const response = await fetch(GOOGLE_SCRIPT_URL);
-        const data = await response.json();
-        
-        if (data.employees) {
-          employees = data.employees;
-        }
-
-        if (data.dealers) {
-          taxExemptDealers = data.dealers;
-          dealerSelect.innerHTML = '<option value="">-- Select Exempt Dealer --</option>';
-          Object.keys(taxExemptDealers).forEach(dealerName => {
-            const option = document.createElement("option");
-            option.value = dealerName;
-            const discountPct = (taxExemptDealers[dealerName].discountRate * 100).toFixed(0);
-            option.text = `${dealerName} (${taxExemptDealers[dealerName].id}) - ${discountPct}% off`;
-            dealerSelect.add(option);
-          });
-        }
-      } catch (error) { 
-        console.error("Failed to load app data from Google Sheets."); 
-      }
-    }
-
+    let cart = [];
+    let enteredPin = "";
+    let activeAttendant = "";
+    
+    let isTaxExempt = false;
+    let selectedDealer = null;
+    let activePromo = null;
+    let promoDiscountPercent = 0;
+    
+    let selectedVehicleType = null;
+    
     const standardServices = [
       { id: 1, name: "Exterior", desc: "Outside hand wash, clean exterior windows, rims tire dressing.", prices: { "Car": 15, "SUV": 20, "Van/Large SUV": 25, "Truck": 25 } },
       { id: 2, name: "Interior and Exterior", desc: "Outside hand wash, full vacuum, door jams, dashboard & console spray detailing, windows, perfume.", prices: { "Car": 20, "SUV": 25, "Van/Large SUV": 30, "Truck": 30 } },
@@ -341,24 +301,39 @@
       { id: 10, name: "Supreme", desc: "Ultimate exterior and shampoo, engine wash.", prices: { "Car": 180, "SUV": 200, "Van/Large SUV": 220, "Truck": 220 } },
       { id: 11, name: "A Plus House Pack", desc: "Hand wash, compound, wax and nano sealant polish.", prices: { "Car": 240, "SUV": 260, "Van/Large SUV": 280, "Truck": 280 } }
     ];
-
-    let cart = [];
-    let enteredPin = "";
-    let activeAttendant = "";
-    
-    // Pricing States
-    let isTaxExempt = false;
-    let selectedDealer = null;
-    let activePromo = null;
-    let promoDiscountPercent = 0;
-    
-    let selectedVehicleType = null;
     let activeServices = JSON.parse(JSON.stringify(standardServices));
 
-    // --- LOGIN LOGIC ---
+    // --- DATA LOADING & PIN ENTRY ---
+    async function loadAppData() {
+      const statusDiv = document.getElementById("systemStatus");
+      const dealerSelect = document.getElementById("dealerSelect");
+      try {
+        const response = await fetch(GOOGLE_SCRIPT_URL);
+        const data = await response.json();
+        
+        if (data.employees) { employees = data.employees; }
+        if (data.dealers) {
+          taxExemptDealers = data.dealers;
+          dealerSelect.innerHTML = '<option value="">-- Select Exempt Dealer --</option>';
+          Object.keys(taxExemptDealers).forEach(dealerName => {
+            const option = document.createElement("option");
+            option.value = dealerName;
+            const discountPct = (taxExemptDealers[dealerName].discountRate * 100).toFixed(0);
+            option.text = `${dealerName} (${taxExemptDealers[dealerName].id}) - ${discountPct}% off`;
+            dealerSelect.add(option);
+          });
+        }
+        statusDiv.innerText = "🟢 System Ready (PINs Loaded)";
+      } catch (error) { 
+        statusDiv.innerText = "⚠️ Network Issue (Use Admin PIN: 9999)";
+        console.error("Failed to load app data."); 
+      }
+    }
+
     function addPin(num) {
       if(enteredPin.length < 4) { 
-        enteredPin += num; document.getElementById("pinDisplay").innerText = "•".repeat(enteredPin.length); 
+        enteredPin += num; 
+        document.getElementById("pinDisplay").innerText = "•".repeat(enteredPin.length); 
       }
     }
     
@@ -367,14 +342,14 @@
     }
     
     function submitPin() {
-      // Checks Google Sheets OR uses 9999 as a permanent Admin backup
-      if (employees[enteredPin] || enteredPin === "9999") {
-        activeAttendant = employees[enteredPin] || "Admin Override";
+      // MASTER ADMIN PIN: 9999 (Works even if Google is down)
+      if (enteredPin === "9999" || (employees && employees[enteredPin])) {
+        activeAttendant = (employees && employees[enteredPin]) ? employees[enteredPin] : "Store Manager";
         document.getElementById("currentAttendantName").innerText = activeAttendant;
         document.getElementById("loginOverlay").style.display = "none";
         clearPin();
       } else {
-        document.getElementById("loginError").innerText = "Invalid PIN - Check Connection";
+        document.getElementById("loginError").innerText = "Invalid PIN";
         clearPin();
       }
     }
@@ -390,96 +365,47 @@
       input.value = input.value ? colorStr + " " + input.value : colorStr + " ";
     }
 
-    // --- MODAL CONTROLS ---
-    function openTimeclock() {
-      document.getElementById("tcName").innerText = activeAttendant;
-      document.getElementById("timeclockModalOverlay").style.display = "flex";
-    }
+    // --- MODALS & TIMECLOCK ---
+    function openTimeclock() { document.getElementById("tcName").innerText = activeAttendant; document.getElementById("timeclockModalOverlay").style.display = "flex"; }
+    function openPromoModal() { document.getElementById("promoModalOverlay").style.display = "flex"; }
+    function closeModals() { document.getElementById("paymentModalOverlay").style.display = "none"; document.getElementById("timeclockModalOverlay").style.display = "none"; document.getElementById("promoModalOverlay").style.display = "none"; }
 
-    function openPromoModal() {
-      document.getElementById("promoModalOverlay").style.display = "flex";
-    }
-
-    function closeModals() {
-      document.getElementById("paymentModalOverlay").style.display = "none";
-      document.getElementById("timeclockModalOverlay").style.display = "none";
-      document.getElementById("promoModalOverlay").style.display = "none";
-    }
-
-    // --- TIMECLOCK LOGIC ---
     async function logTimeclock(actionType) {
       const statusDiv = document.getElementById("tcStatus");
-      statusDiv.style.color = "#3b82f6";
-      statusDiv.innerText = "Recording punch...";
+      statusDiv.style.color = "#3b82f6"; statusDiv.innerText = "Recording punch...";
       
-      const payload = {
-        recordType: "timeclock",
-        location: document.getElementById("locationSelect").value,
-        attendant: activeAttendant,
-        action: actionType
-      };
-
+      const payload = { recordType: "timeclock", location: document.getElementById("locationSelect").value, attendant: activeAttendant, action: actionType };
       try {
-        await fetch(GOOGLE_SCRIPT_URL, {
-          method: "POST", mode: "no-cors",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-        statusDiv.style.color = "#10b981";
-        statusDiv.innerText = `${actionType} recorded successfully!`;
+        await fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+        statusDiv.style.color = "#10b981"; statusDiv.innerText = `${actionType} recorded!`;
         setTimeout(() => { closeModals(); statusDiv.innerText = ""; }, 1500);
-      } catch (err) {
-        statusDiv.style.color = "#ef4444";
-        statusDiv.innerText = "Error. Check internet connection.";
-      }
+      } catch (err) { statusDiv.style.color = "#ef4444"; statusMsg.innerText = "Error."; }
     }
 
-    // --- DYNAMIC PRICING LOGIC (DEALER & PROMOS) ---
+    // --- PRICING & MENU ---
     function toggleTaxExempt() {
       isTaxExempt = document.getElementById("taxExemptToggle").checked;
       document.getElementById("dealerSelectContainer").style.display = isTaxExempt ? "block" : "none";
       if (!isTaxExempt) { document.getElementById("dealerSelect").value = ""; selectedDealer = null; }
-      cart = []; 
-      recalculatePricing();
-      updateCart();
+      cart = []; recalculatePricing(); updateCart();
     }
 
     function handleDealerChange() {
       const dealerKey = document.getElementById("dealerSelect").value;
       selectedDealer = (dealerKey && taxExemptDealers[dealerKey]) ? dealerKey : null;
-      cart = []; 
-      recalculatePricing();
-      updateCart();
+      cart = []; recalculatePricing(); updateCart();
     }
 
     function applyPromo() {
-      const holiday = document.getElementById("promoHoliday").value;
-      const pct = parseFloat(document.getElementById("promoPercent").value);
-
-      if (!holiday) return alert("Please select a holiday.");
-      if (isNaN(pct) || pct <= 0 || pct > 100) return alert("Please enter a valid discount percentage.");
-
-      activePromo = holiday;
-      promoDiscountPercent = pct;
-      cart = []; 
-      recalculatePricing();
-      updateCart();
-      closeModals();
+      const holiday = document.getElementById("promoHoliday").value; const pct = parseFloat(document.getElementById("promoPercent").value);
+      if (!holiday || isNaN(pct) || pct <= 0 || pct > 100) return alert("Enter valid details.");
+      activePromo = holiday; promoDiscountPercent = pct; cart = []; recalculatePricing(); updateCart(); closeModals();
     }
 
-    function clearPromo() {
-      activePromo = null;
-      promoDiscountPercent = 0;
-      cart = [];
-      recalculatePricing();
-      updateCart();
-      closeModals();
-    }
+    function clearPromo() { activePromo = null; promoDiscountPercent = 0; cart = []; recalculatePricing(); updateCart(); closeModals(); }
 
     function resetToRetail() {
-      selectedDealer = null; 
-      activePromo = null;
-      promoDiscountPercent = 0;
+      selectedDealer = null; activePromo = null; promoDiscountPercent = 0;
       if (document.getElementById("taxExemptToggle").checked) document.getElementById("taxExemptToggle").click();
       recalculatePricing();
     }
@@ -489,56 +415,38 @@
       const pDiscount = activePromo ? (promoDiscountPercent / 100) : 0;
 
       activeServices = standardServices.map(service => {
-        let newPrices = {};
-        let wasPromoApplied = false;
-        
+        let newPrices = {}; let wasPromoApplied = false;
         for(let type in service.prices) {
           let price = service.prices[type];
-          
-          // 1. Dealer discount applies to base rate
           if (dDiscount > 0) price = price * (1 - dDiscount);
-          
-          // 2. Promo applies ONLY if original standard base price is $50 or more
-          if (pDiscount > 0 && service.prices[type] >= 50) {
-            price = price * (1 - pDiscount);
-            wasPromoApplied = true;
-          }
-          
+          if (pDiscount > 0 && service.prices[type] >= 50) { price = price * (1 - pDiscount); wasPromoApplied = true; }
           newPrices[type] = price;
         }
-
         let newName = service.name;
         if (dDiscount > 0) newName += " (Dealer)";
         if (wasPromoApplied) newName += ` (${activePromo} Promo)`;
-
         return { ...service, prices: newPrices, name: newName };
       });
-
-      // Show/Hide Banners
       document.getElementById("dealerBanner").style.display = dDiscount > 0 ? "block" : "none";
       if(selectedDealer) document.getElementById("activeDealerName").innerText = selectedDealer;
-
       document.getElementById("promoBanner").style.display = activePromo ? "block" : "none";
-      if(activePromo) document.getElementById("activePromoName").innerText = `${activePromo} (${promoDiscountPercent}% off $50+)`;
-
+      if(activePromo) document.getElementById("activePromoName").innerText = `${activePromo} (${promoDiscountPercent}% off)`;
       renderMenu();
     }
 
-
-    // --- MENU NAVIGATION & CART LOGIC ---
     function selectVehicleType(type) { selectedVehicleType = type; renderMenu(); }
     function clearVehicleType() { selectedVehicleType = null; renderMenu(); }
 
     function addCustomItem() {
-      const name = document.getElementById("customItemName").value.trim();
-      const price = parseFloat(document.getElementById("customItemPrice").value);
-      if (!name || isNaN(price) || price < 0) return alert("Enter valid description and price.");
+      const name = document.getElementById("customItemName").value.trim(); const price = parseFloat(document.getElementById("customItemPrice").value);
+      if (!name || isNaN(price) || price < 0) return alert("Enter valid data.");
       cart.push({ id: 'custom-' + Date.now(), name: "Custom - " + name, price: price });
-      document.getElementById("customItemName").value = ""; document.getElementById("customItemPrice").value = "";
-      updateCart();
+      document.getElementById("customItemName").value = ""; document.getElementById("customItemPrice").value = ""; updateCart();
     }
 
-if (!selectedVehicleType) {
+    function renderMenu() {
+      const grid = document.getElementById("menuGrid"); const backBtn = document.getElementById("backBtn");
+      if (!selectedVehicleType) {
         backBtn.style.display = "none";
         grid.innerHTML = `
           <div class="card" style="text-align:center; padding: 40px 20px;" onclick="selectVehicleType('Car')"><div style="font-size: 50px; margin-bottom: 15px;">🚗</div><h3>Car</h3></div>
@@ -570,40 +478,20 @@ if (!selectedVehicleType) {
       }
     }
 
-    function addToCart(id) { 
-      const item = activeServices.find(s => s.id === id); 
-      cart.push({ id: item.id, name: `${selectedVehicleType} - ${item.name}`, price: item.prices[selectedVehicleType] }); updateCart(); 
-    }
-    
+    function addToCart(id) { const item = activeServices.find(s => s.id === id); cart.push({ id: item.id, name: `${selectedVehicleType} - ${item.name}`, price: item.prices[selectedVehicleType] }); updateCart(); }
     function removeFromCart(index) { cart.splice(index, 1); updateCart(); }
 
     function updateCart() {
-      const cartContainer = document.getElementById("cartItems");
-      document.getElementById("itemCount").innerText = cart.length === 1 ? "1 item" : cart.length + " items";
-      
+      const cartContainer = document.getElementById("cartItems"); document.getElementById("itemCount").innerText = cart.length === 1 ? "1 item" : cart.length + " items";
       if (cart.length === 0) {
         cartContainer.innerHTML = `<div style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #9ca3af; text-align: center;"><div style="font-size: 40px; margin-bottom: 10px;">🛒</div><p>Ticket is empty</p></div>`;
-        document.getElementById("subtotalAmount").innerText = "$0.00"; document.getElementById("taxAmount").innerText = "$0.00"; document.getElementById("grandTotal").innerText = "$0.00";
-        return;
+        document.getElementById("subtotalAmount").innerText = "$0.00"; document.getElementById("taxAmount").innerText = "$0.00"; document.getElementById("grandTotal").innerText = "$0.00"; return;
       }
-      
-      cartContainer.innerHTML = cart.map((item, index) => `
-        <div class="cart-item">
-          <div><div class="cart-item-name">${item.name}</div><div class="cart-item-price">$${item.price.toFixed(2)}</div></div>
-          <button class="remove-btn" onclick="removeFromCart(${index})">×</button>
-        </div>
-      `).join('');
-      
-      const subtotal = cart.reduce((sum, item) => sum + item.price, 0);
-      const taxAmount = isTaxExempt ? 0 : (subtotal * TOTAL_TAX_RATE);
-      const grandTotal = subtotal + taxAmount;
-
-      document.getElementById("subtotalAmount").innerText = `$${subtotal.toFixed(2)}`;
-      document.getElementById("taxAmount").innerText = isTaxExempt ? "$0.00 (Exempt)" : `$${taxAmount.toFixed(2)}`;
-      document.getElementById("grandTotal").innerText = `$${grandTotal.toFixed(2)}`;
+      cartContainer.innerHTML = cart.map((item, index) => `<div class="cart-item"><div><div class="cart-item-name">${item.name}</div><div class="cart-item-price">$${item.price.toFixed(2)}</div></div><button class="remove-btn" onclick="removeFromCart(${index})">×</button></div>`).join('');
+      const subtotal = cart.reduce((sum, item) => sum + item.price, 0); const taxAmount = isTaxExempt ? 0 : (subtotal * TOTAL_TAX_RATE); const grandTotal = subtotal + taxAmount;
+      document.getElementById("subtotalAmount").innerText = `$${subtotal.toFixed(2)}`; document.getElementById("taxAmount").innerText = isTaxExempt ? "$0.00 (Exempt)" : `$${taxAmount.toFixed(2)}`; document.getElementById("grandTotal").innerText = `$${grandTotal.toFixed(2)}`;
     }
 
-    // --- CHECKOUT LOGIC ---
     function promptPayment() {
       if (cart.length === 0) return alert("Add a service first.");
       if (isTaxExempt && !selectedDealer) return alert("Select an Exempt Dealer.");
@@ -611,48 +499,28 @@ if (!selectedVehicleType) {
     }
 
     async function processOrder(selectedPaymentType) {
-      closeModals();
-      const submitBtn = document.getElementById("submitBtn"); const statusMsg = document.getElementById("statusMsg");
+      closeModals(); const submitBtn = document.getElementById("submitBtn"); const statusMsg = document.getElementById("statusMsg");
       submitBtn.disabled = true; submitBtn.innerText = "RECORDING..."; statusMsg.style.color = "#3b82f6"; statusMsg.innerText = "Sending to database...";
-
-      const subtotal = cart.reduce((sum, item) => sum + item.price, 0);
-      const taxAmount = isTaxExempt ? 0 : (subtotal * TOTAL_TAX_RATE);
-      const grandTotal = subtotal + taxAmount;
+      const subtotal = cart.reduce((sum, item) => sum + item.price, 0); const taxAmount = isTaxExempt ? 0 : (subtotal * TOTAL_TAX_RATE); const grandTotal = subtotal + taxAmount;
       const make = document.getElementById("vehicleMake").value; const plate = document.getElementById("vehiclePlate").value;
-
       const payload = {
-        recordType: "sale",
-        location: document.getElementById("locationSelect").value,
-        orderId: "ORD-" + Math.floor(100000 + Math.random() * 900000),
-        services: cart.map(item => item.name).join(", "),
-        subtotal: subtotal, taxAmount: taxAmount, grandTotal: grandTotal,
-        vehicleInfo: (make || plate) ? `${make} ${plate}`.trim() : "N/A",
-        notes: document.getElementById("orderNotes").value,
-        attendant: activeAttendant,
-        exemptDealer: isTaxExempt ? `${selectedDealer} (${taxExemptDealers[selectedDealer].id})` : "N/A",
-        paymentType: selectedPaymentType
+        recordType: "sale", location: document.getElementById("locationSelect").value, orderId: "ORD-" + Math.floor(100000 + Math.random() * 900000),
+        services: cart.map(item => item.name).join(", "), subtotal: subtotal, taxAmount: taxAmount, grandTotal: grandTotal,
+        vehicleInfo: (make || plate) ? `${make} ${plate}`.trim() : "N/A", notes: document.getElementById("orderNotes").value, attendant: activeAttendant,
+        exemptDealer: isTaxExempt ? `${selectedDealer} (${taxExemptDealers[selectedDealer].id})` : "N/A", paymentType: selectedPaymentType
       };
-
       try {
-        await fetch(GOOGLE_SCRIPT_URL, {
-          method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
-        });
+        await fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
         statusMsg.style.color = "#10b981"; statusMsg.innerText = "Order logged successfully!";
         cart = []; selectedVehicleType = null; document.getElementById("vehicleMake").value = ""; document.getElementById("vehiclePlate").value = ""; document.getElementById("orderNotes").value = "";
-        
-        // Return toggle switch back to retail if it was flipped for that order
         if(isTaxExempt) document.getElementById("taxExemptToggle").click();
-        
-        updateCart(); renderMenu(); 
-        setTimeout(() => { statusMsg.innerText = ""; }, 3000);
+        updateCart(); renderMenu(); setTimeout(() => { statusMsg.innerText = ""; }, 3000);
       } catch (err) { statusMsg.style.color = "#ef4444"; statusMsg.innerText = "Network error. Try again."; } 
       finally { submitBtn.disabled = false; submitBtn.innerText = "RECORD SALE"; }
     }
 
     // Initialize UI
-    renderMenu(); 
-    updateCart(); 
-    loadAppData();
+    renderMenu(); updateCart(); loadAppData();
   </script>
 </body>
 </html>
