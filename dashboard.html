@@ -16,6 +16,7 @@
     .numpad { display: grid; grid-template-columns: repeat(3, 80px); gap: 15px; }
     .num-btn { width: 80px; height: 80px; font-size: 28px; font-weight: 600; border-radius: 50%; border: 1px solid #374151; background: #1f2937; color: white; cursor: pointer; }
     .num-btn:active { background: #3b82f6; }
+    #systemStatus { margin-top: 25px; font-size: 13px; color: #9ca3af; }
     
     /* App Header */
     .header { background: #111827; color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
@@ -52,10 +53,10 @@
 </head>
 <body>
 
-  <!-- ADMIN LOCK SCREEN -->
+  <!-- LOGIN SCREEN -->
   <div id="loginOverlay">
-    <h1>Manager Access</h1>
-    <div style="font-size: 14px; color: #9ca3af;">Enter Admin PIN</div>
+    <h1>Dashboard Access</h1>
+    <div style="font-size: 14px; color: #9ca3af;">Enter Employee or Admin PIN</div>
     <div id="pinDisplay"></div>
     <div id="loginError" style="color: #fca5a5; height: 20px; font-weight: 600;"></div>
     
@@ -73,12 +74,13 @@
       <button class="num-btn" onclick="addPin('0')">0</button>
       <button class="num-btn" style="background: #10b981; border-color: #059669;" onclick="submitPin()">OK</button>
     </div>
+    <div id="systemStatus">🟢 Loading Roster...</div>
   </div>
 
   <div id="loadingOverlay"><div class="spinner"></div>Syncing Live Data...</div>
 
   <div class="header">
-    <h2>WashOS Live</h2>
+    <h2 id="headerGreeting">WashOS Live</h2>
     <button class="refresh-btn" onclick="fetchDashboardData()">🔄 Refresh</button>
   </div>
 
@@ -101,9 +103,25 @@
 
   <script>
     // === 1. CONFIGURATION ===
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby7NcEyQG9ELtNt-YKjRXFIzemma-S8uAaA6PPvh8QUDgGX9VkGjBwqDLym6CWwEDgjHQ/exec"; 
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby7NcEyQG9ELtNt-YKjRXFIzemma-S8uAaA6PPvh8QUDgGX9VkGjBwqDLym6CWwEDgjHQ/exec"; // REPLACE THIS
+    const ADMIN_PIN = "3589"; // REPLACE WITH YOUR PREFERRED MANAGER PIN
     
     let enteredPin = "";
+    let employees = {};
+    let isAdmin = false;
+
+    // === LOAD EMPLOYEE PINS ON STARTUP ===
+    async function loadAppPins() {
+      const statusDiv = document.getElementById("systemStatus");
+      try {
+        const response = await fetch(GOOGLE_SCRIPT_URL);
+        const data = await response.json();
+        if (data.employees) { employees = data.employees; }
+        statusDiv.innerText = "🟢 System Ready";
+      } catch (e) {
+        statusDiv.innerText = "⚠️ Network Issue (Admin PIN still works)";
+      }
+    }
 
     // === LOGIN ===
     function addPin(num) {
@@ -112,14 +130,26 @@
         document.getElementById("pinDisplay").innerText = "•".repeat(enteredPin.length); 
       }
     }
-    function clearPin() { enteredPin = ""; document.getElementById("pinDisplay").innerText = ""; document.getElementById("loginError").innerText = ""; }
+    
+    function clearPin() { 
+      enteredPin = ""; 
+      document.getElementById("pinDisplay").innerText = ""; 
+      document.getElementById("loginError").innerText = ""; 
+    }
     
     function submitPin() {
-      if (enteredPin === "3985") {
+      if (enteredPin === ADMIN_PIN) {
+        isAdmin = true;
+        document.getElementById("headerGreeting").innerText = "Manager Dashboard";
+        document.getElementById("loginOverlay").style.display = "none";
+        fetchDashboardData();
+      } else if (employees[enteredPin]) {
+        isAdmin = false;
+        document.getElementById("headerGreeting").innerText = "Employee View";
         document.getElementById("loginOverlay").style.display = "none";
         fetchDashboardData();
       } else {
-        document.getElementById("loginError").innerText = "Access Denied";
+        document.getElementById("loginError").innerText = "Invalid PIN";
         clearPin();
       }
     }
@@ -132,8 +162,8 @@
         const response = await fetch(GOOGLE_SCRIPT_URL + "?action=getDashboardData");
         const data = await response.json();
         
-        // Update Global
-        document.getElementById("globalSales").innerText = "$" + data.totalSales.toFixed(2);
+        // Update Global Stats (Masked if not admin)
+        document.getElementById("globalSales").innerText = isAdmin ? "$" + data.totalSales.toFixed(2) : "****";
         document.getElementById("globalCars").innerText = data.totalCars;
 
         // Build Locations
@@ -161,13 +191,16 @@
             }).join('');
           }
 
+          // Format the Location Sales Badge (Masked if not admin)
+          const locSalesDisplay = isAdmin ? `$${locData.sales.toFixed(2)}` : '****';
+
           container.innerHTML += `
             <div class="loc-card">
               <div class="loc-header">
                 <h3>${loc.replace('Location ', '').replace(' - ', ' ')}</h3>
                 <div class="loc-metrics">
                   <span class="loc-metric">🚗 ${locData.cars}</span>
-                  <span class="loc-metric" style="background: #d1fae5; color: #065f46;">$${locData.sales.toFixed(2)}</span>
+                  <span class="loc-metric" style="background: #d1fae5; color: #065f46;">${locSalesDisplay}</span>
                 </div>
               </div>
               <div class="feed">${txHTML}</div>
@@ -180,6 +213,9 @@
         document.getElementById("loadingOverlay").style.display = "none";
       }
     }
+
+    // Start loading PINs immediately
+    loadAppPins();
   </script>
 </body>
 </html>
