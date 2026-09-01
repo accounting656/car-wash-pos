@@ -79,8 +79,11 @@
 
   <div id="loadingOverlay"><div class="spinner"></div>Syncing Live Data...</div>
 
-  <div class="header">
-    <h2 id="headerGreeting">WashOS Live</h2>
+<div class="header">
+    <div style="display: flex; gap: 15px; align-items: center;">
+      <button class="refresh-btn" style="background: #374151; padding: 8px 12px;" onclick="window.location.href='index.html'">⬅ POS</button>
+      <h2 id="headerGreeting">WashOS Live</h2>
+    </div>
     <button class="refresh-btn" onclick="fetchDashboardData()">🔄 Refresh</button>
   </div>
 
