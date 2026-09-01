@@ -342,7 +342,7 @@
         }
         statusDiv.innerText = "🟢 System Ready (PINs Loaded)";
       } catch (error) { 
-        statusDiv.innerText = "⚠️ Network Issue (Use Admin PIN: 9999)";
+        statusDiv.innerText = "⚠️ Network Issue (Use Admin PIN: 3589)";
         console.error("Failed to load app data."); 
       }
     }
@@ -359,8 +359,8 @@
     }
     
     function submitPin() {
-      if (enteredPin === "9999" || (employees && employees[enteredPin])) {
-        if (enteredPin === "9999") {
+      if (enteredPin === "3589" || (employees && employees[enteredPin])) {
+        if (enteredPin === "3589") {
           activeAttendant = "Store Manager";
           document.getElementById("locationSelect").disabled = false;
           document.getElementById("locationSelect").style.borderColor = "#3b82f6";
