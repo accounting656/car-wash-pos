@@ -332,7 +332,7 @@
         }
         statusDiv.innerText = "🟢 System Ready (PINs Loaded)";
       } catch (error) { 
-        statusDiv.innerText = "⚠️ Network Issue (Use Admin PIN: 9999)";
+        statusDiv.innerText = "⚠️ Network Issue (Use Admin PIN: 3589)";
         console.error("Failed to load app data."); 
       }
     }
@@ -350,10 +350,10 @@
     
     function submitPin() {
       // MASTER ADMIN PIN: 9999
-      if (enteredPin === "9999" || (employees && employees[enteredPin])) {
+      if (enteredPin === "3589" || (employees && employees[enteredPin])) {
         
         // Check if Admin or Employee
-        if (enteredPin === "9999") {
+        if (enteredPin === "3589") {
           activeAttendant = "Store Manager";
           // UNLOCK THE LOCATION DROPDOWN FOR ADMIN
           document.getElementById("locationSelect").disabled = false;
