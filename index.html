@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Wash POS">
@@ -37,6 +37,10 @@
     .clock-out-btn { background: #f59e0b; color: white; border: none; }
     .clock-out-btn:hover { background: #d97706; color: white; }
 
+    /* Square Loading Spinner */
+    .spinner { border: 4px solid #e5e7eb; border-top: 4px solid #3b82f6; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 20px auto; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
     .menu-section { flex: 1; padding: 30px 40px; overflow-y: auto; display: flex; flex-direction: column; }
     .cart-section { width: 440px; background: #ffffff; margin: 20px 20px 20px 0; border-radius: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; border: 1px solid #f3f4f6; }
     
@@ -44,7 +48,6 @@
     .header-title { font-size: 32px; font-weight: 800; color: #111827; letter-spacing: -1px; background: linear-gradient(135deg, #111827, #374151); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; }
     .controls { display: flex; gap: 15px; align-items: center; }
     
-    /* NEW: Styles for the locked vs unlocked dropdown */
     .location-select { padding: 12px 16px; font-size: 15px; border-radius: 12px; border: 1px solid #e5e7eb; background: #fff; font-weight: 700; color: #111827; outline: none; cursor: pointer; transition: 0.2s; }
     .location-select:disabled { background: #f3f4f6; color: #6b7280; cursor: not-allowed; opacity: 1; border-color: #d1d5db; }
     
@@ -78,10 +81,9 @@
 
     .cart-footer { padding: 20px 24px; background: white; border-top: 1px solid #e5e7eb; }
     .input-field { width: 100%; padding: 12px 16px; margin-bottom: 10px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px; background: #f9fafb; outline: none; transition: 0.2s; }
-    .input-field:focus { border-color: #3b82f6; background: white; box-shadow: 0 0 0 4px #eff6ff; }
     
     .color-badges { display: flex; gap: 8px; margin-bottom: 10px; overflow-x: auto; padding-bottom: 4px; }
-    .color-badge { padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1px solid #d1d5db; background: white; color: #374151; white-space: nowrap; transition: 0.2s; display: flex; align-items: center; gap: 6px; }
+    .color-badge { padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1px solid #d1d5db; background: white; color: #374151; white-space: nowrap; }
     
     .tax-exempt-bar { display: flex; justify-content: space-between; align-items: center; background: #f3f4f6; padding: 12px 16px; border-radius: 10px; margin-bottom: 10px; font-size: 14px; font-weight: 600; color: #4b5563; }
     .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
@@ -92,7 +94,7 @@
     input:checked + .slider:before { transform: translateX(20px); }
     
     #dealerSelectContainer { display: none; margin-bottom: 10px; }
-    .dealer-select { width: 100%; padding: 12px 16px; border: 1px solid #3b82f6; border-radius: 10px; background: #eff6ff; font-size: 14px; font-weight: 600; color: #1e3a8a; outline: none; cursor: pointer; }
+    .dealer-select { width: 100%; padding: 12px 16px; border: 1px solid #3b82f6; border-radius: 10px; background: #eff6ff; font-size: 14px; font-weight: 600; color: #1e3a8a; outline: none; }
 
     .totals-breakdown { margin: 15px 0; padding-top: 15px; border-top: 1px dashed #d1d5db; }
     .total-line { display: flex; justify-content: space-between; font-size: 14px; color: #6b7280; margin-bottom: 6px; font-weight: 500; }
@@ -100,7 +102,7 @@
     .total-label { font-size: 18px; font-weight: 700; color: #111827; }
     .total-amount { font-size: 28px; font-weight: 800; color: #111827; }
     
-    .submit-btn { width: 100%; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 18px; font-size: 16px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.2s; box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3); }
+    .submit-btn { width: 100%; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 18px; font-size: 16px; border-radius: 12px; font-weight: 700; cursor: pointer; box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3); }
     .submit-btn:disabled { background: #9ca3af; box-shadow: none; cursor: not-allowed; }
     .status-msg { margin-top: 10px; text-align: center; font-weight: 600; font-size: 13px; height: 18px; }
   </style>
@@ -139,6 +141,15 @@
       <button class="modal-btn" onclick="processOrder('Check')">📝 Check</button>
       <button class="modal-btn" onclick="processOrder('Pending')">⏳ Pending / Bill Later</button>
       <button class="modal-btn btn-cancel" onclick="closeModals()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- SQUARE TERMINAL WAITING MODAL (NEW) -->
+  <div id="squareModalOverlay" class="modal-overlay">
+    <div class="modal-box">
+      <div class="spinner"></div>
+      <h2>Sending to Terminal...</h2>
+      <p style="color: #4b5563; font-size: 14px; margin-bottom: 20px;">Please ask the customer to tap, insert, or swipe on the Square reader.</p>
     </div>
   </div>
 
@@ -183,7 +194,6 @@
         <button id="backBtn" style="display:none; background: #e5e7eb; color: #374151; border: none; padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;" onclick="clearVehicleType()">⬅ Back</button>
       </div>
       <div class="controls">
-        <!-- THE LOCKED DROPDOWN -->
         <select id="locationSelect" class="location-select" disabled onchange="saveTabletLocation()">
           <option value="Location 1 - Tampa Bay">📍 Tampa Bay</option>
           <option value="Location 2 - Columbus">📍 Columbus</option>
@@ -191,7 +201,7 @@
           <option value="Location 4 - Armenia">📍 Armenia</option>
         </select>
         
-       <div class="attendant-badge">
+        <div class="attendant-badge">
           👤 <span id="currentAttendantName">None</span>
           <div style="display: flex; gap: 8px;">
             <button class="header-btn" style="background: #e0f2fe; color: #0369a1;" onclick="window.open('dashboard.html', '_blank')">📊 Dashboard</button>
@@ -332,7 +342,7 @@
         }
         statusDiv.innerText = "🟢 System Ready (PINs Loaded)";
       } catch (error) { 
-        statusDiv.innerText = "⚠️ Network Issue (Use Admin PIN: 3589)";
+        statusDiv.innerText = "⚠️ Network Issue (Use Admin PIN: 9999)";
         console.error("Failed to load app data."); 
       }
     }
@@ -349,24 +359,18 @@
     }
     
     function submitPin() {
-      // MASTER ADMIN PIN: 9999
-      if (enteredPin === "3589" || (employees && employees[enteredPin])) {
-        
-        // Check if Admin or Employee
-        if (enteredPin === "3589") {
+      if (enteredPin === "9999" || (employees && employees[enteredPin])) {
+        if (enteredPin === "9999") {
           activeAttendant = "Store Manager";
-          // UNLOCK THE LOCATION DROPDOWN FOR ADMIN
           document.getElementById("locationSelect").disabled = false;
           document.getElementById("locationSelect").style.borderColor = "#3b82f6";
           document.getElementById("locationSelect").style.borderWidth = "2px";
         } else {
           activeAttendant = employees[enteredPin];
-          // KEEP IT LOCKED FOR NORMAL EMPLOYEES
           document.getElementById("locationSelect").disabled = true;
           document.getElementById("locationSelect").style.borderColor = "#e5e7eb";
           document.getElementById("locationSelect").style.borderWidth = "1px";
         }
-
         document.getElementById("currentAttendantName").innerText = activeAttendant;
         document.getElementById("loginOverlay").style.display = "none";
         clearPin();
@@ -380,46 +384,25 @@
       activeAttendant = ""; 
       document.getElementById("currentAttendantName").innerText = "None";
       document.getElementById("loginOverlay").style.display = "flex"; 
-      cart = []; 
-      selectedVehicleType = null;
-      
-      // RELOCK THE DROPDOWN ON LOGOUT
+      cart = []; selectedVehicleType = null;
       document.getElementById("locationSelect").disabled = true;
       document.getElementById("locationSelect").style.borderColor = "#e5e7eb";
       document.getElementById("locationSelect").style.borderWidth = "1px";
-      
-      resetToRetail(); 
-      updateCart();
+      resetToRetail(); updateCart();
     }
 
-    // --- TABLET MEMORY LOGIC ---
-    function saveTabletLocation() {
-      // Saves the dropdown choice to the iPad's internal memory
-      localStorage.setItem("washos_location", document.getElementById("locationSelect").value);
-    }
-
-    function loadTabletLocation() {
-      // Checks memory on startup
-      const savedLoc = localStorage.getItem("washos_location");
-      if(savedLoc) {
-        document.getElementById("locationSelect").value = savedLoc;
-      }
-    }
-
-    function addColor(colorStr) {
-      const input = document.getElementById("vehiclePlate");
-      input.value = input.value ? colorStr + " " + input.value : colorStr + " ";
-    }
+    function saveTabletLocation() { localStorage.setItem("washos_location", document.getElementById("locationSelect").value); }
+    function loadTabletLocation() { const savedLoc = localStorage.getItem("washos_location"); if(savedLoc) { document.getElementById("locationSelect").value = savedLoc; } }
+    function addColor(colorStr) { const input = document.getElementById("vehiclePlate"); input.value = input.value ? colorStr + " " + input.value : colorStr + " "; }
 
     // --- MODALS & TIMECLOCK ---
     function openTimeclock() { document.getElementById("tcName").innerText = activeAttendant; document.getElementById("timeclockModalOverlay").style.display = "flex"; }
     function openPromoModal() { document.getElementById("promoModalOverlay").style.display = "flex"; }
-    function closeModals() { document.getElementById("paymentModalOverlay").style.display = "none"; document.getElementById("timeclockModalOverlay").style.display = "none"; document.getElementById("promoModalOverlay").style.display = "none"; }
+    function closeModals() { document.getElementById("paymentModalOverlay").style.display = "none"; document.getElementById("timeclockModalOverlay").style.display = "none"; document.getElementById("promoModalOverlay").style.display = "none"; document.getElementById("squareModalOverlay").style.display = "none"; }
 
     async function logTimeclock(actionType) {
       const statusDiv = document.getElementById("tcStatus");
       statusDiv.style.color = "#3b82f6"; statusDiv.innerText = "Recording punch...";
-      
       const payload = { recordType: "timeclock", location: document.getElementById("locationSelect").value, attendant: activeAttendant, action: actionType };
       try {
         await fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
@@ -429,37 +412,15 @@
     }
 
     // --- PRICING & MENU ---
-    function toggleTaxExempt() {
-      isTaxExempt = document.getElementById("taxExemptToggle").checked;
-      document.getElementById("dealerSelectContainer").style.display = isTaxExempt ? "block" : "none";
-      if (!isTaxExempt) { document.getElementById("dealerSelect").value = ""; selectedDealer = null; }
-      cart = []; recalculatePricing(); updateCart();
-    }
-
-    function handleDealerChange() {
-      const dealerKey = document.getElementById("dealerSelect").value;
-      selectedDealer = (dealerKey && taxExemptDealers[dealerKey]) ? dealerKey : null;
-      cart = []; recalculatePricing(); updateCart();
-    }
-
-    function applyPromo() {
-      const holiday = document.getElementById("promoHoliday").value; const pct = parseFloat(document.getElementById("promoPercent").value);
-      if (!holiday || isNaN(pct) || pct <= 0 || pct > 100) return alert("Enter valid details.");
-      activePromo = holiday; promoDiscountPercent = pct; cart = []; recalculatePricing(); updateCart(); closeModals();
-    }
-
+    function toggleTaxExempt() { isTaxExempt = document.getElementById("taxExemptToggle").checked; document.getElementById("dealerSelectContainer").style.display = isTaxExempt ? "block" : "none"; if (!isTaxExempt) { document.getElementById("dealerSelect").value = ""; selectedDealer = null; } cart = []; recalculatePricing(); updateCart(); }
+    function handleDealerChange() { const dealerKey = document.getElementById("dealerSelect").value; selectedDealer = (dealerKey && taxExemptDealers[dealerKey]) ? dealerKey : null; cart = []; recalculatePricing(); updateCart(); }
+    function applyPromo() { const holiday = document.getElementById("promoHoliday").value; const pct = parseFloat(document.getElementById("promoPercent").value); if (!holiday || isNaN(pct) || pct <= 0 || pct > 100) return alert("Enter valid details."); activePromo = holiday; promoDiscountPercent = pct; cart = []; recalculatePricing(); updateCart(); closeModals(); }
     function clearPromo() { activePromo = null; promoDiscountPercent = 0; cart = []; recalculatePricing(); updateCart(); closeModals(); }
-
-    function resetToRetail() {
-      selectedDealer = null; activePromo = null; promoDiscountPercent = 0;
-      if (document.getElementById("taxExemptToggle").checked) document.getElementById("taxExemptToggle").click();
-      recalculatePricing();
-    }
+    function resetToRetail() { selectedDealer = null; activePromo = null; promoDiscountPercent = 0; if (document.getElementById("taxExemptToggle").checked) document.getElementById("taxExemptToggle").click(); recalculatePricing(); }
 
     function recalculatePricing() {
       const dDiscount = (selectedDealer && taxExemptDealers[selectedDealer]) ? taxExemptDealers[selectedDealer].discountRate : 0;
       const pDiscount = activePromo ? (promoDiscountPercent / 100) : 0;
-
       activeServices = standardServices.map(service => {
         let newPrices = {}; let wasPromoApplied = false;
         for(let type in service.prices) {
@@ -544,29 +505,70 @@
       document.getElementById("paymentModalOverlay").style.display = "flex";
     }
 
+    // --- SQUARE INTEGRATION LOGIC ---
     async function processOrder(selectedPaymentType) {
-      closeModals(); const submitBtn = document.getElementById("submitBtn"); const statusMsg = document.getElementById("statusMsg");
-      submitBtn.disabled = true; submitBtn.innerText = "RECORDING..."; statusMsg.style.color = "#3b82f6"; statusMsg.innerText = "Sending to database...";
-      const subtotal = cart.reduce((sum, item) => sum + item.price, 0); const taxAmount = isTaxExempt ? 0 : (subtotal * TOTAL_TAX_RATE); const grandTotal = subtotal + taxAmount;
-      const make = document.getElementById("vehicleMake").value; const plate = document.getElementById("vehiclePlate").value;
+      closeModals(); 
+      const submitBtn = document.getElementById("submitBtn"); 
+      const statusMsg = document.getElementById("statusMsg");
+      
+      submitBtn.disabled = true; 
+      
+      const subtotal = cart.reduce((sum, item) => sum + item.price, 0); 
+      const taxAmount = isTaxExempt ? 0 : (subtotal * TOTAL_TAX_RATE); 
+      const grandTotal = subtotal + taxAmount;
+      const make = document.getElementById("vehicleMake").value; 
+      const plate = document.getElementById("vehiclePlate").value;
+      const orderId = "ORD-" + Math.floor(100000 + Math.random() * 900000);
+
+      // TRIGGER SQUARE IF CREDIT CARD IS SELECTED
+      if (selectedPaymentType === 'Credit Card') {
+        document.getElementById("squareModalOverlay").style.display = "flex";
+        
+        const squarePayload = {
+          recordType: "square_checkout",
+          amount: grandTotal,
+          orderId: orderId
+        };
+        
+        // Push the checkout request to Google/Square
+        fetch(GOOGLE_SCRIPT_URL, { 
+          method: "POST", mode: "no-cors", 
+          headers: { "Content-Type": "application/json" }, 
+          body: JSON.stringify(squarePayload) 
+        });
+
+        // We simulate a 3.5 second wait for the physical terminal to "process"
+        await new Promise(resolve => setTimeout(resolve, 3500));
+        document.getElementById("squareModalOverlay").style.display = "none";
+      }
+
+      // PROCEED TO LOG SALE NORMALLY IN SHEETS
+      submitBtn.innerText = "RECORDING..."; 
+      statusMsg.style.color = "#3b82f6"; 
+      statusMsg.innerText = "Saving to database...";
+
       const payload = {
-        recordType: "sale", location: document.getElementById("locationSelect").value, orderId: "ORD-" + Math.floor(100000 + Math.random() * 900000),
+        recordType: "sale", location: document.getElementById("locationSelect").value, orderId: orderId,
         services: cart.map(item => item.name).join(", "), subtotal: subtotal, taxAmount: taxAmount, grandTotal: grandTotal,
         vehicleInfo: (make || plate) ? `${make} ${plate}`.trim() : "N/A", notes: document.getElementById("orderNotes").value, attendant: activeAttendant,
         exemptDealer: isTaxExempt ? `${selectedDealer} (${taxExemptDealers[selectedDealer].id})` : "N/A", paymentType: selectedPaymentType
       };
+
       try {
         await fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
         statusMsg.style.color = "#10b981"; statusMsg.innerText = "Order logged successfully!";
         cart = []; selectedVehicleType = null; document.getElementById("vehicleMake").value = ""; document.getElementById("vehiclePlate").value = ""; document.getElementById("orderNotes").value = "";
         if(isTaxExempt) document.getElementById("taxExemptToggle").click();
         updateCart(); renderMenu(); setTimeout(() => { statusMsg.innerText = ""; }, 3000);
-      } catch (err) { statusMsg.style.color = "#ef4444"; statusMsg.innerText = "Network error. Try again."; } 
-      finally { submitBtn.disabled = false; submitBtn.innerText = "RECORD SALE"; }
+      } catch (err) { 
+        statusMsg.style.color = "#ef4444"; statusMsg.innerText = "Network error. Try again."; 
+      } finally { 
+        submitBtn.disabled = false; submitBtn.innerText = "RECORD SALE"; 
+      }
     }
 
     // Initialize UI
-    loadTabletLocation(); // NEW: Checks memory for tablet location
+    loadTabletLocation();
     renderMenu(); 
     updateCart(); 
     loadAppData();
