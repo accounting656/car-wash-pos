@@ -535,11 +535,16 @@
     if (selectedPaymentType === 'Credit Card') {
       document.getElementById("squareModalOverlay").style.display = "flex";
       
+      // Calculate 3% Credit Card Surcharge (rounds to 2 decimal places)
+      let ccFee = +(grandTotal * 0.03).toFixed(2); 
+
       const squarePayload = {
         recordType: "square_checkout",
-        amount: grandTotal,
         orderId: orderId,
-        location: document.getElementById("locationSelect").value // 👈 ADD THIS LINE
+        location: document.getElementById("locationSelect").value,
+        subtotal: subtotal,
+        taxAmount: taxAmount,
+        ccFee: ccFee
       };
       
       try {
