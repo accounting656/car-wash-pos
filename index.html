@@ -614,17 +614,17 @@ let result = await response.json();
             return; // 🛑 THIS IS THE DAM! It stops the script so it DOES NOT log to Google Sheets!
           }
         }
-      } catch (error) {
-     console.error("Square Error:", error);
-     document.getElementById("squareModalOverlay").style.display = "none";
-
-     // THIS WILL PRINT THE EXACT CRASH REASON TO YOUR SCREEN:
-     alert("CRASH LOG: " + error.message); 
-
-     submitBtn.disabled = false;
-     submitBtn.innerText = "RECORD SALE";
-     return; 
-   }
+} catch (error) {
+        console.error("Square Error:", error);
+        document.getElementById("squareModalOverlay").style.display = "none";
+        
+        // THIS WILL PRINT THE EXACT CRASH REASON TO YOUR SCREEN:
+        alert("CRASH LOG: " + error.message); 
+        
+        submitBtn.disabled = false;
+        submitBtn.innerText = "RECORD SALE";
+        return; 
+      }
     }
 
     // =====================================================================
