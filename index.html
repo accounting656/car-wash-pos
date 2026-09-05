@@ -292,7 +292,7 @@
     </div>
   </div>
 
-  <script>
+<script>
     // --- 1. CONFIGURATION (REPLACE URL CAREFULLY, KEEP THE QUOTES!) ---
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxJX6GJEcl5OvCZ7Z7JAD72jSK8d7g7EJeK9Ud4dAiDb8-gPidrYvIOGpVAKw8h3Q2VFQ/exec"; 
 
@@ -364,7 +364,9 @@
     }
     
     function clearPin() { 
-      enteredPin = ""; document.getElementById("pinDisplay").innerText = ""; document.getElementById("loginError").innerText = ""; 
+      enteredPin = ""; 
+      document.getElementById("pinDisplay").innerText = ""; 
+      document.getElementById("loginError").innerText = ""; 
     }
     
     function submitPin() {
@@ -393,11 +395,13 @@
       activeAttendant = ""; 
       document.getElementById("currentAttendantName").innerText = "None";
       document.getElementById("loginOverlay").style.display = "flex"; 
-      cart = []; selectedVehicleType = null;
+      cart = []; 
+      selectedVehicleType = null;
       document.getElementById("locationSelect").disabled = true;
       document.getElementById("locationSelect").style.borderColor = "#e5e7eb";
       document.getElementById("locationSelect").style.borderWidth = "1px";
-      resetToRetail(); updateCart();
+      resetToRetail(); 
+      updateCart();
     }
 
     function saveTabletLocation() { localStorage.setItem("washos_location", document.getElementById("locationSelect").value); }
@@ -407,17 +411,27 @@
     // --- MODALS & TIMECLOCK ---
     function openTimeclock() { document.getElementById("tcName").innerText = activeAttendant; document.getElementById("timeclockModalOverlay").style.display = "flex"; }
     function openPromoModal() { document.getElementById("promoModalOverlay").style.display = "flex"; }
-    function closeModals() { document.getElementById("paymentModalOverlay").style.display = "none"; document.getElementById("timeclockModalOverlay").style.display = "none"; document.getElementById("promoModalOverlay").style.display = "none"; document.getElementById("squareModalOverlay").style.display = "none"; }
+    function closeModals() { 
+      document.getElementById("paymentModalOverlay").style.display = "none"; 
+      document.getElementById("timeclockModalOverlay").style.display = "none"; 
+      document.getElementById("promoModalOverlay").style.display = "none"; 
+      document.getElementById("squareModalOverlay").style.display = "none"; 
+    }
 
     async function logTimeclock(actionType) {
       const statusDiv = document.getElementById("tcStatus");
-      statusDiv.style.color = "#3b82f6"; statusDiv.innerText = "Recording punch...";
+      statusDiv.style.color = "#3b82f6"; 
+      statusDiv.innerText = "Recording punch...";
       const payload = { recordType: "timeclock", location: document.getElementById("locationSelect").value, attendant: activeAttendant, action: actionType };
       try {
         await fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-        statusDiv.style.color = "#10b981"; statusDiv.innerText = `${actionType} recorded!`;
+        statusDiv.style.color = "#10b981"; 
+        statusDiv.innerText = `${actionType} recorded!`;
         setTimeout(() => { closeModals(); statusDiv.innerText = ""; }, 1500);
-      } catch (err) { statusDiv.style.color = "#ef4444"; statusMsg.innerText = "Error."; }
+      } catch (err) { 
+        statusDiv.style.color = "#ef4444"; 
+        statusDiv.innerText = "Error."; 
+      }
     }
 
     // --- PRICING & MENU ---
@@ -431,7 +445,8 @@
       const dDiscount = (selectedDealer && taxExemptDealers[selectedDealer]) ? taxExemptDealers[selectedDealer].discountRate : 0;
       const pDiscount = activePromo ? (promoDiscountPercent / 100) : 0;
       activeServices = standardServices.map(service => {
-        let newPrices = {}; let wasPromoApplied = false;
+        let newPrices = {}; 
+        let wasPromoApplied = false;
         for(let type in service.prices) {
           let price = service.prices[type];
           if (dDiscount > 0) price = price * (1 - dDiscount);
@@ -498,14 +513,26 @@
     function removeFromCart(index) { cart.splice(index, 1); updateCart(); }
 
     function updateCart() {
-      const cartContainer = document.getElementById("cartItems"); document.getElementById("itemCount").innerText = cart.length === 1 ? "1 item" : cart.length + " items";
+      const cartContainer = document.getElementById("cartItems"); 
+      document.getElementById("itemCount").innerText = cart.length === 1 ? "1 item" : cart.length + " items";
+      
       if (cart.length === 0) {
         cartContainer.innerHTML = `<div style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #9ca3af; text-align: center;"><div style="font-size: 40px; margin-bottom: 10px;">🛒</div><p>Ticket is empty</p></div>`;
-        document.getElementById("subtotalAmount").innerText = "$0.00"; document.getElementById("taxAmount").innerText = "$0.00"; document.getElementById("grandTotal").innerText = "$0.00"; return;
+        document.getElementById("subtotalAmount").innerText = "$0.00"; 
+        document.getElementById("taxAmount").innerText = "$0.00"; 
+        document.getElementById("grandTotal").innerText = "$0.00"; 
+        return;
       }
+      
       cartContainer.innerHTML = cart.map((item, index) => `<div class="cart-item"><div><div class="cart-item-name">${item.name}</div><div class="cart-item-price">$${item.price.toFixed(2)}</div></div><button class="remove-btn" onclick="removeFromCart(${index})">×</button></div>`).join('');
-      const subtotal = cart.reduce((sum, item) => sum + item.price, 0); const taxAmount = isTaxExempt ? 0 : (subtotal * TOTAL_TAX_RATE); const grandTotal = subtotal + taxAmount;
-      document.getElementById("subtotalAmount").innerText = `$${subtotal.toFixed(2)}`; document.getElementById("taxAmount").innerText = isTaxExempt ? "$0.00 (Exempt)" : `$${taxAmount.toFixed(2)}`; document.getElementById("grandTotal").innerText = `$${grandTotal.toFixed(2)}`;
+      
+      const subtotal = cart.reduce((sum, item) => sum + item.price, 0); 
+      const taxAmount = isTaxExempt ? 0 : (subtotal * TOTAL_TAX_RATE); 
+      const grandTotal = subtotal + taxAmount;
+      
+      document.getElementById("subtotalAmount").innerText = `$${subtotal.toFixed(2)}`; 
+      document.getElementById("taxAmount").innerText = isTaxExempt ? "$0.00 (Exempt)" : `$${taxAmount.toFixed(2)}`; 
+      document.getElementById("grandTotal").innerText = `$${grandTotal.toFixed(2)}`;
     }
 
     function promptPayment() {
@@ -528,143 +555,140 @@
       const make = document.getElementById("vehicleMake").value; 
       const plate = document.getElementById("vehiclePlate").value;
       const orderId = "ORD-" + Math.floor(100000 + Math.random() * 900000);
-// =====================================================================
-    // 1. TRIGGER SQUARE IF CREDIT CARD IS SELECTED
-    // =====================================================================
-    if (selectedPaymentType === 'Credit Card') {
-      document.getElementById("squareModalOverlay").style.display = "flex";
-      
-      // Calculate 3% Credit Card Surcharge (rounds to 2 decimal places)
-      let ccFee = +(grandTotal * 0.03).toFixed(2); 
 
-      const squarePayload = {
-        recordType: "square_checkout",
-        orderId: orderId,
-        location: document.getElementById("locationSelect").value,
-        subtotal: subtotal,
-        taxAmount: taxAmount,
-        ccFee: ccFee
-      };
-      
-      try {
-        // Wake up the terminal
-        let response = await fetch(GOOGLE_SCRIPT_URL, { 
-          method: "POST", 
-          headers: { "Content-Type": "text/plain" },
-          body: JSON.stringify(squarePayload) 
-        });
+      // =====================================================================
+      // 1. TRIGGER SQUARE IF CREDIT CARD IS SELECTED
+      // =====================================================================
+      if (selectedPaymentType === 'Credit Card') {
+        document.getElementById("squareModalOverlay").style.display = "flex";
         
-        let result = await response.json();
-   
-        // 1. Catch Google Apps Script errors
-        if (result.error) {
-            console.error("Backend Error:", result.error);
-            alert("Google Error: " + result.error);
-            document.getElementById("squareModalOverlay").style.display = "none";
-            submitBtn.disabled = false;
-            submitBtn.innerText = "RECORD SALE";
-            return;
-        }
+        // Calculate 3% Credit Card Surcharge (rounds to 2 decimal places)
+        let ccFee = +(grandTotal * 0.03).toFixed(2); 
+
+        const squarePayload = {
+          recordType: "square_checkout",
+          orderId: orderId,
+          location: document.getElementById("locationSelect").value,
+          subtotal: subtotal,
+          taxAmount: taxAmount,
+          ccFee: ccFee
+        };
         
-        // 2. Catch Square API errors
-        if (result.errors) {
-            console.error("Square API Error:", result.errors);
-            alert("Square Error: " + result.errors[0].detail); // Prints the exact reason Square failed!
-            document.getElementById("squareModalOverlay").style.display = "none";
-            submitBtn.disabled = false;
-            submitBtn.innerText = "RECORD SALE";
-            return;
-        }
-   
-        let checkoutId = result.checkout.id;
-        
-        // The Polling Loop (Wait for Square)
-        let isWaiting = true;
-        while (isWaiting) {
-          // Wait 3 seconds
-          await new Promise(resolve => setTimeout(resolve, 3000));
-          
-          let statusResponse = await fetch(GOOGLE_SCRIPT_URL, {
-            method: "POST",
+        try {
+          // Wake up the terminal
+          let response = await fetch(GOOGLE_SCRIPT_URL, { 
+            method: "POST", 
             headers: { "Content-Type": "text/plain" },
-            body: JSON.stringify({
-              recordType: "check_square_status",
-              checkoutId: checkoutId
-            })
+            body: JSON.stringify(squarePayload) 
           });
           
-          let statusResult = await statusResponse.json();
-          let currentStatus = statusResult.checkoutStatus;
-          
-          if (currentStatus === "COMPLETED") {
-            isWaiting = false; // Stop checking
-            document.getElementById("squareModalOverlay").style.display = "none";
-            // Do NOT return here. Let the code flow down to log the sale!
-            
-          } else if (currentStatus === "CANCELED") {
-            isWaiting = false; // Stop checking
-            document.getElementById("squareModalOverlay").style.display = "none";
-            alert("Payment Canceled or Declined. Please select Cash or try again.");
-            submitBtn.disabled = false;
-            submitBtn.innerText = "RECORD SALE";
-            return; // 🛑 THIS IS THE DAM! It stops the script so it DOES NOT log to Google Sheets!
+          let result = await response.json();
+     
+          // 1. Catch Google Apps Script errors
+          if (result.error) {
+              console.error("Backend Error:", result.error);
+              alert("Google Error: " + result.error);
+              document.getElementById("squareModalOverlay").style.display = "none";
+              submitBtn.disabled = false;
+              submitBtn.innerText = "RECORD SALE";
+              return;
           }
+          
+          // 2. Catch Square API errors
+          if (result.errors) {
+              console.error("Square API Error:", result.errors);
+              alert("Square Error: " + result.errors[0].detail); 
+              document.getElementById("squareModalOverlay").style.display = "none";
+              submitBtn.disabled = false;
+              submitBtn.innerText = "RECORD SALE";
+              return;
+          }
+     
+          let checkoutId = result.checkout.id;
+          
+          // The Polling Loop (Wait for Square)
+          let isWaiting = true;
+          while (isWaiting) {
+            // Wait 3 seconds
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            
+            let statusResponse = await fetch(GOOGLE_SCRIPT_URL, {
+              method: "POST",
+              headers: { "Content-Type": "text/plain" },
+              body: JSON.stringify({
+                recordType: "check_square_status",
+                checkoutId: checkoutId
+              })
+            });
+            
+            let statusResult = await statusResponse.json();
+            let currentStatus = statusResult.checkoutStatus;
+            
+            if (currentStatus === "COMPLETED") {
+              isWaiting = false; // Stop checking
+              document.getElementById("squareModalOverlay").style.display = "none";
+              // Do NOT return here. Let the code flow down to log the sale!
+              
+            } else if (currentStatus === "CANCELED") {
+              isWaiting = false; // Stop checking
+              document.getElementById("squareModalOverlay").style.display = "none";
+              alert("Payment Canceled or Declined. Please select Cash or try again.");
+              submitBtn.disabled = false;
+              submitBtn.innerText = "RECORD SALE";
+              return; 
+            }
+          }
+        } catch (error) {
+          console.error("Square Error:", error);
+          document.getElementById("squareModalOverlay").style.display = "none";
+          alert("CRASH LOG: " + error.message); 
+          submitBtn.disabled = false;
+          submitBtn.innerText = "RECORD SALE";
+          return; 
         }
-      } catch (error) {
-        console.error("Square Error:", error);
-        document.getElementById("squareModalOverlay").style.display = "none";
+      }
+
+      // =====================================================================
+      // 2. PROCEED TO LOG SALE NORMALLY IN SHEETS
+      // =====================================================================
+      submitBtn.innerText = "RECORDING..."; 
+      statusMsg.style.color = "#3b82f6"; 
+      statusMsg.innerText = "Saving to database...";
+
+      const payload = {
+        recordType: "sale", location: document.getElementById("locationSelect").value, orderId: orderId,
+        services: cart.map(item => item.name).join(", "), subtotal: subtotal, taxAmount: taxAmount, grandTotal: grandTotal,
+        vehicleInfo: (make || plate) ? `${make} ${plate}`.trim() : "N/A", notes: document.getElementById("orderNotes").value, attendant: activeAttendant,
+        exemptDealer: isTaxExempt ? `${selectedDealer} (${taxExemptDealers[selectedDealer].id})` : "N/A", paymentType: selectedPaymentType
+      };
+
+      try {
+        await fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
         
-        // THIS WILL PRINT THE EXACT CRASH REASON TO YOUR SCREEN:
-        alert("CRASH LOG: " + error.message); 
+        statusMsg.style.color = "#10b981"; 
+        statusMsg.innerText = "Order logged successfully!";
         
-        submitBtn.disabled = false;
-        submitBtn.innerText = "RECORD SALE";
-        return; 
+        // Reset UI Elements
+        cart = []; 
+        selectedVehicleType = null; 
+        document.getElementById("vehicleMake").value = ""; 
+        document.getElementById("vehiclePlate").value = ""; 
+        document.getElementById("orderNotes").value = "";
+        if(isTaxExempt) document.getElementById("taxExemptToggle").click();
+        
+        updateCart(); 
+        renderMenu(); 
+        setTimeout(() => { statusMsg.innerText = ""; }, 3000);
+        
+      } catch (err) { 
+        statusMsg.style.color = "#ef4444"; 
+        statusMsg.innerText = "Network error. Try again."; 
+      } finally { 
+        submitBtn.disabled = false; 
+        submitBtn.innerText = "RECORD SALE"; 
       }
     }
-
-    // =====================================================================
-    // 2. PROCEED TO LOG SALE NORMALLY IN SHEETS
-    // (Runs instantly for Cash, or after Card is COMPLETED)
-    // =====================================================================
-    submitBtn.innerText = "RECORDING..."; 
-    statusMsg.style.color = "#3b82f6"; 
-    statusMsg.innerText = "Saving to database...";
-
-    const payload = {
-      recordType: "sale", location: document.getElementById("locationSelect").value, orderId: orderId,
-      services: cart.map(item => item.name).join(", "), subtotal: subtotal, taxAmount: taxAmount, grandTotal: grandTotal,
-      vehicleInfo: (make || plate) ? `${make} ${plate}`.trim() : "N/A", notes: document.getElementById("orderNotes").value, attendant: activeAttendant,
-      exemptDealer: isTaxExempt ? `${selectedDealer} (${taxExemptDealers[selectedDealer].id})` : "N/A", paymentType: selectedPaymentType
-    };
-
-    try {
-      // mode: "no-cors" is perfectly fine here since we don't need to read the sheet's reply
-      await fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-      
-      statusMsg.style.color = "#10b981"; 
-      statusMsg.innerText = "Order logged successfully!";
-      
-      // Reset UI Elements
-      cart = []; 
-      selectedVehicleType = null; 
-      document.getElementById("vehicleMake").value = ""; 
-      document.getElementById("vehiclePlate").value = ""; 
-      document.getElementById("orderNotes").value = "";
-      if(isTaxExempt) document.getElementById("taxExemptToggle").click();
-      
-      updateCart(); 
-      renderMenu(); 
-      setTimeout(() => { statusMsg.innerText = ""; }, 3000);
-      
-    } catch (err) { 
-      statusMsg.style.color = "#ef4444"; 
-      statusMsg.innerText = "Network error. Try again."; 
-    } finally { 
-      submitBtn.disabled = false; 
-      submitBtn.innerText = "RECORD SALE"; 
-    }
-    }
+    
     // Initialize UI
     loadTabletLocation();
     renderMenu(); 
