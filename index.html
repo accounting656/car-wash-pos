@@ -529,7 +529,8 @@
       const squarePayload = {
         recordType: "square_checkout",
         amount: grandTotal,
-        orderId: orderId
+        orderId: orderId,
+        location: document.getElementById("locationSelect").value // 👈 ADD THIS LINE
       };
       
       try {
