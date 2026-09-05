@@ -520,51 +520,111 @@
       const plate = document.getElementById("vehiclePlate").value;
       const orderId = "ORD-" + Math.floor(100000 + Math.random() * 900000);
 
-      // TRIGGER SQUARE IF CREDIT CARD IS SELECTED
-      if (selectedPaymentType === 'Credit Card') {
-        document.getElementById("squareModalOverlay").style.display = "flex";
-        
-        const squarePayload = {
-          recordType: "square_checkout",
-          amount: grandTotal,
-          orderId: orderId
-        };
-        
-        // Push the checkout request to Google/Square
-        fetch(GOOGLE_SCRIPT_URL, { 
-          method: "POST", mode: "no-cors", 
-          headers: { "Content-Type": "application/json" }, 
+    // =====================================================================
+    // 1. TRIGGER SQUARE IF CREDIT CARD IS SELECTED
+    // =====================================================================
+    if (selectedPaymentType === 'Credit Card') {
+      document.getElementById("squareModalOverlay").style.display = "flex";
+      
+      const squarePayload = {
+        recordType: "square_checkout",
+        amount: grandTotal,
+        orderId: orderId
+      };
+      
+      try {
+        // Wake up the terminal
+        let response = await fetch(GOOGLE_SCRIPT_URL, { 
+          method: "POST", 
+          headers: { "Content-Type": "text/plain" }, // text/plain helps bypass CORS issues on Google Apps Script
           body: JSON.stringify(squarePayload) 
         });
-
-        // We simulate a 3.5 second wait for the physical terminal to "process"
-        await new Promise(resolve => setTimeout(resolve, 3500));
+        
+        let result = await response.json();
+        let checkoutId = result.squareData.checkout.id;
+        
+        // The Polling Loop (Wait for Square)
+        let isWaiting = true;
+        while (isWaiting) {
+          // Wait 3 seconds
+          await new Promise(resolve => setTimeout(resolve, 3000));
+          
+          let statusResponse = await fetch(GOOGLE_SCRIPT_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain" },
+            body: JSON.stringify({
+              recordType: "check_square_status",
+              checkoutId: checkoutId
+            })
+          });
+          
+          let statusResult = await statusResponse.json();
+          let currentStatus = statusResult.checkoutStatus;
+          
+          if (currentStatus === "COMPLETED") {
+            isWaiting = false; // Stop checking
+            document.getElementById("squareModalOverlay").style.display = "none";
+            // Do NOT return here. Let the code flow down to log the sale!
+            
+          } else if (currentStatus === "CANCELED") {
+            isWaiting = false; // Stop checking
+            document.getElementById("squareModalOverlay").style.display = "none";
+            alert("Payment Canceled or Declined. Please select Cash or try again.");
+            submitBtn.disabled = false;
+            submitBtn.innerText = "RECORD SALE";
+            return; // 🛑 THIS IS THE DAM! It stops the script so it DOES NOT log to Google Sheets!
+          }
+        }
+      } catch (error) {
+        console.error("Square Error:", error);
         document.getElementById("squareModalOverlay").style.display = "none";
+        alert("Error connecting to terminal. Please check your connection.");
+        submitBtn.disabled = false;
+        submitBtn.innerText = "RECORD SALE";
+        return; // 🛑 Stop script on error
       }
+    }
 
-      // PROCEED TO LOG SALE NORMALLY IN SHEETS
-      submitBtn.innerText = "RECORDING..."; 
-      statusMsg.style.color = "#3b82f6"; 
-      statusMsg.innerText = "Saving to database...";
+    // =====================================================================
+    // 2. PROCEED TO LOG SALE NORMALLY IN SHEETS
+    // (Runs instantly for Cash, or after Card is COMPLETED)
+    // =====================================================================
+    submitBtn.innerText = "RECORDING..."; 
+    statusMsg.style.color = "#3b82f6"; 
+    statusMsg.innerText = "Saving to database...";
 
-      const payload = {
-        recordType: "sale", location: document.getElementById("locationSelect").value, orderId: orderId,
-        services: cart.map(item => item.name).join(", "), subtotal: subtotal, taxAmount: taxAmount, grandTotal: grandTotal,
-        vehicleInfo: (make || plate) ? `${make} ${plate}`.trim() : "N/A", notes: document.getElementById("orderNotes").value, attendant: activeAttendant,
-        exemptDealer: isTaxExempt ? `${selectedDealer} (${taxExemptDealers[selectedDealer].id})` : "N/A", paymentType: selectedPaymentType
-      };
+    const payload = {
+      recordType: "sale", location: document.getElementById("locationSelect").value, orderId: orderId,
+      services: cart.map(item => item.name).join(", "), subtotal: subtotal, taxAmount: taxAmount, grandTotal: grandTotal,
+      vehicleInfo: (make || plate) ? `${make} ${plate}`.trim() : "N/A", notes: document.getElementById("orderNotes").value, attendant: activeAttendant,
+      exemptDealer: isTaxExempt ? `${selectedDealer} (${taxExemptDealers[selectedDealer].id})` : "N/A", paymentType: selectedPaymentType
+    };
 
-      try {
-        await fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-        statusMsg.style.color = "#10b981"; statusMsg.innerText = "Order logged successfully!";
-        cart = []; selectedVehicleType = null; document.getElementById("vehicleMake").value = ""; document.getElementById("vehiclePlate").value = ""; document.getElementById("orderNotes").value = "";
-        if(isTaxExempt) document.getElementById("taxExemptToggle").click();
-        updateCart(); renderMenu(); setTimeout(() => { statusMsg.innerText = ""; }, 3000);
-      } catch (err) { 
-        statusMsg.style.color = "#ef4444"; statusMsg.innerText = "Network error. Try again."; 
-      } finally { 
-        submitBtn.disabled = false; submitBtn.innerText = "RECORD SALE"; 
-      }
+    try {
+      // mode: "no-cors" is perfectly fine here since we don't need to read the sheet's reply
+      await fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+      
+      statusMsg.style.color = "#10b981"; 
+      statusMsg.innerText = "Order logged successfully!";
+      
+      // Reset UI Elements
+      cart = []; 
+      selectedVehicleType = null; 
+      document.getElementById("vehicleMake").value = ""; 
+      document.getElementById("vehiclePlate").value = ""; 
+      document.getElementById("orderNotes").value = "";
+      if(isTaxExempt) document.getElementById("taxExemptToggle").click();
+      
+      updateCart(); 
+      renderMenu(); 
+      setTimeout(() => { statusMsg.innerText = ""; }, 3000);
+      
+    } catch (err) { 
+      statusMsg.style.color = "#ef4444"; 
+      statusMsg.innerText = "Network error. Try again."; 
+    } finally { 
+      submitBtn.disabled = false; 
+      submitBtn.innerText = "RECORD SALE"; 
     }
 
     // Initialize UI
