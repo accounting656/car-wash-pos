@@ -25,7 +25,7 @@
     #systemStatus { margin-top: 30px; font-size: 14px; color: #9ca3af; }
     
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17,24,39,0.7); backdrop-filter: blur(5px); z-index: 9998; display: none; align-items: center; justify-content: center; }
-    .modal-box { background: white; width: 400px; border-radius: 24px; padding: 30px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); text-align: center; }
+    .modal-box { background: white; width: 90%; max-width: 400px; border-radius: 24px; padding: 30px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); text-align: center; }
     .modal-box h2 { margin-bottom: 24px; font-size: 24px; color: #111827; font-weight: 800; }
     .modal-btn { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; border: 2px solid #e5e7eb; background: white; color: #374151; transition: 0.2s; }
     .modal-btn:hover { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; }
@@ -41,12 +41,13 @@
     .spinner { border: 4px solid #e5e7eb; border-top: 4px solid #3b82f6; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 20px auto; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-    .menu-section { flex: 1; padding: 30px 40px; overflow-y: auto; display: flex; flex-direction: column; }
-    .cart-section { width: 440px; background: #ffffff; margin: 20px 20px 20px 0; border-radius: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; border: 1px solid #f3f4f6; }
+    /* FLUID LAYOUT CHANGES HERE */
+    .menu-section { flex: 1; padding: 30px 40px; overflow-y: auto; display: flex; flex-direction: column; min-width: 0; }
+    .cart-section { flex: 0 0 35%; max-width: 440px; min-width: 320px; background: #ffffff; margin: 20px 20px 20px 0; border-radius: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; border: 1px solid #f3f4f6; }
     
-    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 15px; }
     .header-title { font-size: 32px; font-weight: 800; color: #111827; letter-spacing: -1px; background: linear-gradient(135deg, #111827, #374151); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; }
-    .controls { display: flex; gap: 15px; align-items: center; }
+    .controls { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
     
     .location-select { padding: 12px 16px; font-size: 15px; border-radius: 12px; border: 1px solid #e5e7eb; background: #fff; font-weight: 700; color: #111827; outline: none; cursor: pointer; transition: 0.2s; }
     .location-select:disabled { background: #f3f4f6; color: #6b7280; cursor: not-allowed; opacity: 1; border-color: #d1d5db; }
@@ -58,7 +59,8 @@
     .timeclock-btn { background: #e0e7ff; color: #4338ca; }
     .timeclock-btn:hover { background: #c7d2fe; }
     
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 24px; padding-bottom: 40px; }
+    /* Grid fluid sizing updated */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 24px; padding-bottom: 40px; }
     .card { background: white; border-radius: 20px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); border: 2px solid transparent; display: flex; flex-direction: column; justify-content: space-between; height: 100%; position: relative; overflow: hidden; }
     .card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: #e5e7eb; transition: 0.3s; }
     .card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); border-color: #bfdbfe; }
@@ -105,7 +107,14 @@
     .submit-btn { width: 100%; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 18px; font-size: 16px; border-radius: 12px; font-weight: 700; cursor: pointer; box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3); }
     .submit-btn:disabled { background: #9ca3af; box-shadow: none; cursor: not-allowed; }
     .status-msg { margin-top: 10px; text-align: center; font-weight: 600; font-size: 13px; height: 18px; }
-  </style>
+
+    /* MOBILE / SMALL IPAD STACKING */
+    @media (max-width: 900px) {
+        body { flex-direction: column; overflow-y: auto; }
+        .menu-section { flex: none; height: auto; overflow: visible; padding: 20px; }
+        .cart-section { flex: none; width: auto; max-width: 100%; margin: 20px; min-height: 500px; }
+    }
+</style>
 </head>
 <body>
 
