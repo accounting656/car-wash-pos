@@ -566,6 +566,9 @@ if (result.error) {
     submitBtn.innerText = "RECORD SALE";
     return;
 }
+
+// The new Orders API format doesn't use 'squareData'
+let checkoutId = result.checkout.id;
         
         // The Polling Loop (Wait for Square)
         let isWaiting = true;
