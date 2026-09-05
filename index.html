@@ -555,8 +555,17 @@
           body: JSON.stringify(squarePayload) 
         });
         
-        let result = await response.json();
-        let checkoutId = result.squareData.checkout.id;
+       let result = await response.json();
+
+// If Google Apps Script passed back an error, this will catch it!
+if (result.error) {
+    console.error("Backend Error:", result.error);
+    alert("Error: " + result.error);
+    document.getElementById("squareModalOverlay").style.display = "none";
+    submitBtn.disabled = false;
+    submitBtn.innerText = "RECORD SALE";
+    return;
+}
         
         // The Polling Loop (Wait for Square)
         let isWaiting = true;
