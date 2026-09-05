@@ -528,8 +528,7 @@
       const make = document.getElementById("vehicleMake").value; 
       const plate = document.getElementById("vehiclePlate").value;
       const orderId = "ORD-" + Math.floor(100000 + Math.random() * 900000);
-
-    // =====================================================================
+// =====================================================================
     // 1. TRIGGER SQUARE IF CREDIT CARD IS SELECTED
     // =====================================================================
     if (selectedPaymentType === 'Credit Card') {
@@ -551,36 +550,33 @@
         // Wake up the terminal
         let response = await fetch(GOOGLE_SCRIPT_URL, { 
           method: "POST", 
-          headers: { "Content-Type": "text/plain" }, // text/plain helps bypass CORS issues on Google Apps Script
+          headers: { "Content-Type": "text/plain" },
           body: JSON.stringify(squarePayload) 
         });
         
-       let result = await response.json();
-
-// If Google Apps Script passed back an error, this will catch it!
-let result = await response.json();
+        let result = await response.json();
    
-   // 1. Catch Google Apps Script errors
-   if (result.error) {
-       console.error("Backend Error:", result.error);
-       alert("Google Error: " + result.error);
-       document.getElementById("squareModalOverlay").style.display = "none";
-       submitBtn.disabled = false;
-       submitBtn.innerText = "RECORD SALE";
-       return;
-   }
+        // 1. Catch Google Apps Script errors
+        if (result.error) {
+            console.error("Backend Error:", result.error);
+            alert("Google Error: " + result.error);
+            document.getElementById("squareModalOverlay").style.display = "none";
+            submitBtn.disabled = false;
+            submitBtn.innerText = "RECORD SALE";
+            return;
+        }
+        
+        // 2. Catch Square API errors
+        if (result.errors) {
+            console.error("Square API Error:", result.errors);
+            alert("Square Error: " + result.errors[0].detail); // Prints the exact reason Square failed!
+            document.getElementById("squareModalOverlay").style.display = "none";
+            submitBtn.disabled = false;
+            submitBtn.innerText = "RECORD SALE";
+            return;
+        }
    
-   // 2. Catch Square API errors
-   if (result.errors) {
-       console.error("Square API Error:", result.errors);
-       alert("Square Error: " + result.errors[0].detail); // Prints the exact reason Square failed!
-       document.getElementById("squareModalOverlay").style.display = "none";
-       submitBtn.disabled = false;
-       submitBtn.innerText = "RECORD SALE";
-       return;
-   }
-   
-   let checkoutId = result.checkout.id;
+        let checkoutId = result.checkout.id;
         
         // The Polling Loop (Wait for Square)
         let isWaiting = true;
@@ -614,7 +610,7 @@ let result = await response.json();
             return; // 🛑 THIS IS THE DAM! It stops the script so it DOES NOT log to Google Sheets!
           }
         }
-} catch (error) {
+      } catch (error) {
         console.error("Square Error:", error);
         document.getElementById("squareModalOverlay").style.display = "none";
         
