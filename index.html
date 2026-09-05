@@ -615,13 +615,16 @@ let result = await response.json();
           }
         }
       } catch (error) {
-        console.error("Square Error:", error);
-        document.getElementById("squareModalOverlay").style.display = "none";
-        alert("Error connecting to terminal. Please check your connection.");
-        submitBtn.disabled = false;
-        submitBtn.innerText = "RECORD SALE";
-        return; // 🛑 Stop script on error
-      }
+     console.error("Square Error:", error);
+     document.getElementById("squareModalOverlay").style.display = "none";
+
+     // THIS WILL PRINT THE EXACT CRASH REASON TO YOUR SCREEN:
+     alert("CRASH LOG: " + error.message); 
+
+     submitBtn.disabled = false;
+     submitBtn.innerText = "RECORD SALE";
+     return; 
+   }
     }
 
     // =====================================================================
