@@ -558,17 +558,29 @@
        let result = await response.json();
 
 // If Google Apps Script passed back an error, this will catch it!
-if (result.error) {
-    console.error("Backend Error:", result.error);
-    alert("Error: " + result.error);
-    document.getElementById("squareModalOverlay").style.display = "none";
-    submitBtn.disabled = false;
-    submitBtn.innerText = "RECORD SALE";
-    return;
-}
-
-// The new Orders API format doesn't use 'squareData'
-let checkoutId = result.checkout.id;
+let result = await response.json();
+   
+   // 1. Catch Google Apps Script errors
+   if (result.error) {
+       console.error("Backend Error:", result.error);
+       alert("Google Error: " + result.error);
+       document.getElementById("squareModalOverlay").style.display = "none";
+       submitBtn.disabled = false;
+       submitBtn.innerText = "RECORD SALE";
+       return;
+   }
+   
+   // 2. Catch Square API errors
+   if (result.errors) {
+       console.error("Square API Error:", result.errors);
+       alert("Square Error: " + result.errors[0].detail); // Prints the exact reason Square failed!
+       document.getElementById("squareModalOverlay").style.display = "none";
+       submitBtn.disabled = false;
+       submitBtn.innerText = "RECORD SALE";
+       return;
+   }
+   
+   let checkoutId = result.checkout.id;
         
         // The Polling Loop (Wait for Square)
         let isWaiting = true;
