@@ -13,6 +13,19 @@
   <title>Premium Car Wash POS</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    @media print {
+  body * { visibility: hidden; }
+  #printableInvoice, #printableInvoice * { visibility: visible; }
+  #printableInvoice { 
+    position: absolute; 
+    left: 0; 
+    top: 0; 
+    width: 100%; 
+    padding: 20px;
+    font-family: Arial, sans-serif;
+  }
+}
+    
     * { box-sizing: border-box; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
     body { background: #f3f4f6; display: flex; height: 100vh; overflow: hidden; color: #1f2937; }
     
@@ -194,7 +207,19 @@
       <button class="modal-btn btn-cancel" onclick="closeModals()">Cancel</button>
     </div>
   </div>
+<div id="searchModalOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+  <div style="background: white; padding: 20px; border-radius: 8px; width: 600px; max-width: 90%; max-height: 80vh; overflow-y: auto; color: black;">
+    <h3 style="margin-top: 0;">Find Invoice</h3>
+    <input type="text" id="searchInput" placeholder="Search by name, order ID, or vehicle..." style="width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px;">
+    
+    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+      <button onclick="executeSearch()" style="padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 5px; cursor: pointer; flex: 1;">Search</button>
+      <button onclick="document.getElementById('searchModalOverlay').style.display='none'" style="padding: 10px 20px; background: #9ca3af; color: white; border: none; border-radius: 5px; cursor: pointer;">Cancel</button>
+    </div>
 
+    <div id="searchResults" style="display: flex; flex-direction: column; gap: 10px;"></div>
+  </div>
+</div>
   <div class="menu-section">
     <div class="header">
       <div style="display: flex; gap: 15px; align-items: center;">
@@ -212,9 +237,10 @@
         
         <div class="attendant-badge">
           👤 <span id="currentAttendantName">None</span>
-          <div style="display: flex; gap: 8px;">
+       <div style="display: flex; gap: 8px;">
             <button class="header-btn" style="background: #e0f2fe; color: #0369a1;" onclick="window.open('dashboard.html', '_blank')">📊 Dashboard</button>
             <button class="header-btn timeclock-btn" onclick="openTimeclock()">🕒 Timeclock</button>
+            <button class="header-btn" style="background: #4b5563; color: white;" onclick="document.getElementById('searchModalOverlay').style.display='flex'">🖨️ Invoices</button>
             <button class="header-btn logout-btn" onclick="logout()">Log Out</button>
           </div>
         </div>
@@ -291,8 +317,116 @@
       <div id="statusMsg" class="status-msg"></div>
     </div>
   </div>
+  <!-- THE HIDDEN PRINTABLE INVOICE -->
+<div id="printableInvoice" style="display: none;">
+  <h2 style="margin-bottom: 5px;">A Plus Car Wash & Detailing Inc.</h2>
+  <p id="invLocationAddress" style="margin-top: 0; color: #555;"></p>
+  
+  <hr style="border: 1px solid #ccc; margin: 20px 0;">
+  
+  <p><strong>Date:</strong> <span id="invDate"></span></p>
+  <p><strong>Order ID:</strong> <span id="invOrder"></span></p>
+  <p><strong>Vehicle:</strong> <span id="invVehicle"></span></p>
+  
+  <p id="invDealerContainer" style="display: none; color: #d32f2f; font-weight: bold;">
+    Dealer Resale Cert: <span id="invDealerCert"></span>
+  </p>
+
+  <hr style="border: 1px solid #ccc; margin: 20px 0;">
+  
+  <p><strong>Services Rendered:</strong> <span id="invServices"></span></p>
+  
+  <table style="width: 100%; margin-top: 20px; text-align: left;">
+    <tr><th>Subtotal:</th><td id="invSubtotal"></td></tr>
+    <tr><th>Tax:</th><td id="invTax"></td></tr>
+    <tr><th>Total Paid:</th><td id="invTotal" style="font-weight: bold;"></td></tr>
+  </table>
+  
+  <p style="margin-top: 40px; text-align: center; font-style: italic;">Thank you for your business!</p>
+</div>
 
 <script>
+  let currentSearchResults = [];
+
+async function executeSearch() {
+  const term = document.getElementById("searchInput").value;
+  if (!term) return;
+
+  const resultsDiv = document.getElementById("searchResults");
+  resultsDiv.innerHTML = "<p>Searching database...</p>";
+
+  try {
+    // Note: Make sure your location dropdown has the ID "locationSelect"
+    // Or hardcode it if iPads are locked to one location.
+    const activeLocation = document.getElementById("locationSelect").value; 
+
+    const response = await fetch(GOOGLE_SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify({
+        recordType: "search_transactions",
+        location: activeLocation,
+        searchTerm: term
+      })
+    });
+    
+    const result = await response.json();
+    
+    if (result.status === "success" && result.data.length > 0) {
+      currentSearchResults = result.data;
+      resultsDiv.innerHTML = currentSearchResults.map((t, index) => `
+        <div style="padding: 15px; border: 1px solid #e5e7eb; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; background: #f9fafb;">
+          <div>
+            <strong style="font-size: 16px;">${t.vehicle}</strong><br>
+            <small style="color: #6b7280;">${new Date(t.date).toLocaleDateString()} | ${t.services}</small><br>
+            <small style="color: #6b7280;">Total: ${t.total} (${t.paymentType})</small>
+          </div>
+          <button onclick="printInvoice(currentSearchResults[${index}])" style="padding: 10px 15px; background: #10b981; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Print PDF</button>
+        </div>
+      `).join('');
+    } else {
+      resultsDiv.innerHTML = "<p>No transactions found. Try another search term.</p>";
+    }
+  } catch (err) {
+    resultsDiv.innerHTML = "<p>Error searching. Please try again.</p>";
+    console.error(err);
+  }
+}
+  // Map your locations to their physical addresses here:
+const locationAddresses = {
+  "Location 1 - Tampa Bay": "123 Tampa Bay Blvd, Tampa, FL 33602",
+  "Location 2 - Columbus": "456 Columbus Ave, Columbus, OH 43215",
+  "Location 3 - South": "789 South St, Miami, FL 33101",
+  "Location 4 - Armenia": "101 Armenia Ave, Tampa, FL 33609"
+};
+
+// Function to populate and print the invoice
+function printInvoice(transaction) {
+  // 1. Fill in the basic info
+  document.getElementById("invLocationAddress").innerText = locationAddresses[transaction.location] || "Address Not Found";
+  document.getElementById("invDate").innerText = new Date(transaction.date).toLocaleString();
+  document.getElementById("invOrder").innerText = transaction.orderId;
+  document.getElementById("invVehicle").innerText = transaction.vehicle;
+  document.getElementById("invServices").innerText = transaction.services;
+  document.getElementById("invSubtotal").innerText = transaction.subtotal;
+  document.getElementById("invTax").innerText = transaction.tax;
+  document.getElementById("invTotal").innerText = transaction.total;
+
+  // 2. Handle Dealer Logic
+  const dealerContainer = document.getElementById("invDealerContainer");
+  if (transaction.exemptDealer && transaction.exemptDealer.trim() !== "") {
+    document.getElementById("invDealerCert").innerText = transaction.exemptDealer;
+    dealerContainer.style.display = "block";
+  } else {
+    dealerContainer.style.display = "none";
+  }
+
+  // 3. Make visible, PRINT, then hide again!
+  const invoiceDiv = document.getElementById("printableInvoice");
+  invoiceDiv.style.display = "block";
+  window.print(); // This triggers the iPad's native print dialog
+  invoiceDiv.style.display = "none";
+}
     // --- 1. CONFIGURATION (REPLACE URL CAREFULLY, KEEP THE QUOTES!) ---
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxJX6GJEcl5OvCZ7Z7JAD72jSK8d7g7EJeK9Ud4dAiDb8-gPidrYvIOGpVAKw8h3Q2VFQ/exec"; 
 
@@ -433,7 +567,7 @@
         statusDiv.innerText = "Error."; 
       }
     }
-
+ 
     // --- PRICING & MENU ---
     function toggleTaxExempt() { isTaxExempt = document.getElementById("taxExemptToggle").checked; document.getElementById("dealerSelectContainer").style.display = isTaxExempt ? "block" : "none"; if (!isTaxExempt) { document.getElementById("dealerSelect").value = ""; selectedDealer = null; } cart = []; recalculatePricing(); updateCart(); }
     function handleDealerChange() { const dealerKey = document.getElementById("dealerSelect").value; selectedDealer = (dealerKey && taxExemptDealers[dealerKey]) ? dealerKey : null; cart = []; recalculatePricing(); updateCart(); }
