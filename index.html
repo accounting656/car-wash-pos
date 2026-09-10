@@ -13,17 +13,22 @@
   <title>Premium Car Wash POS</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+   /* Hide invoice on the iPad screen */
+    @media screen {
+      #printableInvoice { display: none !important; }
+    }
+
+    /* Show ONLY the invoice to the AirPrint printer */
     @media print {
-      body { height: auto !important; overflow: visible !important; display: block !important; }
-      body * { visibility: hidden; }
-      #printableInvoice, #printableInvoice * { visibility: visible; }
+      body { height: auto !important; overflow: visible !important; background: white !important; }
+      body > *:not(#printableInvoice) { display: none !important; }
+      
       #printableInvoice { 
-        position: absolute; 
-        left: 0; 
-        top: 0; 
+        display: block !important; 
         width: 100%; 
         padding: 20px;
         font-family: Arial, sans-serif;
+        color: black !important;
       }
     }
     
@@ -319,7 +324,7 @@
     </div>
   </div>
   <!-- THE HIDDEN PRINTABLE INVOICE -->
-<div id="printableInvoice" style="display: none;">
+<div id="printableInvoice">
   <h2 style="margin-bottom: 5px;">A Plus Car Wash & Detailing Inc.</h2>
   <p id="invLocationAddress" style="margin-top: 0; color: #555;"></p>
   
@@ -422,14 +427,8 @@ function printInvoice(transaction) {
     dealerContainer.style.display = "none";
   }
 
-// 3. Make visible, wait for iPad to draw it, PRINT, then hide again!
-  const invoiceDiv = document.getElementById("printableInvoice");
-  invoiceDiv.style.display = "block";
-  
-  setTimeout(() => {
-    window.print(); // Triggers print dialog after a 300ms delay
-    invoiceDiv.style.display = "none";
-  }, 300); 
+// 3. Trigger iPad Print Dialog (CSS handles hiding/showing automatically!)
+  window.print(); 
 }
     // --- 1. CONFIGURATION (REPLACE URL CAREFULLY, KEEP THE QUOTES!) ---
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxJX6GJEcl5OvCZ7Z7JAD72jSK8d7g7EJeK9Ud4dAiDb8-gPidrYvIOGpVAKw8h3Q2VFQ/exec"; 
