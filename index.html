@@ -613,17 +613,27 @@
             await new Promise(resolve => setTimeout(resolve, 3000));
             
             let statusResponse = await fetch(GOOGLE_SCRIPT_URL, {
-              method: "POST",
-              headers: { "Content-Type": "text/plain" },
-              body: JSON.stringify({
-                recordType: "check_square_status",
-                checkoutId: checkoutId
-              })
-            });
-            
-            let statusResult = await statusResponse.json();
-            let currentStatus = statusResult.checkoutStatus;
-            
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({
+          recordType: "check_square_status",
+          checkoutId: checkoutId
+        })
+      });
+
+      // 👇 THE BULLETPROOF FIX 👇
+      let rawText = await statusResponse.text();
+      let statusResult;
+      
+      try {
+        statusResult = JSON.parse(rawText);
+      } catch (parseError) {
+        console.warn("Google returned non-JSON. Ignoring and trying again...", rawText);
+        continue; // This instantly jumps back to the top of the while loop!
+      }
+      
+      let currentStatus = statusResult.checkoutStatus;
+      // 👆 END OF FIX 👆
             if (currentStatus === "COMPLETED") {
               isWaiting = false; // Stop checking
               document.getElementById("squareModalOverlay").style.display = "none";
