@@ -14,17 +14,18 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     @media print {
-  body * { visibility: hidden; }
-  #printableInvoice, #printableInvoice * { visibility: visible; }
-  #printableInvoice { 
-    position: absolute; 
-    left: 0; 
-    top: 0; 
-    width: 100%; 
-    padding: 20px;
-    font-family: Arial, sans-serif;
-  }
-}
+      body { height: auto !important; overflow: visible !important; display: block !important; }
+      body * { visibility: hidden; }
+      #printableInvoice, #printableInvoice * { visibility: visible; }
+      #printableInvoice { 
+        position: absolute; 
+        left: 0; 
+        top: 0; 
+        width: 100%; 
+        padding: 20px;
+        font-family: Arial, sans-serif;
+      }
+    }
     
     * { box-sizing: border-box; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
     body { background: #f3f4f6; display: flex; height: 100vh; overflow: hidden; color: #1f2937; }
@@ -421,11 +422,14 @@ function printInvoice(transaction) {
     dealerContainer.style.display = "none";
   }
 
-  // 3. Make visible, PRINT, then hide again!
+// 3. Make visible, wait for iPad to draw it, PRINT, then hide again!
   const invoiceDiv = document.getElementById("printableInvoice");
   invoiceDiv.style.display = "block";
-  window.print(); // This triggers the iPad's native print dialog
-  invoiceDiv.style.display = "none";
+  
+  setTimeout(() => {
+    window.print(); // Triggers print dialog after a 300ms delay
+    invoiceDiv.style.display = "none";
+  }, 300); 
 }
     // --- 1. CONFIGURATION (REPLACE URL CAREFULLY, KEEP THE QUOTES!) ---
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxJX6GJEcl5OvCZ7Z7JAD72jSK8d7g7EJeK9Ud4dAiDb8-gPidrYvIOGpVAKw8h3Q2VFQ/exec"; 
