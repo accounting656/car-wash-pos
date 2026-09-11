@@ -13,8 +13,8 @@
   <title>Premium Car Wash POS</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-   /* Hide invoice on the iPad screen */
-    /* Hide printable docs on the iPad screen */
+
+/* Hide printable docs on the iPad screen */
     @media screen {
       .print-section { display: none !important; }
     }
@@ -22,9 +22,10 @@
     /* Show ONLY the active printable doc to the AirPrint printer */
     @media print {
       body { height: auto !important; overflow: visible !important; background: white !important; }
-      body > *:not(.print-section) { display: none !important; }
+      body > *:not(.active-print) { display: none !important; }
       
-      .print-section { 
+      .active-print { 
+        display: block !important;
         width: 100%; 
         padding: 20px;
         font-family: Arial, sans-serif;
@@ -461,8 +462,11 @@ function printInvoice(transaction) {
     dealerContainer.style.display = "none";
   }
 
-// 3. Trigger iPad Print Dialog (CSS handles hiding/showing automatically!)
+// 3. Trigger iPad Print Dialog for the INVOICE only
+  const invoiceDiv = document.getElementById("printableInvoice");
+  invoiceDiv.classList.add("active-print");
   window.print(); 
+  invoiceDiv.classList.remove("active-print");
 }
     // --- 1. CONFIGURATION (REPLACE URL CAREFULLY, KEEP THE QUOTES!) ---
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxJX6GJEcl5OvCZ7Z7JAD72jSK8d7g7EJeK9Ud4dAiDb8-gPidrYvIOGpVAKw8h3Q2VFQ/exec"; 
@@ -540,18 +544,20 @@ function printInvoice(transaction) {
       document.getElementById("loginError").innerText = ""; 
     }
     
-    function submitPin() {
+function submitPin() {
       if (enteredPin === "3589" || (employees && employees[enteredPin])) {
         if (enteredPin === "3589") {
           activeAttendant = "Store Manager";
           document.getElementById("locationSelect").disabled = false;
           document.getElementById("locationSelect").style.borderColor = "#3b82f6";
           document.getElementById("locationSelect").style.borderWidth = "2px";
+          document.getElementById("eodBtn").style.display = "block"; // SHOW EOD BUTTON
         } else {
           activeAttendant = employees[enteredPin];
           document.getElementById("locationSelect").disabled = true;
           document.getElementById("locationSelect").style.borderColor = "#e5e7eb";
           document.getElementById("locationSelect").style.borderWidth = "1px";
+          document.getElementById("eodBtn").style.display = "none"; // HIDE EOD BUTTON
         }
         document.getElementById("currentAttendantName").innerText = activeAttendant;
         document.getElementById("loginOverlay").style.display = "none";
@@ -562,7 +568,7 @@ function printInvoice(transaction) {
       }
     }
     
-    function logout() {
+ function logout() {
       activeAttendant = ""; 
       document.getElementById("currentAttendantName").innerText = "None";
       document.getElementById("loginOverlay").style.display = "flex"; 
@@ -571,6 +577,7 @@ function printInvoice(transaction) {
       document.getElementById("locationSelect").disabled = true;
       document.getElementById("locationSelect").style.borderColor = "#e5e7eb";
       document.getElementById("locationSelect").style.borderWidth = "1px";
+      document.getElementById("eodBtn").style.display = "none"; // HIDE EOD BUTTON
       resetToRetail(); 
       updateCart();
     }
@@ -582,11 +589,13 @@ function printInvoice(transaction) {
     // --- MODALS & TIMECLOCK ---
     function openTimeclock() { document.getElementById("tcName").innerText = activeAttendant; document.getElementById("timeclockModalOverlay").style.display = "flex"; }
     function openPromoModal() { document.getElementById("promoModalOverlay").style.display = "flex"; }
-    function closeModals() { 
+function closeModals() { 
       document.getElementById("paymentModalOverlay").style.display = "none"; 
       document.getElementById("timeclockModalOverlay").style.display = "none"; 
       document.getElementById("promoModalOverlay").style.display = "none"; 
       document.getElementById("squareModalOverlay").style.display = "none"; 
+      document.getElementById("searchModalOverlay").style.display = "none"; 
+      document.getElementById("cashModalOverlay").style.display = "none"; // HIDE CASH MODAL
     }
 
     async function logTimeclock(actionType) {
@@ -875,6 +884,70 @@ function printInvoice(transaction) {
     renderMenu(); 
     updateCart(); 
     loadAppData();
+  
+// --- CASH CALCULATOR LOGIC ---
+  function openCashCalculator() {
+    document.getElementById("paymentModalOverlay").style.display = "none";
+    
+    // Recalculate exact total
+    const subtotal = cart.reduce((sum, item) => sum + item.price, 0); 
+    const taxAmount = isTaxExempt ? 0 : (subtotal * TOTAL_TAX_RATE); 
+    const grandTotal = subtotal + taxAmount;
+    
+    document.getElementById("cashTotalDue").innerText = `$${grandTotal.toFixed(2)}`;
+    document.getElementById("cashReceived").value = "";
+    document.getElementById("cashChangeDue").innerText = "$0.00";
+    document.getElementById("cashModalOverlay").style.display = "flex";
+  }
+
+  function calculateChange() {
+    const subtotal = cart.reduce((sum, item) => sum + item.price, 0); 
+    const taxAmount = isTaxExempt ? 0 : (subtotal * TOTAL_TAX_RATE); 
+    const grandTotal = subtotal + taxAmount;
+    
+    const received = parseFloat(document.getElementById("cashReceived").value) || 0;
+    const change = received - grandTotal;
+    
+    document.getElementById("cashChangeDue").innerText = change >= 0 ? `$${change.toFixed(2)}` : "$0.00";
+  }
+
+  // --- EOD REPORT LOGIC ---
+  async function generateEOD() {
+    const location = document.getElementById("locationSelect").value;
+    if (!confirm(`Generate End of Day printout for ${location}?`)) return;
+    
+    try {
+      const response = await fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({ recordType: "eod_report", location: location })
+      });
+      const result = await response.json();
+      
+      if (result.status === "success") {
+        document.getElementById("eodDate").innerText = new Date().toLocaleDateString();
+        document.getElementById("eodLocation").innerText = location;
+        document.getElementById("eodNet").innerText = `$${result.data.netSales.toFixed(2)}`;
+        document.getElementById("eodTax").innerText = `$${result.data.tax.toFixed(2)}`;
+        document.getElementById("eodTotal").innerText = `$${result.data.total.toFixed(2)}`;
+        document.getElementById("eodCash").innerText = `$${result.data.cash.toFixed(2)}`;
+        document.getElementById("eodCredit").innerText = `$${result.data.credit.toFixed(2)}`;
+        document.getElementById("eodCheck").innerText = `$${result.data.check.toFixed(2)}`;
+        document.getElementById("eodPending").innerText = `$${result.data.pending.toFixed(2)}`;
+        
+        // Temporarily display and print the EOD only
+        const eodDiv = document.getElementById("printableEOD");
+        eodDiv.classList.add("active-print");
+        window.print();
+        eodDiv.classList.remove("active-print");
+      } else {
+        alert("Error: " + result.message);
+      }
+    } catch (err) {
+      alert("Network error. Try again.");
+    }
+  }
+  
   </script>
 </body>
 </html>
