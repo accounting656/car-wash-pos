@@ -206,6 +206,16 @@
       <tr><th>Check:</th><td id="eodCheck"></td></tr>
       <tr><th>Pending:</th><td id="eodPending"></td></tr>
     </table>
+
+    <hr style="border: 1px dashed #ccc; margin: 20px 0;">
+    <h3>Services Breakdown</h3>
+    <table style="width: 100%; text-align: left; font-size: 16px;" id="eodServicesTable">
+      <!-- Populated by JS -->
+    </table>
+
+    <hr style="border: 1px dashed #ccc; margin: 20px 0;">
+    <h3>Shift Employees</h3>
+    <p id="eodEmployees" style="font-size: 16px;"></p>
   </div>
   <!-- SQUARE TERMINAL WAITING MODAL (NEW) -->
   <div id="squareModalOverlay" class="modal-overlay">
@@ -911,7 +921,7 @@ function closeModals() {
     document.getElementById("cashChangeDue").innerText = change >= 0 ? `$${change.toFixed(2)}` : "$0.00";
   }
 
-  // --- EOD REPORT LOGIC ---
+ // --- EOD REPORT LOGIC ---
   async function generateEOD() {
     const location = document.getElementById("locationSelect").value;
     if (!confirm(`Generate End of Day printout for ${location}?`)) return;
@@ -934,6 +944,22 @@ function closeModals() {
         document.getElementById("eodCredit").innerText = `$${result.data.credit.toFixed(2)}`;
         document.getElementById("eodCheck").innerText = `$${result.data.check.toFixed(2)}`;
         document.getElementById("eodPending").innerText = `$${result.data.pending.toFixed(2)}`;
+        
+        // Populate Services Tally
+        const svcTable = document.getElementById("eodServicesTable");
+        svcTable.innerHTML = "";
+        const servicesObj = result.data.services;
+        if (Object.keys(servicesObj).length === 0) {
+          svcTable.innerHTML = "<tr><td>No services recorded today.</td></tr>";
+        } else {
+          for (const [svcName, count] of Object.entries(servicesObj)) {
+            svcTable.innerHTML += `<tr><th>${svcName}:</th><td>${count}</td></tr>`;
+          }
+        }
+
+        // Populate Shift Employees
+        const empList = result.data.employees;
+        document.getElementById("eodEmployees").innerText = empList.length > 0 ? empList.join(", ") : "No punches recorded.";
         
         // Temporarily display and print the EOD only
         const eodDiv = document.getElementById("printableEOD");
