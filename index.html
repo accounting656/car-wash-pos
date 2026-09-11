@@ -600,13 +600,20 @@ function submitPin() {
     function openTimeclock() { document.getElementById("tcName").innerText = activeAttendant; document.getElementById("timeclockModalOverlay").style.display = "flex"; }
     function openPromoModal() { document.getElementById("promoModalOverlay").style.display = "flex"; }
 function closeModals() { 
-      document.getElementById("paymentModalOverlay").style.display = "none"; 
-      document.getElementById("timeclockModalOverlay").style.display = "none"; 
-      document.getElementById("promoModalOverlay").style.display = "none"; 
-      document.getElementById("squareModalOverlay").style.display = "none"; 
-      document.getElementById("searchModalOverlay").style.display = "none"; 
-      document.getElementById("cashModalOverlay").style.display = "none"; // HIDE CASH MODAL
-    }
+  const modals = [
+    "paymentModalOverlay", 
+    "timeclockModalOverlay", 
+    "promoModalOverlay", 
+    "squareModalOverlay", 
+    "searchModalOverlay", 
+    "cashModalOverlay"
+  ];
+  
+  modals.forEach(id => {
+    let el = document.getElementById(id);
+    if (el) el.style.display = "none"; 
+  });
+}
 
     async function logTimeclock(actionType) {
       const statusDiv = document.getElementById("tcStatus");
