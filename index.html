@@ -213,6 +213,12 @@
       <!-- Populated by JS -->
     </table>
 
+    <!-- NEW: BIG BOLD TOTAL CARS -->
+    <div style="text-align: right; margin-top: 15px;">
+      <span style="font-size: 18px; color: #555;">Total Cars Washed:</span><br>
+      <span id="eodTotalCars" style="font-size: 32px; font-weight: 800; color: #111827;">0</span>
+    </div>
+
     <hr style="border: 1px dashed #ccc; margin: 20px 0;">
     <h3>Shift Employees</h3>
     <p id="eodEmployees" style="font-size: 16px;"></p>
@@ -472,11 +478,18 @@ function printInvoice(transaction) {
     dealerContainer.style.display = "none";
   }
 
-// 3. Trigger iPad Print Dialog for the INVOICE only
+// 3. Trigger iPad Print Dialog for the INVOICE only (SAFARI FIX)
   const invoiceDiv = document.getElementById("printableInvoice");
   invoiceDiv.classList.add("active-print");
-  window.print(); 
-  invoiceDiv.classList.remove("active-print");
+  
+  // Give the iPad 300 milliseconds to render the unhidden document before printing
+  setTimeout(() => {
+    window.print(); 
+    // Wait 1 second before hiding it again so the print spooler catches it
+    setTimeout(() => {
+      invoiceDiv.classList.remove("active-print");
+    }, 1000);
+  }, 300);
 }
     // --- 1. CONFIGURATION (REPLACE URL CAREFULLY, KEEP THE QUOTES!) ---
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxJX6GJEcl5OvCZ7Z7JAD72jSK8d7g7EJeK9Ud4dAiDb8-gPidrYvIOGpVAKw8h3Q2VFQ/exec"; 
@@ -951,7 +964,8 @@ function closeModals() {
         document.getElementById("eodCredit").innerText = `$${result.data.credit.toFixed(2)}`;
         document.getElementById("eodCheck").innerText = `$${result.data.check.toFixed(2)}`;
         document.getElementById("eodPending").innerText = `$${result.data.pending.toFixed(2)}`;
-        
+        // NEW: Pull the total cars count
+        document.getElementById("eodTotalCars").innerText = result.data.totalCars;
         // Populate Services Tally
         const svcTable = document.getElementById("eodServicesTable");
         svcTable.innerHTML = "";
@@ -968,12 +982,17 @@ function closeModals() {
         const empList = result.data.employees;
         document.getElementById("eodEmployees").innerText = empList.length > 0 ? empList.join(", ") : "No punches recorded.";
         
-        // Temporarily display and print the EOD only
+        // Temporarily display and print the EOD only (SAFARI FIX)
         const eodDiv = document.getElementById("printableEOD");
         eodDiv.classList.add("active-print");
-        window.print();
-        eodDiv.classList.remove("active-print");
-      } else {
+        
+        setTimeout(() => {
+          window.print();
+          setTimeout(() => {
+            eodDiv.classList.remove("active-print");
+          }, 1000);
+        }, 300);
+        } else {
         alert("Error: " + result.message);
       }
     } catch (err) {
