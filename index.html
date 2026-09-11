@@ -14,17 +14,17 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
    /* Hide invoice on the iPad screen */
+    /* Hide printable docs on the iPad screen */
     @media screen {
-      #printableInvoice { display: none !important; }
+      .print-section { display: none !important; }
     }
 
-    /* Show ONLY the invoice to the AirPrint printer */
+    /* Show ONLY the active printable doc to the AirPrint printer */
     @media print {
       body { height: auto !important; overflow: visible !important; background: white !important; }
-      body > *:not(#printableInvoice) { display: none !important; }
+      body > *:not(.print-section) { display: none !important; }
       
-      #printableInvoice { 
-        display: block !important; 
+      .print-section { 
         width: 100%; 
         padding: 20px;
         font-family: Arial, sans-serif;
@@ -164,14 +164,48 @@
   <div id="paymentModalOverlay" class="modal-overlay">
     <div class="modal-box">
       <h2>Select Payment Method</h2>
-      <button class="modal-btn" onclick="processOrder('Cash')">💵 Cash</button>
+      <button class="modal-btn" onclick="openCashCalculator()">💵 Cash</button>
       <button class="modal-btn" onclick="processOrder('Credit Card')">💳 Credit Card</button>
       <button class="modal-btn" onclick="processOrder('Check')">📝 Check</button>
       <button class="modal-btn" onclick="processOrder('Pending')">⏳ Pending / Bill Later</button>
       <button class="modal-btn btn-cancel" onclick="closeModals()">Cancel</button>
     </div>
   </div>
+<!-- CASH TENDER CALCULATOR MODAL -->
+  <div id="cashModalOverlay" class="modal-overlay">
+    <div class="modal-box">
+      <h2>Cash Tender</h2>
+      <p style="font-size: 20px; font-weight: bold; margin-bottom: 10px;">Total Due: <span id="cashTotalDue">$0.00</span></p>
+      <input type="number" id="cashReceived" class="input-field" placeholder="Amount Received ($)" style="font-size: 18px; text-align: center; margin-bottom: 15px;" oninput="calculateChange()">
+      <p style="font-size: 22px; font-weight: bold; color: #10b981; margin-bottom: 20px;">Change Due: <span id="cashChangeDue">$0.00</span></p>
+      <button class="modal-btn clock-in-btn" onclick="processOrder('Cash')">Complete Sale</button>
+      <button class="modal-btn btn-cancel" onclick="closeModals()">Cancel</button>
+    </div>
+  </div>
 
+  <!-- PRINTABLE END OF DAY REPORT -->
+  <div id="printableEOD" class="print-section">
+    <h2 style="margin-bottom: 5px; text-align: center;">End of Day Summary</h2>
+    <p style="text-align: center; margin-top: 0; color: #555;" id="eodLocation"></p>
+    <p style="text-align: center;"><strong>Date:</strong> <span id="eodDate"></span></p>
+    
+    <hr style="border: 1px solid #ccc; margin: 20px 0;">
+    
+    <table style="width: 100%; margin-top: 20px; text-align: left; font-size: 18px;">
+      <tr><th>Net Sales:</th><td id="eodNet"></td></tr>
+      <tr><th>Tax Collected:</th><td id="eodTax"></td></tr>
+      <tr><th style="padding-top: 10px; font-size: 20px;">Total Gross:</th><td id="eodTotal" style="padding-top: 10px; font-weight: bold; font-size: 20px;"></td></tr>
+    </table>
+    
+    <hr style="border: 1px dashed #ccc; margin: 20px 0;">
+    <h3>Tender Breakdown</h3>
+    <table style="width: 100%; text-align: left; font-size: 16px;">
+      <tr><th>Cash:</th><td id="eodCash"></td></tr>
+      <tr><th>Credit Card:</th><td id="eodCredit"></td></tr>
+      <tr><th>Check:</th><td id="eodCheck"></td></tr>
+      <tr><th>Pending:</th><td id="eodPending"></td></tr>
+    </table>
+  </div>
   <!-- SQUARE TERMINAL WAITING MODAL (NEW) -->
   <div id="squareModalOverlay" class="modal-overlay">
     <div class="modal-box">
@@ -220,7 +254,6 @@
     
     <div style="display: flex; gap: 10px; margin-bottom: 20px;">
       <button onclick="executeSearch()" style="padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 5px; cursor: pointer; flex: 1;">Search</button>
-      <button onclick="document.getElementById('searchModalOverlay').style.display='none'" style="padding: 10px 20px; background: #9ca3af; color: white; border: none; border-radius: 5px; cursor: pointer;">Cancel</button>
     </div>
 
     <div id="searchResults" style="display: flex; flex-direction: column; gap: 10px;"></div>
@@ -244,6 +277,7 @@
         <div class="attendant-badge">
           👤 <span id="currentAttendantName">None</span>
        <div style="display: flex; gap: 8px;">
+          <button id="eodBtn" class="header-btn" style="background: #8b5cf6; color: white; display: none;" onclick="generateEOD()">📈 End of Day</button>
             <button class="header-btn" style="background: #e0f2fe; color: #0369a1;" onclick="window.open('dashboard.html', '_blank')">📊 Dashboard</button>
             <button class="header-btn timeclock-btn" onclick="openTimeclock()">🕒 Timeclock</button>
             <button class="header-btn" style="background: #4b5563; color: white;" onclick="document.getElementById('searchModalOverlay').style.display='flex'">🖨️ Invoices</button>
@@ -324,7 +358,7 @@
     </div>
   </div>
   <!-- THE HIDDEN PRINTABLE INVOICE -->
-<div id="printableInvoice">
+<div id="printableInvoice" class="print-section">
   <h2 style="margin-bottom: 5px;">A Plus Car Wash & Detailing Inc.</h2>
   <p id="invLocationAddress" style="margin-top: 0; color: #555;"></p>
   
