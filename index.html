@@ -700,6 +700,7 @@ function closeModals() {
           <div class="card" style="text-align:center; padding: 40px 20px;" onclick="selectVehicleType('Custom')"><div style="font-size: 50px; margin-bottom: 15px;">✏️</div><h3>Custom Pricing</h3></div>
           <div class="card" style="text-align:center; padding: 40px 20px; background: #fdf4ff; border: 2px dashed #f0abfc;" onclick="openPromoModal()"><div style="font-size: 50px; margin-bottom: 15px;">🎁</div><h3 style="color: #a21caf;">Seasonal Promos</h3></div>
           <div class="card" style="text-align:center; padding: 40px 20px; background: #f0fdf4; border: 2px dashed #4ade80;" onclick="selectVehicleType('Store')"><div style="font-size: 50px; margin-bottom: 15px;">🛍️</div><h3 style="color: #166534;">Store Products</h3></div>
+          <div class="card" style="text-align:center; padding: 40px 20px; background: #fffbeb; border: 2px dashed #f59e0b;" onclick="addGiftCard()"><div style="font-size: 50px; margin-bottom: 15px;">💳</div><h3 style="color: #b45309;">Sell Gift Card</h3></div>
         `;
       } else if (selectedVehicleType === 'Custom') {
         backBtn.style.display = "inline-block";
@@ -736,6 +737,35 @@ function closeModals() {
       const item = storeProducts[index]; 
       cart.push({ id: 'store-' + Date.now(), name: `Retail - ${item.name}`, price: item.price }); 
       updateCart(); 
+    }
+    function addGiftCard() {
+      // 1. Prompt for the dollar amount
+      let amountStr = prompt("Enter Gift Card Amount ($):");
+      if (!amountStr) return; // Stop if they hit cancel
+      
+      let amount = parseFloat(amountStr);
+      if (isNaN(amount) || amount <= 0) {
+        alert("Please enter a valid amount.");
+        return;
+      }
+
+      // 2. Generate a random unique code (e.g., GC-A4X9-8B2M)
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let code = 'GC-';
+      for (let i = 0; i < 4; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+      code += '-';
+      for (let i = 0; i < 4; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+
+      // 3. Add to cart
+      cart.push({ 
+        id: 'giftcard-' + Date.now(), 
+        name: `Gift Card (${code})`, 
+        price: amount,
+        isGiftCard: true,
+        gcCode: code
+      });
+      
+      updateCart();
     }
     function removeFromCart(index) { cart.splice(index, 1); updateCart(); }
 
