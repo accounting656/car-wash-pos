@@ -165,6 +165,7 @@
   <div id="paymentModalOverlay" class="modal-overlay">
     <div class="modal-box">
       <h2>Select Payment Method</h2>
+      <button id="gcBtn" onclick="redeemGiftCard()" style="width: 100%; padding: 15px; background: #f59e0b; color: white; border: none; border-radius: 8px; font-size: 18px; margin-bottom: 10px; cursor: pointer; font-weight: bold;">🎁 Redeem Gift Card </button>
       <button class="modal-btn" onclick="openCashCalculator()">💵 Cash</button>
       <button class="modal-btn" onclick="processOrder('Credit Card')">💳 Credit Card</button>
       <button class="modal-btn" onclick="processOrder('Check')">📝 Check</button>
@@ -520,6 +521,8 @@ function printInvoice(transaction) {
     let taxExemptDealers = {};
     let storeProducts = [];
     let cart = [];
+    let appliedGcCode = null;
+    let appliedGcAmount = 0;
     let enteredPin = "";
     let activeAttendant = "";
     
@@ -631,7 +634,7 @@ function submitPin() {
     // --- MODALS & TIMECLOCK ---
     function openTimeclock() { document.getElementById("tcName").innerText = activeAttendant; document.getElementById("timeclockModalOverlay").style.display = "flex"; }
     function openPromoModal() { document.getElementById("promoModalOverlay").style.display = "flex"; }
-function closeModals() { 
+    function closeModals() { 
   const modals = [
     "paymentModalOverlay", 
     "timeclockModalOverlay", 
@@ -809,6 +812,8 @@ function closeModals() {
     }
 
     function promptPayment() {
+      appliedGcCode = null;
+      appliedGcAmount = 0;
       if (cart.length === 0) return alert("Add a service first.");
       if (isTaxExempt && !selectedDealer) return alert("Select an Exempt Dealer.");
       document.getElementById("paymentModalOverlay").style.display = "flex";
@@ -941,6 +946,8 @@ function closeModals() {
       const payload = {
         recordType: "sale", location: document.getElementById("locationSelect").value, orderId: orderId,
         cart: cart,
+        appliedGcCode: appliedGcCode,
+        appliedGcAmount: appliedGcAmount,
         services: cart.map(item => item.name).join(", "), subtotal: subtotal, taxAmount: taxAmount, grandTotal: grandTotal,
         vehicleInfo: (make || plate) ? `${make} ${plate}`.trim() : "N/A", notes: document.getElementById("orderNotes").value, attendant: activeAttendant,
         exemptDealer: isTaxExempt ? `${selectedDealer} (${taxExemptDealers[selectedDealer].id})` : "N/A", paymentType: selectedPaymentType
@@ -1062,7 +1069,54 @@ function closeModals() {
       alert("Network error. Try again.");
     }
   }
-  
+  async function redeemGiftCard() {
+      const code = prompt("Enter Gift Card Code (e.g., GC-XXXX-XXXX):");
+      if (!code) return; 
+
+      const btn = document.getElementById("gcBtn");
+      const originalText = btn.innerText;
+      btn.innerText = "⏳ Checking Balance...";
+      btn.disabled = true;
+
+      try {
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          body: JSON.stringify({
+            recordType: "check_giftcard",
+            location: document.getElementById("locationSelect").value,
+            code: code.trim().toUpperCase()
+          })
+        });
+        const result = await response.json();
+
+        if (result.status === "success") {
+          let balance = result.balance;
+          if (balance <= 0) {
+            alert("This gift card has a zero balance.");
+          } else {
+            // Apply it! Calculate how much we actually need to cover the grandTotal
+            let cartTotal = cart.reduce((sum, item) => sum + item.price, 0); 
+            let taxAmt = isTaxExempt ? 0 : (cartTotal * TOTAL_TAX_RATE); 
+            let actualGrandTotal = cartTotal + taxAmt;
+            
+            appliedGcCode = code.trim().toUpperCase();
+            appliedGcAmount = Math.min(balance, actualGrandTotal); 
+            
+            alert(`Gift Card Found! \nBalance: $${balance.toFixed(2)}\nApplied: $${appliedGcAmount.toFixed(2)}`);
+            btn.innerText = `✅ Applied ($${appliedGcAmount.toFixed(2)})`;
+            btn.style.background = "#10b981"; 
+            return; 
+          }
+        } else {
+          alert("Error: " + result.message);
+        }
+      } catch (err) {
+        alert("Network error while checking card. Try again.");
+      }
+      
+      btn.innerText = originalText;
+      btn.disabled = false;
+    }
   </script>
 </body>
 </html>
