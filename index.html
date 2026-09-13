@@ -499,7 +499,7 @@ function printInvoice(transaction) {
 
     let employees = {};
     let taxExemptDealers = {};
-
+    let storeProducts = [];
     let cart = [];
     let enteredPin = "";
     let activeAttendant = "";
@@ -546,6 +546,7 @@ function printInvoice(transaction) {
             dealerSelect.add(option);
           });
         }
+       if (data.products) { storeProducts = data.products; } 
         statusDiv.innerText = "🟢 System Ready (PINs Loaded)";
       } catch (error) { 
         statusDiv.innerText = "⚠️ Network Issue (Use Admin PIN: 3589)";
@@ -695,6 +696,7 @@ function closeModals() {
           <div class="card" style="text-align:center; padding: 40px 20px;" onclick="selectVehicleType('Truck')"><div style="font-size: 50px; margin-bottom: 15px;">🛻</div><h3>Truck</h3></div>
           <div class="card" style="text-align:center; padding: 40px 20px;" onclick="selectVehicleType('Custom')"><div style="font-size: 50px; margin-bottom: 15px;">✏️</div><h3>Custom Pricing</h3></div>
           <div class="card" style="text-align:center; padding: 40px 20px; background: #fdf4ff; border: 2px dashed #f0abfc;" onclick="openPromoModal()"><div style="font-size: 50px; margin-bottom: 15px;">🎁</div><h3 style="color: #a21caf;">Seasonal Promos</h3></div>
+          <div class="card" style="text-align:center; padding: 40px 20px; background: #f0fdf4; border: 2px dashed #4ade80;" onclick="selectVehicleType('Store')"><div style="font-size: 50px; margin-bottom: 15px;">🛍️</div><h3 style="color: #166534;">Store Products</h3></div>
         `;
       } else if (selectedVehicleType === 'Custom') {
         backBtn.style.display = "inline-block";
@@ -707,8 +709,17 @@ function closeModals() {
               <button class="submit-btn" style="padding: 16px; margin-top: 15px;" onclick="addCustomItem()">ADD TO TICKET</button>
             </div>
           </div>
-        `;
+        `; 
+      } else if (selectedVehicleType === 'Store') {
+        backBtn.style.display = "inline-block";
+        grid.innerHTML = storeProducts.map((item, index) => `
+          <div class="card" onclick="addStoreItem(${index})">
+            <h3 style="color: #166534;">${item.name}</h3>
+            <div class="price" style="background: #dcfce7; color: #166534;">$${item.price.toFixed(2)}</div>
+          </div>
+        `).join('');
       } else {
+      else {
         backBtn.style.display = "inline-block";
         grid.innerHTML = activeServices.map(item => `
           <div class="card" onclick="addToCart(${item.id})">
@@ -719,6 +730,11 @@ function closeModals() {
     }
 
     function addToCart(id) { const item = activeServices.find(s => s.id === id); cart.push({ id: item.id, name: `${selectedVehicleType} - ${item.name}`, price: item.prices[selectedVehicleType] }); updateCart(); }
+    function addStoreItem(index) { 
+      const item = storeProducts[index]; 
+      cart.push({ id: 'store-' + Date.now(), name: `Retail - ${item.name}`, price: item.price }); 
+      updateCart(); 
+    }
     function removeFromCart(index) { cart.splice(index, 1); updateCart(); }
 
     function updateCart() {
