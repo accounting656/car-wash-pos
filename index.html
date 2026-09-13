@@ -271,6 +271,8 @@
     
     <div style="display: flex; gap: 10px; margin-bottom: 20px;">
       <button onclick="executeSearch()" style="padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 5px; cursor: pointer; flex: 1;">Search</button>
+      <!-- NEW CLOSE BUTTON -->
+      <button onclick="closeModals()" style="padding: 10px 20px; background: #fee2e2; color: #b91c1c; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Close</button>
     </div>
 
     <div id="searchResults" style="display: flex; flex-direction: column; gap: 10px;"></div>
@@ -488,6 +490,7 @@ function printInvoice(transaction) {
   // Give the iPad 300ms to render, then print without a removal timer
   setTimeout(() => {
     window.print(); 
+    closeModals();
   }, 300);
 }
     // --- 1. CONFIGURATION (REPLACE URL CAREFULLY, KEEP THE QUOTES!) ---
