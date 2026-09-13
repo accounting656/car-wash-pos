@@ -401,6 +401,14 @@
     <tr><th>Tax:</th><td id="invTax"></td></tr>
     <tr><th>Total Paid:</th><td id="invTotal" style="font-weight: bold;"></td></tr>
   </table>
+  <table style="width: 100%; margin-top: 20px; text-align: left;">
+    <tr><th>Subtotal:</th><td id="invSubtotal"></td></tr>
+    <tr><th>Tax:</th><td id="invTax"></td></tr>
+    <tr><th>Total Paid:</th><td id="invTotal" style="font-weight: bold;"></td></tr>
+  </table>
+  
+  <!-- NEW: Container for the Gift Certificate -->
+  <div id="invReceiptItems"></div>
   
   <p style="margin-top: 40px; text-align: center; font-style: italic;">Thank you for your business!</p>
 </div>
@@ -969,7 +977,23 @@ function submitPin() {
         
         statusMsg.style.color = "#10b981"; 
         statusMsg.innerText = "Order logged successfully!";
-        
+        // NEW: Auto-print if they just bought a gift card!
+    const hasGiftCard = cart.some(item => item.isGiftCard);
+    if (hasGiftCard) {
+      const receiptData = {
+        location: document.getElementById("locationSelect").value,
+        date: new Date().toISOString(),
+        orderId: orderId,
+        vehicle: (make || plate) ? `${make} ${plate}`.trim() : "N/A",
+        services: cart.map(item => item.name).join(", "),
+        subtotal: `$${subtotal.toFixed(2)}`,
+        tax: isTaxExempt ? "$0.00" : `$${taxAmount.toFixed(2)}`,
+        total: `$${grandTotal.toFixed(2)}`,
+        exemptDealer: isTaxExempt ? selectedDealer : "",
+        cart: cart
+      };
+      printInvoice(receiptData);
+    }
         // Reset UI Elements
         cart = []; 
         selectedVehicleType = null; 
