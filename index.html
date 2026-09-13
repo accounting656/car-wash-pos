@@ -829,7 +829,11 @@ function submitPin() {
       
       const subtotal = cart.reduce((sum, item) => sum + item.price, 0); 
       const taxAmount = isTaxExempt ? 0 : (subtotal * TOTAL_TAX_RATE); 
-      const grandTotal = subtotal + taxAmount;
+      let grandTotal = subtotal + taxAmount;
+      if (appliedGcAmount > 0) {
+        grandTotal -= appliedGcAmount;
+        if (grandTotal < 0) grandTotal = 0;
+      }
       const make = document.getElementById("vehicleMake").value; 
       const plate = document.getElementById("vehiclePlate").value;
       const orderId = "ORD-" + Math.floor(100000 + Math.random() * 900000);
@@ -993,7 +997,13 @@ function submitPin() {
     // Recalculate exact total
     const subtotal = cart.reduce((sum, item) => sum + item.price, 0); 
     const taxAmount = isTaxExempt ? 0 : (subtotal * TOTAL_TAX_RATE); 
-    const grandTotal = subtotal + taxAmount;
+    let grandTotal = subtotal + taxAmount;
+    
+    // NEW: Deduct the Gift Card from the amount due!
+    if (appliedGcAmount > 0) {
+      grandTotal -= appliedGcAmount;
+      if (grandTotal < 0) grandTotal = 0; // Prevent negative totals
+    }
     
     document.getElementById("cashTotalDue").innerText = `$${grandTotal.toFixed(2)}`;
     document.getElementById("cashReceived").value = "";
@@ -1004,14 +1014,19 @@ function submitPin() {
   function calculateChange() {
     const subtotal = cart.reduce((sum, item) => sum + item.price, 0); 
     const taxAmount = isTaxExempt ? 0 : (subtotal * TOTAL_TAX_RATE); 
-    const grandTotal = subtotal + taxAmount;
+    let grandTotal = subtotal + taxAmount;
+    
+    // NEW: Deduct the Gift Card here too!
+    if (appliedGcAmount > 0) {
+      grandTotal -= appliedGcAmount;
+      if (grandTotal < 0) grandTotal = 0;
+    }
     
     const received = parseFloat(document.getElementById("cashReceived").value) || 0;
     const change = received - grandTotal;
     
     document.getElementById("cashChangeDue").innerText = change >= 0 ? `$${change.toFixed(2)}` : "$0.00";
   }
-
  // --- EOD REPORT LOGIC ---
   async function generateEOD() {
     const location = document.getElementById("locationSelect").value;
