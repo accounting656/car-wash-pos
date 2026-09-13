@@ -814,6 +814,13 @@ function submitPin() {
     function promptPayment() {
       appliedGcCode = null;
       appliedGcAmount = 0;
+      // 2. NEW: Reset the physical button back to orange
+      const gcBtn = document.getElementById("gcBtn");
+      if (gcBtn) {
+        gcBtn.innerText = "🎁 Redeem Gift Card";
+        gcBtn.style.background = "#f59e0b"; // Back to orange
+        gcBtn.disabled = false;
+      }
       if (cart.length === 0) return alert("Add a service first.");
       if (isTaxExempt && !selectedDealer) return alert("Select an Exempt Dealer.");
       document.getElementById("paymentModalOverlay").style.display = "flex";
