@@ -478,17 +478,16 @@ function printInvoice(transaction) {
     dealerContainer.style.display = "none";
   }
 
-// 3. Trigger iPad Print Dialog for the INVOICE only (SAFARI FIX)
+// 3. Trigger iPad Print Dialog (SAFARI FIX)
+  // Clear any existing print classes first
+  document.querySelectorAll('.print-section').forEach(el => el.classList.remove('active-print'));
+  
   const invoiceDiv = document.getElementById("printableInvoice");
   invoiceDiv.classList.add("active-print");
   
-  // Give the iPad 300 milliseconds to render the unhidden document before printing
+  // Give the iPad 300ms to render, then print without a removal timer
   setTimeout(() => {
     window.print(); 
-    // Wait 1 second before hiding it again so the print spooler catches it
-    setTimeout(() => {
-      invoiceDiv.classList.remove("active-print");
-    }, 1000);
   }, 300);
 }
     // --- 1. CONFIGURATION (REPLACE URL CAREFULLY, KEEP THE QUOTES!) ---
@@ -983,14 +982,13 @@ function closeModals() {
         document.getElementById("eodEmployees").innerText = empList.length > 0 ? empList.join(", ") : "No punches recorded.";
         
         // Temporarily display and print the EOD only (SAFARI FIX)
+        document.querySelectorAll('.print-section').forEach(el => el.classList.remove('active-print'));
+        
         const eodDiv = document.getElementById("printableEOD");
         eodDiv.classList.add("active-print");
         
         setTimeout(() => {
           window.print();
-          setTimeout(() => {
-            eodDiv.classList.remove("active-print");
-          }, 1000);
         }, 300);
         } else {
         alert("Error: " + result.message);
