@@ -479,7 +479,23 @@ function printInvoice(transaction) {
   } else {
     dealerContainer.style.display = "none";
   }
-
+// NEW: Check if there are any gift cards in the order and build the printout
+  let giftCardHTML = "";
+  (transaction.cart || []).forEach(item => {
+    if (item.isGiftCard && item.gcCode) {
+      giftCardHTML += `
+        <div style="border: 2px dashed #000; padding: 20px; margin-top: 30px; text-align: center; page-break-inside: avoid;">
+          <h2 style="margin: 0; font-size: 24px;">A+ WashOS Gift Certificate</h2>
+          <p style="font-size: 18px; margin: 10px 0;">Amount: <strong>$${item.price.toFixed(2)}</strong></p>
+          <div style="font-size: 32px; font-weight: 900; letter-spacing: 2px; margin: 15px 0;">${item.gcCode}</div>
+          <p style="font-size: 12px; color: #555;">Present this code at checkout to redeem.</p>
+        </div>
+      `;
+    }
+  });
+  
+  // Append it to the receipt items
+  document.getElementById("invReceiptItems").innerHTML += giftCardHTML;
 // 3. Trigger iPad Print Dialog (SAFARI FIX)
   // Clear any existing print classes first
   document.querySelectorAll('.print-section').forEach(el => el.classList.remove('active-print'));
@@ -924,6 +940,7 @@ function closeModals() {
 
       const payload = {
         recordType: "sale", location: document.getElementById("locationSelect").value, orderId: orderId,
+        cart: cart,
         services: cart.map(item => item.name).join(", "), subtotal: subtotal, taxAmount: taxAmount, grandTotal: grandTotal,
         vehicleInfo: (make || plate) ? `${make} ${plate}`.trim() : "N/A", notes: document.getElementById("orderNotes").value, attendant: activeAttendant,
         exemptDealer: isTaxExempt ? `${selectedDealer} (${taxExemptDealers[selectedDealer].id})` : "N/A", paymentType: selectedPaymentType
