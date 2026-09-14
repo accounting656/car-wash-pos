@@ -408,11 +408,9 @@
     <tr><th>Subtotal:</th><td id="invSubtotal"></td></tr>
     <tr><th>Tax:</th><td id="invTax"></td></tr>
     <tr><th>Total Paid:</th><td id="invTotal" style="font-weight: bold;"></td></tr>
+    <!-- NEW: Payment Method Row -->
+    <tr><th>Payment Method:</th><td id="invPaymentMethod" style="font-style: italic;"></td></tr>
   </table>
-  <table style="width: 100%; margin-top: 20px; text-align: left;">
-    <tr><th>Subtotal:</th><td id="invSubtotal"></td></tr>
-    <tr><th>Tax:</th><td id="invTax"></td></tr>
-    <tr><th>Total Paid:</th><td id="invTotal" style="font-weight: bold;"></td></tr>
   </table>
   
   <!-- NEW: Container for the Gift Certificate -->
@@ -487,6 +485,7 @@ function printInvoice(transaction) {
   document.getElementById("invSubtotal").innerText = transaction.subtotal;
   document.getElementById("invTax").innerText = transaction.tax;
   document.getElementById("invTotal").innerText = transaction.total;
+  document.getElementById("invPaymentMethod").innerText = transaction.paymentMethod === 'Cash' ? 'Paid Cash' : 'Credit / Square';
 
   // 2. Handle Dealer Logic
   const dealerContainer = document.getElementById("invDealerContainer");
@@ -1001,6 +1000,7 @@ function submitPin() {
             total: `$${grandTotal.toFixed(2)}`,
             exemptDealer: isTaxExempt ? selectedDealer : "",
             cart: cart
+            paymentMethod: selectedPaymentType
           };
           printInvoice(receiptData);
         }
