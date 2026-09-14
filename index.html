@@ -408,8 +408,8 @@
     <tr><th>Subtotal:</th><td id="invSubtotal"></td></tr>
     <tr><th>Tax:</th><td id="invTax"></td></tr>
     <tr><th>Total Paid:</th><td id="invTotal" style="font-weight: bold;"></td></tr>
-    <!-- NEW: Payment Method Row -->
     <tr><th>Payment Method:</th><td id="invPaymentMethod" style="font-style: italic;"></td></tr>
+    <tr id="invGcBalanceRow" style="display: none;"><th>GC Remaining Balance:</th><td id="invGcBalance" style="font-weight: bold;"></td></tr>
   </table>
   
   <!-- NEW: Container for the Gift Certificate -->
@@ -484,7 +484,20 @@ function printInvoice(transaction) {
   document.getElementById("invSubtotal").innerText = transaction.subtotal;
   document.getElementById("invTax").innerText = transaction.tax;
   document.getElementById("invTotal").innerText = transaction.total;
-  document.getElementById("invPaymentMethod").innerText = transaction.paymentMethod === 'Cash' ? 'Paid Cash' : 'Credit / Square';
+ // NEW: Smart Payment Method Logic
+if (transaction.appliedGcCode) {
+let methodText = `Gift Card (${transaction.appliedGcCode})`;
+// If the GC didn't cover everything, append the second payment method
+if (transaction.total !== "$0.00") {
+  methodText += ` & ${transaction.paymentMethod === 'Cash' ? 'Cash' : 'Credit'}`;
+}
+document.getElementById("invPaymentMethod").innerText = methodText;
+document.getElementById("invGcBalanceRow").style.display = "table-row";
+document.getElementById("invGcBalance").innerText = `$${transaction.remainingGcBalance.toFixed(2)}`;
+} else {
+document.getElementById("invPaymentMethod").innerText = transaction.paymentMethod === 'Cash' ? 'Paid Cash' : 'Credit / Square';
+document.getElementById("invGcBalanceRow").style.display = "none";
+}
 
   // 2. Handle Dealer Logic
   const dealerContainer = document.getElementById("invDealerContainer");
@@ -537,6 +550,7 @@ function printInvoice(transaction) {
     let cart = [];
     let appliedGcCode = null;
     let appliedGcAmount = 0;
+    let remainingGcBalance = 0; //
     let enteredPin = "";
     let activeAttendant = "";
     
@@ -828,6 +842,7 @@ function submitPin() {
     function promptPayment() {
       appliedGcCode = null;
       appliedGcAmount = 0;
+      remainingGcBalance = 0;
       // 2. NEW: Reset the physical button back to orange
       const gcBtn = document.getElementById("gcBtn");
       if (gcBtn) {
@@ -984,25 +999,28 @@ function submitPin() {
         statusMsg.style.color = "#10b981"; 
         statusMsg.innerText = "Order logged successfully!";
         // NEW: Auto-print if they just bought a gift card!
-    // NEW: Auto-print if they bought a gift card OR paid with Cash!
-        const hasGiftCard = cart.some(item => item.isGiftCard);
-        
-        if (hasGiftCard || selectedPaymentType === 'Cash') {
-          const receiptData = {
-            location: document.getElementById("locationSelect").value,
-            date: new Date().toISOString(),
-            orderId: orderId,
-            vehicle: (make || plate) ? `${make} ${plate}`.trim() : "N/A",
-            services: cart.map(item => item.name).join(", "),
-            subtotal: `$${subtotal.toFixed(2)}`,
-            tax: isTaxExempt ? "$0.00" : `$${taxAmount.toFixed(2)}`,
-            total: `$${grandTotal.toFixed(2)}`,
-            exemptDealer: isTaxExempt ? selectedDealer : "",
-            cart: cart,
-            paymentMethod: selectedPaymentType
-          };
-          printInvoice(receiptData);
-        }
+    // NEW: Auto-print if they bought a GC, paid Cash, OR redeemed a GC!
+    const hasGiftCard = cart.some(item => item.isGiftCard);
+    
+    if (hasGiftCard || selectedPaymentType === 'Cash' || appliedGcCode) {
+      const receiptData = {
+        location: document.getElementById("locationSelect").value,
+        date: new Date().toISOString(),
+        orderId: orderId,
+        vehicle: (make || plate) ? `${make} ${plate}`.trim() : "N/A",
+        services: cart.map(item => item.name).join(", "),
+        subtotal: `$${subtotal.toFixed(2)}`,
+        tax: isTaxExempt ? "$0.00" : `$${taxAmount.toFixed(2)}`,
+        total: `$${grandTotal.toFixed(2)}`, // This will naturally be $0.00 if the GC covered everything
+        exemptDealer: isTaxExempt ? selectedDealer : "",
+        cart: cart,
+        paymentMethod: selectedPaymentType,
+        // Pass the GC details
+        appliedGcCode: appliedGcCode,
+        remainingGcBalance: remainingGcBalance
+      };
+      printInvoice(receiptData);
+    }
         // Reset UI Elements
         cart = []; 
         selectedVehicleType = null; 
@@ -1155,7 +1173,8 @@ function submitPin() {
             let actualGrandTotal = cartTotal + taxAmt;
             
             appliedGcCode = code.trim().toUpperCase();
-            appliedGcAmount = Math.min(balance, actualGrandTotal); 
+            appliedGcAmount = Math.min(balance, actualGrandTotal);
+            remainingGcBalance = balance - appliedGcAmount;
             
             alert(`Gift Card Found! \nBalance: $${balance.toFixed(2)}\nApplied: $${appliedGcAmount.toFixed(2)}`);
             btn.innerText = `✅ Applied ($${appliedGcAmount.toFixed(2)})`;
