@@ -411,7 +411,6 @@
     <!-- NEW: Payment Method Row -->
     <tr><th>Payment Method:</th><td id="invPaymentMethod" style="font-style: italic;"></td></tr>
   </table>
-  </table>
   
   <!-- NEW: Container for the Gift Certificate -->
   <div id="invReceiptItems"></div>
@@ -999,7 +998,7 @@ function submitPin() {
             tax: isTaxExempt ? "$0.00" : `$${taxAmount.toFixed(2)}`,
             total: `$${grandTotal.toFixed(2)}`,
             exemptDealer: isTaxExempt ? selectedDealer : "",
-            cart: cart
+            cart: cart,
             paymentMethod: selectedPaymentType
           };
           printInvoice(receiptData);
