@@ -12,8 +12,16 @@
   
   <title>Premium Car Wash POS</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    @media print {
+    @page {
+      margin: 0;
+    }
+    body {
+      padding: 15px; 
+    }
+  }
 /* Hide printable docs on the iPad screen */
     @media screen {
       .print-section { display: none !important; }
