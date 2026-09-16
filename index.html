@@ -597,7 +597,7 @@ document.getElementById("invGcBalanceRow").style.display = "none";
     let selectedDealer = null;
     let activePromo = null;
     let promoDiscountPercent = 0;
-    
+    let pointsUsedThisTicket = 0;
     let selectedVehicleType = null;
     
     const standardServices = [
@@ -655,8 +655,8 @@ document.getElementById("invGcBalanceRow").style.display = "none";
       document.getElementById("pinDisplay").innerText = ""; 
       document.getElementById("loginError").innerText = ""; 
     }
-    
-function submitPin() {
+  
+    function submitPin() {
       if (enteredPin === "3589" || (employees && employees[enteredPin])) {
         if (enteredPin === "3589") {
           activeAttendant = "Store Manager";
@@ -810,6 +810,7 @@ function applyReward(rewardName, pointCost) {
   
   // Add the free upgrade to the cart
   cart.push({ id: 'reward-' + Date.now(), name: `🎁 Reward: ${rewardName}`, price: 0 });
+  pointsUsedThisTicket += pointCost;
   updateCart();
   closeModals();
   alert(`Applied ${rewardName}! ${pointCost} points will be deducted at checkout.`);
@@ -1111,7 +1112,9 @@ function applyReward(rewardName, pointCost) {
         appliedGcAmount: appliedGcAmount,
         services: cart.map(item => item.name).join(", "), subtotal: subtotal, taxAmount: taxAmount, grandTotal: grandTotal,
         vehicleInfo: (make || plate) ? `${make} ${plate}`.trim() : "N/A", notes: document.getElementById("orderNotes").value, attendant: activeAttendant,
-        exemptDealer: isTaxExempt ? `${selectedDealer} (${taxExemptDealers[selectedDealer].id})` : "N/A", paymentType: selectedPaymentType
+        exemptDealer: isTaxExempt ? `${selectedDealer} (${taxExemptDealers[selectedDealer].id})` : "N/A", paymentType: selectedPaymentType,
+        customerPhone: activeCustomer ? activeCustomer.phone : null,
+        pointsUsed: pointsUsedThisTicket
       };
 
       try {
@@ -1149,7 +1152,8 @@ function applyReward(rewardName, pointCost) {
         document.getElementById("vehiclePlate").value = ""; 
         document.getElementById("orderNotes").value = "";
         if(isTaxExempt) document.getElementById("taxExemptToggle").click();
-        
+        removeCustomer();
+        pointsUsedThisTicket = 0;
         updateCart(); 
         renderMenu(); 
         setTimeout(() => { statusMsg.innerText = ""; }, 3000);
