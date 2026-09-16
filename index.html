@@ -1192,6 +1192,9 @@ function applyReward(rewardName, pointCost) {
         if(isTaxExempt) document.getElementById("taxExemptToggle").click();
         removeCustomer();
         pointsUsedThisTicket = 0;
+        appliedGcCode = null;
+        appliedGcAmount = 0;
+        remainingGcBalance = 0;
         updateCart(); 
         renderMenu(); 
         setTimeout(() => { statusMsg.innerText = ""; }, 3000);
