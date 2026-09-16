@@ -183,10 +183,29 @@
   </div>
 <!-- CASH TENDER CALCULATOR MODAL -->
   <div id="cashModalOverlay" class="modal-overlay">
-    <div class="modal-box">
+    <div class="modal-box" style="max-width: 420px;">
       <h2>Cash Tender</h2>
       <p style="font-size: 20px; font-weight: bold; margin-bottom: 10px;">Total Due: <span id="cashTotalDue">$0.00</span></p>
-      <input type="text" inputmode="decimal" id="cashReceived" class="input-field" placeholder="Amount Received ($)" style="font-size: 18px; text-align: center; margin-bottom: 15px;" oninput="calculateChange()" onkeyup="if(event.key === 'Enter') this.blur();">
+      
+      <!-- 'readonly' ensures the iPad keyboard NEVER pops up -->
+      <input type="text" id="cashReceived" class="input-field" placeholder="Amount Received ($)" style="font-size: 24px; text-align: center; margin-bottom: 15px; font-weight: bold; background: white;" readonly>
+      
+      <!-- Custom Mini Numpad -->
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;">
+        <button class="modal-btn" style="margin: 0; font-size: 20px; padding: 12px;" onclick="addCash('1')">1</button>
+        <button class="modal-btn" style="margin: 0; font-size: 20px; padding: 12px;" onclick="addCash('2')">2</button>
+        <button class="modal-btn" style="margin: 0; font-size: 20px; padding: 12px;" onclick="addCash('3')">3</button>
+        <button class="modal-btn" style="margin: 0; font-size: 20px; padding: 12px;" onclick="addCash('4')">4</button>
+        <button class="modal-btn" style="margin: 0; font-size: 20px; padding: 12px;" onclick="addCash('5')">5</button>
+        <button class="modal-btn" style="margin: 0; font-size: 20px; padding: 12px;" onclick="addCash('6')">6</button>
+        <button class="modal-btn" style="margin: 0; font-size: 20px; padding: 12px;" onclick="addCash('7')">7</button>
+        <button class="modal-btn" style="margin: 0; font-size: 20px; padding: 12px;" onclick="addCash('8')">8</button>
+        <button class="modal-btn" style="margin: 0; font-size: 20px; padding: 12px;" onclick="addCash('9')">9</button>
+        <button class="modal-btn" style="margin: 0; font-size: 20px; padding: 12px;" onclick="addCash('.')">.</button>
+        <button class="modal-btn" style="margin: 0; font-size: 20px; padding: 12px;" onclick="addCash('0')">0</button>
+        <button class="modal-btn" style="margin: 0; font-size: 20px; padding: 12px; background: #fee2e2; color: #b91c1c; border-color: #fca5a5;" onclick="clearCash()">C</button>
+      </div>
+
       <p style="font-size: 22px; font-weight: bold; color: #10b981; margin-bottom: 20px;">Change Due: <span id="cashChangeDue">$0.00</span></p>
       <button class="modal-btn clock-in-btn" onclick="processOrder('Cash')">Complete Sale</button>
       <button class="modal-btn btn-cancel" onclick="closeModals()">Cancel</button>
@@ -1228,6 +1247,18 @@ function applyReward(rewardName, pointCost) {
     const change = received - grandTotal;
     
     document.getElementById("cashChangeDue").innerText = change >= 0 ? `$${change.toFixed(2)}` : "$0.00";
+  }
+  function addCash(val) {
+    const input = document.getElementById("cashReceived");
+    // Prevent them from typing two decimal points
+    if (val === '.' && input.value.includes('.')) return; 
+    input.value += val;
+    calculateChange();
+  }
+  
+  function clearCash() {
+    document.getElementById("cashReceived").value = "";
+    calculateChange();
   }
  // --- EOD REPORT LOGIC ---
   async function generateEOD() {
