@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>A+ WashOS - Live Leaderboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
+    body { background: #0f172a; color: white; padding: 30px; }
+    .header { text-align: center; margin-bottom: 40px; }
+    .header h1 { font-size: 48px; font-weight: 900; background: linear-gradient(to right, #38bdf8, #818cf8); -webkit-background-clip: text; color: transparent; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 30px; }
+    .card { background: #1e293b; border-radius: 20px; padding: 30px; border: 1px solid #334155; display: flex; flex-direction: column; }
+    .loc-title { font-size: 24px; font-weight: 800; color: #94a3b8; margin-bottom: 10px; }
+    .car-count { font-size: 80px; font-weight: 900; color: #38bdf8; line-height: 1; text-align: center; margin-bottom: 20px; }
+    .services-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .service-item { background: #0f172a; padding: 10px 15px; border-radius: 10px; display: flex; justify-content: space-between; font-size: 16px; color: #cbd5e1; }
+    .service-item strong { color: white; font-size: 18px; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>🏆 LIVE LEADERBOARD 🏆</h1>
+    <p style="color: #64748b; font-size: 18px;" id="lastUpdate">Loading stats...</p>
+  </div>
+
+  <div class="grid" id="leaderboardGrid"></div>
+
+  <script>
+    // ⚠️ PASTE YOUR REAL URL HERE:
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxJX6GJEcl5OvCZ7Z7JAD72jSK8d7g7EJeK9Ud4dAiDb8-gPidrYvIOGpVAKw8h3Q2VFQ/exec";
+    
+    async function fetchLeaderboard() {
+      try {
+        const response = await fetch(GOOGLE_SCRIPT_URL + "?action=getDashboardData");
+        const data = await response.json();
+        
+        document.getElementById("lastUpdate").innerText = "Last updated: " + new Date().toLocaleTimeString();
+
+        let gridHTML = "";
+        
+        // Sort locations by highest car count
+        let sortedLocations = Object.keys(data.locations).sort((a,b) => data.locations[b].cars - data.locations[a].cars);
+
+        sortedLocations.forEach((loc, index) => {
+          let lData = data.locations[loc];
+          
+          let services = Object.entries(lData.services)
+            .sort((a,b) => b[1]-a[1])
+            .map(s => `<div class="service-item"><span>${s[0]}</span><strong>${s[1]}</strong></div>`)
+            .join('');
+
+          // Make the #1 spot gold!
+          let titleColor = index === 0 ? "color: #fbbf24;" : "";
+          let rankIcon = index === 0 ? "👑 " : "";
+
+          gridHTML += `
+            <div class="card">
+              <div class="loc-title" style="${titleColor}">${rankIcon}${loc}</div>
+              <div class="car-count">${lData.cars} <span style="font-size: 24px; color: #475569;">CARS</span></div>
+              <div style="font-size: 14px; font-weight: bold; color: #64748b; margin-bottom: 10px;">SERVICES BREAKDOWN:</div>
+              <div class="services-grid">${services || "<span style='color:#475569;'>No cars yet today</span>"}</div>
+            </div>`;
+        });
+
+        document.getElementById("leaderboardGrid").innerHTML = gridHTML;
+      } catch (err) { console.error("Update failed", err); }
+    }
+
+    // Load instantly, then auto-refresh every 60 seconds
+    window.onload = () => { fetchLeaderboard(); setInterval(fetchLeaderboard, 60000); };
+  </script>
+</body>
+</html>
