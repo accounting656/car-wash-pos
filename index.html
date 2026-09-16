@@ -1159,7 +1159,17 @@ function applyReward(rewardName, pointCost) {
     // NEW: Auto-print if they bought a GC, paid Cash, OR redeemed a GC!
     const hasGiftCard = cart.some(item => item.isGiftCard);
     
-    if (hasGiftCard || selectedPaymentType === 'Cash' || appliedGcCode) {
+    // Determine if we should print
+    let shouldPrint = false;
+    
+    if (hasGiftCard) {
+      shouldPrint = true; // Always auto-print if they bought a GC so they get the code!
+    } else if (selectedPaymentType === 'Cash' || appliedGcCode) {
+      // Pop up an iPad dialog asking if they want a receipt
+      shouldPrint = confirm("Does the customer want a printed receipt?");
+    }
+
+    if (shouldPrint) {
       // Capture cash amounts before resetting
       let cashTenderedAmt = parseFloat(document.getElementById("cashReceived").value) || 0;
       let changeAmt = cashTenderedAmt - grandTotal;
