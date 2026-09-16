@@ -575,7 +575,10 @@ document.getElementById("invGcBalanceRow").style.display = "none";
   } else {
     dealerContainer.style.display = "none";
   }
-// NEW: Check if there are any gift cards in the order and build the printout
+
+  // NEW: Check if there are any gift cards in the order and build the printout
+  document.getElementById("invReceiptItems").innerHTML = ""; // 👇 THIS CLEARS THE GHOST RECEIPTS!
+  
   let giftCardHTML = "";
   (transaction.cart || []).forEach(item => {
     if (item.isGiftCard && item.gcCode) {
