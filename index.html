@@ -273,6 +273,43 @@
       <button class="modal-btn btn-cancel" onclick="closeModals()">Cancel</button>
     </div>
   </div>
+  <!-- CUSTOMER LOYALTY MODAL -->
+<div id="customerModalOverlay" class="modal-overlay">
+  <div class="modal-box">
+    <h2>Customer Loyalty</h2>
+    
+    <!-- 1. Search Section -->
+    <div id="customerSearchSection">
+      <input type="tel" id="customerPhone" class="input-field" placeholder="📱 Phone Number (e.g. 8135551234)">
+      <button class="modal-btn clock-in-btn" onclick="lookupCustomer()">Search Database</button>
+    </div>
+
+    <!-- 2. Registration Section (Hidden by default) -->
+    <div id="customerRegSection" style="display: none; margin-top: 15px;">
+      <p style="color: #4b5563; font-size: 14px; margin-bottom: 10px;">New Customer! Create Profile:</p>
+      <input type="text" id="customerName" class="input-field" placeholder="👤 Full Name">
+      <input type="email" id="customerEmail" class="input-field" placeholder="📧 Email (Optional)">
+      <button class="modal-btn clock-in-btn" onclick="registerCustomer()">Create Profile</button>
+    </div>
+
+    <!-- 3. Active Customer Section (Hidden by default) -->
+    <div id="activeCustomerSection" style="display: none; margin-top: 15px; text-align: left;">
+      <p><strong>Name:</strong> <span id="dispCustName"></span></p>
+      <p><strong>Available Points:</strong> <span id="dispCustPoints" style="color: #10b981; font-weight: bold; font-size: 18px;"></span></p>
+      
+      <!-- Redeemable Upgrades -->
+      <div id="rewardsList" style="margin-top: 15px; border-top: 1px dashed #ccc; padding-top: 15px;">
+        <p style="font-size: 14px; color: #6b7280; margin-bottom: 10px;">Redeem Upgrades:</p>
+        <button id="rewardWax" class="modal-btn" style="background: #fdf4ff; color: #a21caf; border-color: #f0abfc;" onclick="applyReward('Speed Ceramic Wax Upgrade', 150)">✨ Speed Ceramic (150 pts)</button>
+        <button id="rewardShampoo" class="modal-btn" style="background: #eff6ff; color: #1e3a8a; border-color: #bfdbfe;" onclick="applyReward('Floor Mat Shampoo Upgrade', 100)">🧼 Mat Shampoo (100 pts)</button>
+      </div>
+      
+      <button class="modal-btn logout-btn" style="margin-top: 15px;" onclick="removeCustomer()">Remove from Ticket</button>
+    </div>
+
+    <button class="modal-btn btn-cancel" onclick="closeModals()">Close</button>
+  </div>
+</div>
 <div id="searchModalOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
   <div style="background: white; padding: 20px; border-radius: 8px; width: 600px; max-width: 90%; max-height: 80vh; overflow-y: auto; color: black;">
     <h3 style="margin-top: 0;">Find Invoice</h3>
@@ -305,7 +342,8 @@
         <div class="attendant-badge">
           👤 <span id="currentAttendantName">None</span>
        <div style="display: flex; gap: 8px;">
-          <button id="eodBtn" class="header-btn" style="background: #8b5cf6; color: white; display: none;" onclick="generateEOD()">📈 End of Day</button>
+            <button id="eodBtn" class="header-btn" style="background: #8b5cf6; color: white; display: none;" onclick="generateEOD()">📈 End of Day</button>
+            <button id="addCustomerBtn" class="header-btn" style="background: #fce7f3; color: #be185d;" onclick="document.getElementById('customerModalOverlay').style.display='flex'">👤 Add Customer</button>
             <button class="header-btn" style="background: #e0f2fe; color: #0369a1;" onclick="window.open('dashboard.html', '_blank')">📊 Dashboard</button>
             <button class="header-btn timeclock-btn" onclick="openTimeclock()">🕒 Timeclock</button>
             <button class="header-btn" style="background: #4b5563; color: white;" onclick="document.getElementById('searchModalOverlay').style.display='flex'">🖨️ Invoices</button>
@@ -553,6 +591,7 @@ document.getElementById("invGcBalanceRow").style.display = "none";
     let remainingGcBalance = 0; //
     let enteredPin = "";
     let activeAttendant = "";
+    let activeCustomer = null;
     
     let isTaxExempt = false;
     let selectedDealer = null;
@@ -663,14 +702,15 @@ function submitPin() {
     function openTimeclock() { document.getElementById("tcName").innerText = activeAttendant; document.getElementById("timeclockModalOverlay").style.display = "flex"; }
     function openPromoModal() { document.getElementById("promoModalOverlay").style.display = "flex"; }
     function closeModals() { 
-  const modals = [
-    "paymentModalOverlay", 
-    "timeclockModalOverlay", 
-    "promoModalOverlay", 
-    "squareModalOverlay", 
-    "searchModalOverlay", 
-    "cashModalOverlay"
-  ];
+const modals = [
+  "paymentModalOverlay", 
+  "timeclockModalOverlay", 
+  "promoModalOverlay", 
+  "squareModalOverlay", 
+  "searchModalOverlay", 
+  "cashModalOverlay",
+  "customerModalOverlay" // NEW
+];
   
   modals.forEach(id => {
     let el = document.getElementById(id);
@@ -693,6 +733,87 @@ function submitPin() {
         statusDiv.innerText = "Error."; 
       }
     }
+  // --- CUSTOMER LOYALTY LOGIC ---
+async function lookupCustomer() {
+  const phone = document.getElementById("customerPhone").value.trim();
+  if (phone.length < 10) return alert("Enter a valid phone number.");
+  
+  try {
+    const response = await fetch(GOOGLE_SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify({ recordType: "lookup_customer", phone: phone })
+    });
+    const result = await response.json();
+    
+    if (result.status === "success") {
+      setActiveCustomer(result.data);
+    } else {
+      document.getElementById("customerSearchSection").style.display = "none";
+      document.getElementById("customerRegSection").style.display = "block";
+    }
+  } catch (err) { alert("Error connecting to database."); }
+}
+
+async function registerCustomer() {
+  const name = document.getElementById("customerName").value.trim();
+  const email = document.getElementById("customerEmail").value.trim();
+  const phone = document.getElementById("customerPhone").value.trim();
+  
+  if (!name) return alert("Name is required.");
+  
+  try {
+    const response = await fetch(GOOGLE_SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify({ recordType: "register_customer", name: name, phone: phone, email: email })
+    });
+    const result = await response.json();
+    
+    if (result.status === "success") {
+      setActiveCustomer({ name: name, phone: phone, points: 0 });
+    }
+  } catch (err) { alert("Error registering customer."); }
+}
+
+function setActiveCustomer(custData) {
+  activeCustomer = custData;
+  document.getElementById("customerSearchSection").style.display = "none";
+  document.getElementById("customerRegSection").style.display = "none";
+  document.getElementById("activeCustomerSection").style.display = "block";
+  
+  document.getElementById("dispCustName").innerText = custData.name;
+  document.getElementById("dispCustPoints").innerText = custData.points;
+  
+  // Update top bar button to show their name
+  document.getElementById("addCustomerBtn").innerText = `👤 ${custData.name} (${custData.points} pts)`;
+  document.getElementById("addCustomerBtn").style.background = "#10b981"; // Turn green
+  document.getElementById("addCustomerBtn").style.color = "white";
+}
+
+function removeCustomer() {
+  activeCustomer = null;
+  document.getElementById("addCustomerBtn").innerText = "👤 Add Customer";
+  document.getElementById("addCustomerBtn").style.background = "#fce7f3";
+  document.getElementById("addCustomerBtn").style.color = "#be185d";
+  
+  document.getElementById("customerPhone").value = "";
+  document.getElementById("customerName").value = "";
+  document.getElementById("activeCustomerSection").style.display = "none";
+  document.getElementById("customerSearchSection").style.display = "block";
+  closeModals();
+}
+
+function applyReward(rewardName, pointCost) {
+  if (activeCustomer.points < pointCost) return alert("Not enough points for this reward.");
+  if (cart.length === 0) return alert("Add a standard service to the ticket first.");
+  
+  // Add the free upgrade to the cart
+  cart.push({ id: 'reward-' + Date.now(), name: `🎁 Reward: ${rewardName}`, price: 0 });
+  updateCart();
+  closeModals();
+  alert(`Applied ${rewardName}! ${pointCost} points will be deducted at checkout.`);
+}
  
     // --- PRICING & MENU ---
     function toggleTaxExempt() { isTaxExempt = document.getElementById("taxExemptToggle").checked; document.getElementById("dealerSelectContainer").style.display = isTaxExempt ? "block" : "none"; if (!isTaxExempt) { document.getElementById("dealerSelect").value = ""; selectedDealer = null; } cart = []; recalculatePricing(); updateCart(); }
