@@ -186,7 +186,7 @@
     <div class="modal-box">
       <h2>Cash Tender</h2>
       <p style="font-size: 20px; font-weight: bold; margin-bottom: 10px;">Total Due: <span id="cashTotalDue">$0.00</span></p>
-      <input type="number" id="cashReceived" class="input-field" placeholder="Amount Received ($)" style="font-size: 18px; text-align: center; margin-bottom: 15px;" oninput="calculateChange()">
+      <input type="text" inputmode="decimal" id="cashReceived" class="input-field" placeholder="Amount Received ($)" style="font-size: 18px; text-align: center; margin-bottom: 15px;" oninput="calculateChange()" onkeyup="if(event.key === 'Enter') this.blur();">
       <p style="font-size: 22px; font-weight: bold; color: #10b981; margin-bottom: 20px;">Change Due: <span id="cashChangeDue">$0.00</span></p>
       <button class="modal-btn clock-in-btn" onclick="processOrder('Cash')">Complete Sale</button>
       <button class="modal-btn btn-cancel" onclick="closeModals()">Cancel</button>
@@ -447,6 +447,8 @@
     <tr><th>Tax:</th><td id="invTax"></td></tr>
     <tr><th>Total Paid:</th><td id="invTotal" style="font-weight: bold;"></td></tr>
     <tr><th>Payment Method:</th><td id="invPaymentMethod" style="font-style: italic;"></td></tr>
+    <tr id="invCashTenderedRow" style="display: none;"><th>Cash Tendered:</th><td id="invCashTendered"></td></tr>
+    <tr id="invChangeRow" style="display: none;"><th>Change:</th><td id="invChange"></td></tr>
     <tr id="invGcBalanceRow" style="display: none;"><th>GC Remaining Balance:</th><td id="invGcBalance" style="font-weight: bold;"></td></tr>
   </table>
   
@@ -536,7 +538,16 @@ document.getElementById("invGcBalance").innerText = `$${transaction.remainingGcB
 document.getElementById("invPaymentMethod").innerText = transaction.paymentMethod === 'Cash' ? 'Paid Cash' : 'Credit / Square';
 document.getElementById("invGcBalanceRow").style.display = "none";
 }
-
+// NEW: Display Cash Tendered and Change
+  if (transaction.cashTendered) {
+    document.getElementById("invCashTenderedRow").style.display = "table-row";
+    document.getElementById("invCashTendered").innerText = transaction.cashTendered;
+    document.getElementById("invChangeRow").style.display = "table-row";
+    document.getElementById("invChange").innerText = transaction.changeDue;
+  } else {
+    document.getElementById("invCashTenderedRow").style.display = "none";
+    document.getElementById("invChangeRow").style.display = "none";
+  }
   // 2. Handle Dealer Logic
   const dealerContainer = document.getElementById("invDealerContainer");
   if (transaction.exemptDealer && transaction.exemptDealer.trim() !== "") {
@@ -1127,6 +1138,11 @@ function applyReward(rewardName, pointCost) {
     const hasGiftCard = cart.some(item => item.isGiftCard);
     
     if (hasGiftCard || selectedPaymentType === 'Cash' || appliedGcCode) {
+      // Capture cash amounts before resetting
+      let cashTenderedAmt = parseFloat(document.getElementById("cashReceived").value) || 0;
+      let changeAmt = cashTenderedAmt - grandTotal;
+      if (changeAmt < 0) changeAmt = 0;
+
       const receiptData = {
         location: document.getElementById("locationSelect").value,
         date: new Date().toISOString(),
@@ -1135,13 +1151,16 @@ function applyReward(rewardName, pointCost) {
         services: cart.map(item => item.name).join(", "),
         subtotal: `$${subtotal.toFixed(2)}`,
         tax: isTaxExempt ? "$0.00" : `$${taxAmount.toFixed(2)}`,
-        total: `$${grandTotal.toFixed(2)}`, // This will naturally be $0.00 if the GC covered everything
+        total: `$${grandTotal.toFixed(2)}`,
         exemptDealer: isTaxExempt ? selectedDealer : "",
         cart: cart,
         paymentMethod: selectedPaymentType,
-        // Pass the GC details
         appliedGcCode: appliedGcCode,
-        remainingGcBalance: remainingGcBalance
+        remainingGcBalance: remainingGcBalance,
+        
+        // NEW: Add the cash math for the receipt
+        cashTendered: selectedPaymentType === 'Cash' ? `$${cashTenderedAmt.toFixed(2)}` : null,
+        changeDue: selectedPaymentType === 'Cash' ? `$${changeAmt.toFixed(2)}` : null
       };
       printInvoice(receiptData);
     }
