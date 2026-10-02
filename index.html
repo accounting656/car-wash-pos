@@ -624,19 +624,24 @@ function printInvoice(transaction) {
   document.getElementById("invTax").innerText = transaction.tax;
   document.getElementById("invTotal").innerText = transaction.total;
  // NEW: Smart Payment Method Logic
-if (transaction.appliedGcCode) {
-let methodText = `Gift Card (${transaction.appliedGcCode})`;
-// If the GC didn't cover everything, append the second payment method
-if (transaction.total !== "$0.00") {
-  methodText += ` & ${transaction.paymentMethod === 'Cash' ? 'Cash' : 'Credit'}`;
-}
-document.getElementById("invPaymentMethod").innerText = methodText;
-document.getElementById("invGcBalanceRow").style.display = "table-row";
-document.getElementById("invGcBalance").innerText = `$${transaction.remainingGcBalance.toFixed(2)}`;
-} else {
-document.getElementById("invPaymentMethod").innerText = transaction.paymentMethod === 'Cash' ? 'Paid Cash' : 'Credit / Square';
-document.getElementById("invGcBalanceRow").style.display = "none";
-}
+  let pMethod = (transaction.paymentMethod || transaction.paymentType || "Credit / Square").toString().trim(); 
+
+  if (transaction.appliedGcCode) {
+    let methodText = `Gift Card (${transaction.appliedGcCode})`;
+    if (transaction.total !== "$0.00" && transaction.total !== 0) {
+      methodText += ` & ${pMethod}`;
+    }
+    document.getElementById("invPaymentMethod").innerText = methodText;
+    document.getElementById("invGcBalanceRow").style.display = "table-row";
+    document.getElementById("invGcBalance").innerText = `$${transaction.remainingGcBalance.toFixed(2)}`;
+  } else {
+    if (pMethod === 'Pending') {
+      document.getElementById("invPaymentMethod").innerText = 'Pending (Bill Later)';
+    } else {
+      document.getElementById("invPaymentMethod").innerText = pMethod;
+    }
+    document.getElementById("invGcBalanceRow").style.display = "none";
+  }
 // NEW: Display Cash Tendered and Change
   if (transaction.cashTendered) {
     document.getElementById("invCashTenderedRow").style.display = "table-row";
