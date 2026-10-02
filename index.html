@@ -361,7 +361,7 @@
         <div class="attendant-badge">
           👤 <span id="currentAttendantName">None</span>
        <div style="display: flex; gap: 8px;">
-            <button id="eodBtn" class="header-btn" style="background: #8b5cf6; color: white; display: none;" onclick="generateEOD()">📈 End of Day</button>
+            <button id="eodBtn" class="header-btn" style="background: #8b5cf6; color: white; display: none;" onclick="openEODModal()">📈 End of Day</button>
             <button id="addCustomerBtn" class="header-btn" style="background: #fce7f3; color: #be185d;" onclick="document.getElementById('customerModalOverlay').style.display='flex'">👤 Add Customer</button>
             <button class="header-btn" style="background: #e0f2fe; color: #0369a1;" onclick="window.open('dashboard.html', '_blank')">📊 Dashboard</button>
             <button class="header-btn timeclock-btn" onclick="openTimeclock()">🕒 Timeclock</button>
@@ -742,7 +742,8 @@ const modals = [
   "squareModalOverlay", 
   "searchModalOverlay", 
   "cashModalOverlay",
-  "customerModalOverlay" // NEW
+  "customerModalOverlay"
+  "eodModalOverlay"
 ];
   
   modals.forEach(id => {
@@ -766,6 +767,19 @@ const modals = [
         statusDiv.innerText = "Error."; 
       }
     }
+  <!-- END OF DAY ACTION MODAL -->
+  <div id="eodModalOverlay" class="modal-overlay">
+    <div class="modal-box">
+      <h2>End of Day Menu</h2>
+      <p style="margin-bottom: 20px; color: #4b5563;">Select action for <strong id="eodModalLocDisplay"></strong>:</p>
+      
+      <button class="modal-btn clock-in-btn" onclick="executeEOD('print')">🖨️ Print Receipt Only</button>
+      <button class="modal-btn clock-in-btn" style="background: #3b82f6; border-color: #2563eb;" onclick="executeEOD('email')">✉️ Email Owner Only</button>
+      <button class="modal-btn clock-in-btn" style="background: #8b5cf6; border-color: #7c3aed;" onclick="executeEOD('both')">🖨️ & ✉️ Print & Email</button>
+      
+      <button class="modal-btn btn-cancel" onclick="closeModals()">Cancel</button>
+    </div>
+  </div>
   // --- CUSTOMER LOYALTY LOGIC ---
 async function lookupCustomer() {
   const phone = document.getElementById("customerPhone").value.trim();
@@ -1277,60 +1291,84 @@ function applyReward(rewardName, pointCost) {
     calculateChange();
   }
  // --- EOD REPORT LOGIC ---
-  async function generateEOD() {
-    const location = document.getElementById("locationSelect").value;
-    if (!confirm(`Generate End of Day printout for ${location}?`)) return;
-    
-    try {
-      const response = await fetch(GOOGLE_SCRIPT_URL, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain" },
-        body: JSON.stringify({ recordType: "eod_report", location: location })
-      });
-      const result = await response.json();
-      
-      if (result.status === "success") {
-        document.getElementById("eodDate").innerText = new Date().toLocaleDateString();
-        document.getElementById("eodLocation").innerText = location;
-        document.getElementById("eodNet").innerText = `$${result.data.netSales.toFixed(2)}`;
-        document.getElementById("eodTax").innerText = `$${result.data.tax.toFixed(2)}`;
-        document.getElementById("eodTotal").innerText = `$${result.data.total.toFixed(2)}`;
-        document.getElementById("eodCash").innerText = `$${result.data.cash.toFixed(2)}`;
-        document.getElementById("eodCredit").innerText = `$${result.data.credit.toFixed(2)}`;
-        document.getElementById("eodCheck").innerText = `$${result.data.check.toFixed(2)}`;
-        document.getElementById("eodPending").innerText = `$${result.data.pending.toFixed(2)}`;
-        // NEW: Pull the total cars count
-        document.getElementById("eodTotalCars").innerText = result.data.totalCars;
-        // Populate Services Tally
-        const svcTable = document.getElementById("eodServicesTable");
-        svcTable.innerHTML = "";
-        const servicesObj = result.data.services;
-        if (Object.keys(servicesObj).length === 0) {
-          svcTable.innerHTML = "<tr><td>No services recorded today.</td></tr>";
-        } else {
-          for (const [svcName, count] of Object.entries(servicesObj)) {
-            svcTable.innerHTML += `<tr><th>${svcName}:</th><td>${count}</td></tr>`;
-          }
-        }
+function openEODModal() {
+    document.getElementById("eodModalLocDisplay").innerText = document.getElementById("locationSelect").value;
+    document.getElementById("eodModalOverlay").style.display = "flex";
+  }
 
-        // Populate Shift Employees
-        const empList = result.data.employees;
-        document.getElementById("eodEmployees").innerText = empList.length > 0 ? empList.join(", ") : "No punches recorded.";
+  async function executeEOD(action) {
+    closeModals();
+    const location = document.getElementById("locationSelect").value;
+    const btn = document.getElementById("eodBtn");
+    const originalText = btn.innerText;
+
+    try {
+      // 1. If they want to email, ping the backend
+      if (action === 'email' || action === 'both') {
+        btn.innerText = "✉️ Sending...";
+        await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({ recordType: "email_eod" })
+        });
         
-        // Temporarily display and print the EOD only (SAFARI FIX)
-        document.querySelectorAll('.print-section').forEach(el => el.classList.remove('active-print'));
+        if (action === 'email') {
+          btn.innerText = originalText;
+          alert("EOD Report successfully emailed to the owner!");
+          return;
+        }
+      }
+
+      // 2. If they want to print, run the existing print logic
+      if (action === 'print' || action === 'both') {
+        btn.innerText = "🖨️ Loading...";
         
-        const eodDiv = document.getElementById("printableEOD");
-        eodDiv.classList.add("active-print");
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({ recordType: "eod_report", location: location })
+        });
+        const result = await response.json();
         
-        setTimeout(() => {
-          window.print();
-        }, 300);
+        if (result.status === "success") {
+          document.getElementById("eodDate").innerText = new Date().toLocaleDateString();
+          document.getElementById("eodLocation").innerText = location;
+          document.getElementById("eodNet").innerText = `$${result.data.netSales.toFixed(2)}`;
+          document.getElementById("eodTax").innerText = `$${result.data.tax.toFixed(2)}`;
+          document.getElementById("eodTotal").innerText = `$${result.data.total.toFixed(2)}`;
+          document.getElementById("eodCash").innerText = `$${result.data.cash.toFixed(2)}`;
+          document.getElementById("eodCredit").innerText = `$${result.data.credit.toFixed(2)}`;
+          document.getElementById("eodCheck").innerText = `$${result.data.check.toFixed(2)}`;
+          document.getElementById("eodPending").innerText = `$${result.data.pending.toFixed(2)}`;
+          document.getElementById("eodTotalCars").innerText = result.data.totalCars;
+          
+          const svcTable = document.getElementById("eodServicesTable");
+          svcTable.innerHTML = "";
+          const servicesObj = result.data.services;
+          if (Object.keys(servicesObj).length === 0) {
+            svcTable.innerHTML = "<tr><td>No services recorded today.</td></tr>";
+          } else {
+            for (const [svcName, count] of Object.entries(servicesObj)) {
+              svcTable.innerHTML += `<tr><th>${svcName}:</th><td>${count}</td></tr>`;
+            }
+          }
+
+          const empList = result.data.employees;
+          document.getElementById("eodEmployees").innerText = empList.length > 0 ? empList.join(", ") : "No punches recorded.";
+          
+          document.querySelectorAll('.print-section').forEach(el => el.classList.remove('active-print'));
+          const eodDiv = document.getElementById("printableEOD");
+          eodDiv.classList.add("active-print");
+          
+          setTimeout(() => { window.print(); }, 300);
         } else {
-        alert("Error: " + result.message);
+          alert("Error: " + result.message);
+        }
+        btn.innerText = originalText;
       }
     } catch (err) {
       alert("Network error. Try again.");
+      btn.innerText = originalText;
     }
   }
   async function redeemGiftCard() {
