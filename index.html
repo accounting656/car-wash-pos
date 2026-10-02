@@ -356,6 +356,19 @@
       <button class="modal-btn btn-cancel" onclick="closeModals()">Cancel</button>
     </div>
   </div>
+  <!-- PAY PENDING INVOICE MODAL -->
+  <div id="payPendingModalOverlay" class="modal-overlay">
+    <div class="modal-box">
+      <h2>Receive Payment</h2>
+      <p style="margin-bottom: 20px; color: #4b5563;">Order: <strong id="pendingOrderIdDisplay" style="color: #111827;"></strong><br>Amount Due: <strong id="pendingTotalDisplay" style="color: #ef4444; font-size: 18px;"></strong></p>
+      
+      <button class="modal-btn" onclick="submitPendingPayment('Cash')">💵 Pay with Cash</button>
+      <button class="modal-btn" onclick="submitPendingPayment('Credit Card')">💳 Pay with Credit Card</button>
+      <button class="modal-btn" onclick="submitPendingPayment('Check')">📝 Pay with Check</button>
+      
+      <button class="modal-btn btn-cancel" onclick="closeModals()">Cancel</button>
+    </div>
+  </div>
   <div class="menu-section">
     <div class="header">
       <div style="display: flex; gap: 15px; align-items: center;">
@@ -491,7 +504,8 @@
 </div>
 
 <script>
-  let currentSearchResults = [];
+ let currentSearchResults = [];
+let pendingPayOrderId = ""; // Remembers which order we are paying
 
 async function executeSearch() {
   const term = document.getElementById("searchInput").value;
@@ -501,8 +515,6 @@ async function executeSearch() {
   resultsDiv.innerHTML = "<p>Searching database...</p>";
 
   try {
-    // Note: Make sure your location dropdown has the ID "locationSelect"
-    // Or hardcode it if iPads are locked to one location.
     const activeLocation = document.getElementById("locationSelect").value; 
 
     const response = await fetch(GOOGLE_SCRIPT_URL, {
@@ -519,16 +531,26 @@ async function executeSearch() {
     
     if (result.status === "success" && result.data.length > 0) {
       currentSearchResults = result.data;
-      resultsDiv.innerHTML = currentSearchResults.map((t, index) => `
+      resultsDiv.innerHTML = currentSearchResults.map((t, index) => {
+        // Highlight Pending invoices in red
+        const isPending = t.paymentType === 'Pending';
+        const statusColor = isPending ? '#ef4444' : '#6b7280';
+        const fw = isPending ? 'bold' : 'normal';
+
+        return `
         <div style="padding: 15px; border: 1px solid #e5e7eb; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; background: #f9fafb;">
           <div>
             <strong style="font-size: 16px;">${t.vehicle}</strong><br>
             <small style="color: #6b7280;">${new Date(t.date).toLocaleDateString()} | ${t.services}</small><br>
-            <small style="color: #6b7280;">Total: ${t.total} (${t.paymentType})</small>
+            <small style="color: ${statusColor}; font-weight: ${fw};">Total: ${t.total} (${t.paymentType})</small>
           </div>
-          <button onclick="printInvoice(currentSearchResults[${index}])" style="padding: 10px 15px; background: #10b981; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Print PDF</button>
+          <div style="display: flex; gap: 8px;">
+            ${isPending ? `<button onclick="promptPayPending('${t.orderId}', '${t.total}')" style="padding: 10px 15px; background: #f59e0b; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Pay Bill</button>` : ''}
+            <button onclick="printInvoice(currentSearchResults[${index}])" style="padding: 10px 15px; background: #10b981; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Print PDF</button>
+          </div>
         </div>
-      `).join('');
+        `
+      }).join('');
     } else {
       resultsDiv.innerHTML = "<p>No transactions found. Try another search term.</p>";
     }
@@ -536,6 +558,48 @@ async function executeSearch() {
     resultsDiv.innerHTML = "<p>Error searching. Please try again.</p>";
     console.error(err);
   }
+}
+
+function promptPayPending(orderId, totalAmount) {
+  pendingPayOrderId = orderId;
+  document.getElementById("pendingOrderIdDisplay").innerText = orderId;
+  document.getElementById("pendingTotalDisplay").innerText = totalAmount;
+  // Hide the search modal temporarily so it doesn't overlap
+  document.getElementById("searchModalOverlay").style.display = "none"; 
+  document.getElementById("payPendingModalOverlay").style.display = "flex";
+}
+
+async function submitPendingPayment(method) {
+  const location = document.getElementById("locationSelect").value;
+  const btn = event.target;
+  const originalText = btn.innerText;
+  btn.innerText = "⏳ Processing...";
+  
+  try {
+    const response = await fetch(GOOGLE_SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify({
+        recordType: "pay_pending_invoice",
+        location: location,
+        orderId: pendingPayOrderId,
+        newPaymentType: method
+      })
+    });
+    const result = await response.json();
+    
+    if (result.status === "success") {
+      alert(`Invoice successfully paid with ${method}!`);
+      closeModals();
+      document.getElementById('searchModalOverlay').style.display='flex'; 
+      executeSearch(); // Refresh the search results automatically
+    } else {
+      alert("Error: " + result.message);
+    }
+  } catch (err) {
+    alert("Network Error");
+  }
+  btn.innerText = originalText;
 }
   // Map your locations to their physical addresses here:
 const locationAddresses = {
@@ -756,7 +820,8 @@ const modals = [
   "searchModalOverlay", 
   "cashModalOverlay",
   "customerModalOverlay",
-  "eodModalOverlay"
+  "eodModalOverlay",
+  "payPendingModalOverlay"
 ];
   
   modals.forEach(id => {
