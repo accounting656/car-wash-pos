@@ -272,23 +272,31 @@
     </div>
   </div>
 
-  <!-- PROMO MODAL -->
+ <!-- PROMO & DISCOUNT MODAL -->
   <div id="promoModalOverlay" class="modal-overlay">
     <div class="modal-box">
-      <h2>Seasonal Promotion</h2>
-      <p style="margin-bottom: 20px; color: #4b5563; font-size: 14px;">Discount will automatically apply to services $50 and up.</p>
+      <h2>Apply Discount</h2>
+      <p style="margin-bottom: 20px; color: #4b5563; font-size: 14px;">Standard discounts apply to all services. Seasonal promos apply to services $50 and up.</p>
       <select id="promoHoliday" class="input-field" style="margin-bottom: 15px; cursor: pointer;">
-        <option value="">-- Select Holiday --</option>
-        <option value="Christmas">🎄 Christmas</option>
-        <option value="Labor Day">🛠️ Labor Day</option>
-        <option value="4th of July">🎆 4th of July</option>
-        <option value="Veterans Day">🎖️ Veterans Day</option>
-        <option value="St. Valentines Day">❤️ St. Valentines Day</option>
-        <option value="Thanksgiving Week">🦃 Thanksgiving Week</option>
+        <option value="">-- Select Category --</option>
+        <optgroup label="Standard Discounts">
+          <option value="Military">🎖️ Military</option>
+          <option value="First Responder">🚑 First Responder (Police/Fire/EMS)</option>
+          <option value="Senior Citizen">👴 Senior Citizen</option>
+          <option value="Employee">💼 Employee</option>
+        </optgroup>
+        <optgroup label="Seasonal Promos">
+          <option value="Christmas">🎄 Christmas</option>
+          <option value="Labor Day">🛠️ Labor Day</option>
+          <option value="4th of July">🎆 4th of July</option>
+          <option value="Veterans Day">🎖️ Veterans Day</option>
+          <option value="St. Valentines Day">❤️ St. Valentines Day</option>
+          <option value="Thanksgiving Week">🦃 Thanksgiving Week</option>
+        </optgroup>
       </select>
       <input type="number" id="promoPercent" class="input-field" placeholder="Discount % (e.g. 15)" style="margin-bottom: 25px;">
-      <button class="modal-btn clock-in-btn" onclick="applyPromo()">Activate Promo</button>
-      <button class="modal-btn clock-out-btn" onclick="clearPromo()" style="margin-top: 0;">Turn Off Promo</button>
+      <button class="modal-btn clock-in-btn" onclick="applyPromo()">Apply Discount</button>
+      <button class="modal-btn clock-out-btn" onclick="clearPromo()" style="margin-top: 0;">Remove Discount</button>
       <button class="modal-btn btn-cancel" onclick="closeModals()">Cancel</button>
     </div>
   </div>
