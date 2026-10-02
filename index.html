@@ -1159,8 +1159,7 @@ function applyReward(rewardName, pointCost) {
       document.getElementById("paymentModalOverlay").style.display = "flex";
     }
 
-    // --- SQUARE INTEGRATION LOGIC ---
-    async function processOrder(selectedPaymentType) {
+async function processOrder(selectedPaymentType) {
       closeModals(); 
       const submitBtn = document.getElementById("submitBtn"); 
       const statusMsg = document.getElementById("statusMsg");
@@ -1184,7 +1183,6 @@ function applyReward(rewardName, pointCost) {
       if (selectedPaymentType === 'Credit Card') {
         document.getElementById("squareModalOverlay").style.display = "flex";
         
-        // Calculate 3% Credit Card Surcharge (rounds to 2 decimal places)
         let ccFee = +(grandTotal * 0.03).toFixed(2); 
 
         const squarePayload = {
@@ -1197,7 +1195,6 @@ function applyReward(rewardName, pointCost) {
         };
         
         try {
-          // Wake up the terminal
           let response = await fetch(GOOGLE_SCRIPT_URL, { 
             method: "POST", 
             headers: { "Content-Type": "text/plain" },
@@ -1205,78 +1202,64 @@ function applyReward(rewardName, pointCost) {
           });
           
           let result = await response.json();
-     
-          // 1. Catch Google Apps Script errors
+      
           if (result.error) {
-              console.error("Backend Error:", result.error);
               alert("Google Error: " + result.error);
               document.getElementById("squareModalOverlay").style.display = "none";
-              submitBtn.disabled = false;
-              submitBtn.innerText = "RECORD SALE";
-              return;
+              submitBtn.disabled = false; submitBtn.innerText = "RECORD SALE"; return;
           }
-          
-          // 2. Catch Square API errors
           if (result.errors) {
-              console.error("Square API Error:", result.errors);
               alert("Square Error: " + result.errors[0].detail); 
               document.getElementById("squareModalOverlay").style.display = "none";
-              submitBtn.disabled = false;
-              submitBtn.innerText = "RECORD SALE";
-              return;
+              submitBtn.disabled = false; submitBtn.innerText = "RECORD SALE"; return;
           }
-     
+      
           let checkoutId = result.checkout.id;
-          
-          // The Polling Loop (Wait for Square)
           let isWaiting = true;
+          
           while (isWaiting) {
-            // Wait 3 seconds
             await new Promise(resolve => setTimeout(resolve, 3000));
             
-            let statusResponse = await fetch(GOOGLE_SCRIPT_URL, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain" },
-        body: JSON.stringify({
-          recordType: "check_square_status",
-          checkoutId: checkoutId
-        })
-      });
-
-      // 👇 THE BULLETPROOF FIX 👇
-      let rawText = await statusResponse.text();
-      let statusResult;
-      
-      try {
-        statusResult = JSON.parse(rawText);
-      } catch (parseError) {
-        console.warn("Google returned non-JSON. Ignoring and trying again...", rawText);
-        continue; // This instantly jumps back to the top of the while loop!
-      }
-      
-      let currentStatus = statusResult.checkoutStatus;
-      // 👆 END OF FIX 👆
+            // 👇 THE FIX: SELF-HEALING NETWORK BLOCK 👇
+            let statusResponse;
+            try {
+              statusResponse = await fetch(GOOGLE_SCRIPT_URL, {
+                method: "POST",
+                headers: { "Content-Type": "text/plain" },
+                body: JSON.stringify({ recordType: "check_square_status", checkoutId: checkoutId })
+              });
+            } catch (networkErr) {
+              // If the iPad sleeps or Wi-Fi drops, do not crash! 
+              // Just skip this cycle and try checking Square again in 3 seconds.
+              console.warn("Network drop detected, retrying...", networkErr);
+              continue; 
+            }
+            // 👆 END OF FIX 👆
+            
+            let rawText = await statusResponse.text();
+            let statusResult;
+            try {
+              statusResult = JSON.parse(rawText);
+            } catch (parseError) {
+              continue; 
+            }
+            
+            let currentStatus = statusResult.checkoutStatus;
             if (currentStatus === "COMPLETED") {
-              isWaiting = false; // Stop checking
+              isWaiting = false; 
               document.getElementById("squareModalOverlay").style.display = "none";
-              // Do NOT return here. Let the code flow down to log the sale!
-              
             } else if (currentStatus === "CANCELED") {
-              isWaiting = false; // Stop checking
+              isWaiting = false; 
               document.getElementById("squareModalOverlay").style.display = "none";
               alert("Payment Canceled or Declined. Please select Cash or try again.");
-              submitBtn.disabled = false;
-              submitBtn.innerText = "RECORD SALE";
-              return; 
+              submitBtn.disabled = false; submitBtn.innerText = "RECORD SALE"; return; 
             }
           }
         } catch (error) {
           console.error("Square Error:", error);
           document.getElementById("squareModalOverlay").style.display = "none";
           alert("CRASH LOG: " + error.message); 
-          submitBtn.disabled = false;
-          submitBtn.innerText = "RECORD SALE";
-          return; 
+          submitBtn.disabled = false; submitBtn.innerText = "RECORD SALE"; return; 
         }
       }
 
@@ -1300,51 +1283,50 @@ function applyReward(rewardName, pointCost) {
       };
 
       try {
-        await fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+        // Also upgraded this to "text/plain" so we can read any hidden Google errors
+        await fetch(GOOGLE_SCRIPT_URL, { 
+          method: "POST", 
+          headers: { "Content-Type": "text/plain" }, 
+          body: JSON.stringify(payload) 
+        });
         
         statusMsg.style.color = "#10b981"; 
         statusMsg.innerText = "Order logged successfully!";
-        // NEW: Auto-print if they just bought a gift card!
-    // NEW: Auto-print if they bought a GC, paid Cash, OR redeemed a GC!
-    const hasGiftCard = cart.some(item => item.isGiftCard);
-    
-    // Determine if we should print
-    let shouldPrint = false;
-    
-    if (hasGiftCard) {
-      shouldPrint = true; // Always auto-print if they bought a GC so they get the code!
-    } else if (selectedPaymentType === 'Cash' || appliedGcCode) {
-      // Pop up an iPad dialog asking if they want a receipt
-      shouldPrint = confirm("Does the customer want a printed receipt?");
-    }
-
-    if (shouldPrint) {
-      // Capture cash amounts before resetting
-      let cashTenderedAmt = parseFloat(document.getElementById("cashReceived").value) || 0;
-      let changeAmt = cashTenderedAmt - grandTotal;
-      if (changeAmt < 0) changeAmt = 0;
-
-      const receiptData = {
-        location: document.getElementById("locationSelect").value,
-        date: new Date().toISOString(),
-        orderId: orderId,
-        vehicle: (make || plate) ? `${make} ${plate}`.trim() : "N/A",
-        services: cart.map(item => item.name).join(", "),
-        subtotal: `$${subtotal.toFixed(2)}`,
-        tax: isTaxExempt ? "$0.00" : `$${taxAmount.toFixed(2)}`,
-        total: `$${grandTotal.toFixed(2)}`,
-        exemptDealer: isTaxExempt ? selectedDealer : "",
-        cart: cart,
-        paymentMethod: selectedPaymentType,
-        appliedGcCode: appliedGcCode,
-        remainingGcBalance: remainingGcBalance,
         
-        // NEW: Add the cash math for the receipt
-        cashTendered: selectedPaymentType === 'Cash' ? `$${cashTenderedAmt.toFixed(2)}` : null,
-        changeDue: selectedPaymentType === 'Cash' ? `$${changeAmt.toFixed(2)}` : null
-      };
-      printInvoice(receiptData);
-    }
+        const hasGiftCard = cart.some(item => item.isGiftCard);
+        let shouldPrint = false;
+        
+        if (hasGiftCard) {
+          shouldPrint = true; 
+        } else if (selectedPaymentType === 'Cash' || appliedGcCode) {
+          shouldPrint = confirm("Does the customer want a printed receipt?");
+        }
+
+        if (shouldPrint) {
+          let cashTenderedAmt = parseFloat(document.getElementById("cashReceived").value) || 0;
+          let changeAmt = cashTenderedAmt - grandTotal;
+          if (changeAmt < 0) changeAmt = 0;
+
+          const receiptData = {
+            location: document.getElementById("locationSelect").value,
+            date: new Date().toISOString(),
+            orderId: orderId,
+            vehicle: (make || plate) ? `${make} ${plate}`.trim() : "N/A",
+            services: cart.map(item => item.name).join(", "),
+            subtotal: `$${subtotal.toFixed(2)}`,
+            tax: isTaxExempt ? "$0.00" : `$${taxAmount.toFixed(2)}`,
+            total: `$${grandTotal.toFixed(2)}`,
+            exemptDealer: isTaxExempt ? selectedDealer : "",
+            cart: cart,
+            paymentMethod: selectedPaymentType,
+            appliedGcCode: appliedGcCode,
+            remainingGcBalance: remainingGcBalance,
+            cashTendered: selectedPaymentType === 'Cash' ? `$${cashTenderedAmt.toFixed(2)}` : null,
+            changeDue: selectedPaymentType === 'Cash' ? `$${changeAmt.toFixed(2)}` : null
+          };
+          printInvoice(receiptData);
+        }
+        
         // Reset UI Elements
         cart = []; 
         selectedVehicleType = null; 
