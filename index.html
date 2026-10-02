@@ -339,10 +339,23 @@
       <!-- NEW CLOSE BUTTON -->
       <button onclick="closeModals()" style="padding: 10px 20px; background: #fee2e2; color: #b91c1c; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Close</button>
     </div>
-
+ 
     <div id="searchResults" style="display: flex; flex-direction: column; gap: 10px;"></div>
   </div>
 </div>
+  <!-- END OF DAY ACTION MODAL -->
+  <div id="eodModalOverlay" class="modal-overlay">
+    <div class="modal-box">
+      <h2>End of Day Menu</h2>
+      <p style="margin-bottom: 20px; color: #4b5563;">Select action for <strong id="eodModalLocDisplay"></strong>:</p>
+      
+      <button class="modal-btn clock-in-btn" onclick="executeEOD('print')">🖨️ Print Receipt Only</button>
+      <button class="modal-btn clock-in-btn" style="background: #3b82f6; border-color: #2563eb;" onclick="executeEOD('email')">✉️ Email Owner Only</button>
+      <button class="modal-btn clock-in-btn" style="background: #8b5cf6; border-color: #7c3aed;" onclick="executeEOD('both')">🖨️ & ✉️ Print & Email</button>
+      
+      <button class="modal-btn btn-cancel" onclick="closeModals()">Cancel</button>
+    </div>
+  </div>
   <div class="menu-section">
     <div class="header">
       <div style="display: flex; gap: 15px; align-items: center;">
@@ -767,19 +780,7 @@ const modals = [
         statusDiv.innerText = "Error."; 
       }
     }
-  <!-- END OF DAY ACTION MODAL -->
-  <div id="eodModalOverlay" class="modal-overlay">
-    <div class="modal-box">
-      <h2>End of Day Menu</h2>
-      <p style="margin-bottom: 20px; color: #4b5563;">Select action for <strong id="eodModalLocDisplay"></strong>:</p>
-      
-      <button class="modal-btn clock-in-btn" onclick="executeEOD('print')">🖨️ Print Receipt Only</button>
-      <button class="modal-btn clock-in-btn" style="background: #3b82f6; border-color: #2563eb;" onclick="executeEOD('email')">✉️ Email Owner Only</button>
-      <button class="modal-btn clock-in-btn" style="background: #8b5cf6; border-color: #7c3aed;" onclick="executeEOD('both')">🖨️ & ✉️ Print & Email</button>
-      
-      <button class="modal-btn btn-cancel" onclick="closeModals()">Cancel</button>
-    </div>
-  </div>
+ 
   // --- CUSTOMER LOYALTY LOGIC ---
 async function lookupCustomer() {
   const phone = document.getElementById("customerPhone").value.trim();
