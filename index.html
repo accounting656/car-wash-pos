@@ -479,9 +479,12 @@
   <p><strong>Order ID:</strong> <span id="invOrder"></span></p>
   <p><strong>Vehicle:</strong> <span id="invVehicle"></span></p>
   
-  <p id="invDealerContainer" style="display: none; color: #d32f2f; font-weight: bold;">
-    Dealer Resale Cert: <span id="invDealerCert"></span>
-  </p>
+  <div id="invDealerContainer" style="display: none; margin-top: 15px; padding: 15px; border: 2px solid #ccc; background: #f9fafb; border-radius: 8px;">
+    <strong style="font-size: 14px; color: #6b7280; text-transform: uppercase;">Billed To (Tax Exempt):</strong><br>
+    <span id="invDealerName" style="font-size: 18px; font-weight: bold; color: #111827;"></span><br>
+    <span id="invDealerAddress" style="color: #374151; font-size: 16px;"></span><br>
+    <span style="color: #d32f2f; font-weight: bold; margin-top: 8px; display: inline-block;">Resale Cert: <span id="invDealerCert"></span></span>
+  </div>
 
   <hr style="border: 1px solid #ccc; margin: 20px 0;">
   
@@ -644,10 +647,26 @@ document.getElementById("invGcBalanceRow").style.display = "none";
     document.getElementById("invCashTenderedRow").style.display = "none";
     document.getElementById("invChangeRow").style.display = "none";
   }
-  // 2. Handle Dealer Logic
+// 2. Handle Dealer Logic
   const dealerContainer = document.getElementById("invDealerContainer");
-  if (transaction.exemptDealer && transaction.exemptDealer.trim() !== "") {
+  if (transaction.exemptDealer && transaction.exemptDealer.trim() !== "" && transaction.exemptDealer !== "N/A") {
+    
+    // This safely extracts just the dealer's name, even if they are re-printing an old receipt
+    let rawDealerName = transaction.exemptDealer.split(" (")[0].trim();
+    
+    document.getElementById("invDealerName").innerText = rawDealerName;
+    
+    // If it's a new sale, it just has the name. If it's a reprint, it has the cert inside parentheses.
     document.getElementById("invDealerCert").innerText = transaction.exemptDealer;
+    
+    // Look up the address from the global dealers list
+    if (taxExemptDealers[rawDealerName] && taxExemptDealers[rawDealerName].address) {
+       document.getElementById("invDealerAddress").innerText = taxExemptDealers[rawDealerName].address;
+       document.getElementById("invDealerAddress").style.display = "block";
+    } else {
+       document.getElementById("invDealerAddress").style.display = "none";
+    }
+    
     dealerContainer.style.display = "block";
   } else {
     dealerContainer.style.display = "none";
