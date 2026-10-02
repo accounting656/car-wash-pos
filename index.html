@@ -836,22 +836,29 @@ function printInvoice(transaction) {
     function openTimeclock() { document.getElementById("tcName").innerText = activeAttendant; document.getElementById("timeclockModalOverlay").style.display = "flex"; }
     function openPromoModal() { document.getElementById("promoModalOverlay").style.display = "flex"; }
     function closeModals() { 
-const modals = [
-  "paymentModalOverlay", 
-  "timeclockModalOverlay", 
-  "promoModalOverlay", 
-  "squareModalOverlay", 
-  "searchModalOverlay", 
-  "cashModalOverlay",
-  "customerModalOverlay",
-  "eodModalOverlay",
-  "payPendingModalOverlay"
-];
+  const modals = [
+    "paymentModalOverlay", 
+    "timeclockModalOverlay", 
+    "promoModalOverlay", 
+    "squareModalOverlay", 
+    "searchModalOverlay", 
+    "cashModalOverlay",
+    "customerModalOverlay",
+    "eodModalOverlay",
+    "payPendingModalOverlay"
+  ];
   
   modals.forEach(id => {
     let el = document.getElementById(id);
     if (el) el.style.display = "none"; 
   });
+
+  // NEW: Wipe the search modal clean when closed
+  const searchInput = document.getElementById("searchInput");
+  if (searchInput) searchInput.value = "";
+  
+  const searchResults = document.getElementById("searchResults");
+  if (searchResults) searchResults.innerHTML = "";
 }
 
     async function logTimeclock(actionType) {
