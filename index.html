@@ -995,21 +995,31 @@ function applyReward(rewardName, pointCost) {
     function clearPromo() { activePromo = null; promoDiscountPercent = 0; cart = []; recalculatePricing(); updateCart(); closeModals(); }
     function resetToRetail() { selectedDealer = null; activePromo = null; promoDiscountPercent = 0; if (document.getElementById("taxExemptToggle").checked) document.getElementById("taxExemptToggle").click(); recalculatePricing(); }
 
-    function recalculatePricing() {
+   function recalculatePricing() {
       const dDiscount = (selectedDealer && taxExemptDealers[selectedDealer]) ? taxExemptDealers[selectedDealer].discountRate : 0;
       const pDiscount = activePromo ? (promoDiscountPercent / 100) : 0;
+      
+      // Check if it's a standard discount vs a seasonal one
+      const standardDiscounts = ["Military", "First Responder", "Senior Citizen", "Employee"];
+      const isStandardDiscount = activePromo && standardDiscounts.includes(activePromo);
+
       activeServices = standardServices.map(service => {
         let newPrices = {}; 
         let wasPromoApplied = false;
         for(let type in service.prices) {
           let price = service.prices[type];
           if (dDiscount > 0) price = price * (1 - dDiscount);
-          if (pDiscount > 0 && service.prices[type] >= 50) { price = price * (1 - pDiscount); wasPromoApplied = true; }
+          
+          // Apply discount if it's standard OR if the service is $50+
+          if (pDiscount > 0 && (isStandardDiscount || service.prices[type] >= 50)) { 
+            price = price * (1 - pDiscount); 
+            wasPromoApplied = true; 
+          }
           newPrices[type] = price;
         }
         let newName = service.name;
         if (dDiscount > 0) newName += " (Dealer)";
-        if (wasPromoApplied) newName += ` (${activePromo} Promo)`;
+        if (wasPromoApplied) newName += ` (${activePromo} -${promoDiscountPercent}%)`;
         return { ...service, prices: newPrices, name: newName };
       });
       document.getElementById("dealerBanner").style.display = dDiscount > 0 ? "block" : "none";
@@ -1039,7 +1049,7 @@ function applyReward(rewardName, pointCost) {
           <div class="card" style="text-align:center; padding: 40px 20px;" onclick="selectVehicleType('Van/Large SUV')"><div style="font-size: 50px; margin-bottom: 15px;">🚐</div><h3>Van / Large SUV</h3></div>
           <div class="card" style="text-align:center; padding: 40px 20px;" onclick="selectVehicleType('Truck')"><div style="font-size: 50px; margin-bottom: 15px;">🛻</div><h3>Truck</h3></div>
           <div class="card" style="text-align:center; padding: 40px 20px;" onclick="selectVehicleType('Custom')"><div style="font-size: 50px; margin-bottom: 15px;">✏️</div><h3>Custom Pricing</h3></div>
-          <div class="card" style="text-align:center; padding: 40px 20px; background: #fdf4ff; border: 2px dashed #f0abfc;" onclick="openPromoModal()"><div style="font-size: 50px; margin-bottom: 15px;">🎁</div><h3 style="color: #a21caf;">Seasonal Promos</h3></div>
+          <div class="card" style="text-align:center; padding: 40px 20px; background: #fdf4ff; border: 2px dashed #f0abfc;" onclick="openPromoModal()"><div style="font-size: 50px; margin-bottom: 15px;">🎁</div><h3 style="color: #a21caf;">Discounts & Promos</h3></div>
           <div class="card" style="text-align:center; padding: 40px 20px; background: #f0fdf4; border: 2px dashed #4ade80;" onclick="selectVehicleType('Store')"><div style="font-size: 50px; margin-bottom: 15px;">🛍️</div><h3 style="color: #166534;">Store Products</h3></div>
           <div class="card" style="text-align:center; padding: 40px 20px; background: #fffbeb; border: 2px dashed #f59e0b;" onclick="addGiftCard()"><div style="font-size: 50px; margin-bottom: 15px;">💳</div><h3 style="color: #b45309;">Sell Gift Card</h3></div>
         `;
