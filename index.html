@@ -1159,7 +1159,8 @@ function applyReward(rewardName, pointCost) {
       document.getElementById("paymentModalOverlay").style.display = "flex";
     }
 
-async function processOrder(selectedPaymentType) {
+// --- SQUARE INTEGRATION LOGIC ---
+    async function processOrder(selectedPaymentType) {
       closeModals(); 
       const submitBtn = document.getElementById("submitBtn"); 
       const statusMsg = document.getElementById("statusMsg");
@@ -1204,11 +1205,13 @@ async function processOrder(selectedPaymentType) {
           let result = await response.json();
       
           if (result.error) {
+              console.error("Backend Error:", result.error);
               alert("Google Error: " + result.error);
               document.getElementById("squareModalOverlay").style.display = "none";
               submitBtn.disabled = false; submitBtn.innerText = "RECORD SALE"; return;
           }
           if (result.errors) {
+              console.error("Square API Error:", result.errors);
               alert("Square Error: " + result.errors[0].detail); 
               document.getElementById("squareModalOverlay").style.display = "none";
               submitBtn.disabled = false; submitBtn.innerText = "RECORD SALE"; return;
@@ -1220,7 +1223,6 @@ async function processOrder(selectedPaymentType) {
           while (isWaiting) {
             await new Promise(resolve => setTimeout(resolve, 3000));
             
-            // 👇 THE FIX: SELF-HEALING NETWORK BLOCK 👇
             let statusResponse;
             try {
               statusResponse = await fetch(GOOGLE_SCRIPT_URL, {
@@ -1229,18 +1231,16 @@ async function processOrder(selectedPaymentType) {
                 body: JSON.stringify({ recordType: "check_square_status", checkoutId: checkoutId })
               });
             } catch (networkErr) {
-              // If the iPad sleeps or Wi-Fi drops, do not crash! 
-              // Just skip this cycle and try checking Square again in 3 seconds.
               console.warn("Network drop detected, retrying...", networkErr);
               continue; 
             }
-            // 👆 END OF FIX 👆
             
             let rawText = await statusResponse.text();
             let statusResult;
             try {
               statusResult = JSON.parse(rawText);
             } catch (parseError) {
+              console.warn("Google returned non-JSON. Ignoring and trying again...", rawText);
               continue; 
             }
             
@@ -1255,6 +1255,121 @@ async function processOrder(selectedPaymentType) {
               submitBtn.disabled = false; submitBtn.innerText = "RECORD SALE"; return; 
             }
           }
+        } catch (error) {
+          console.error("Square Error:", error);
+          document.getElementById("squareModalOverlay").style.display = "none";
+          alert("CRASH LOG: " + error.message); 
+          submitBtn.disabled = false; submitBtn.innerText = "RECORD SALE"; return; 
+        }
+      }
+
+      // =====================================================================
+      // 2. PROCEED TO LOG SALE NORMALLY IN SHEETS
+      // =====================================================================
+      submitBtn.innerText = "SAVING TO DATABASE..."; 
+      statusMsg.style.color = "#3b82f6"; 
+      statusMsg.innerText = "Logging transaction...";
+
+      const payload = {
+        recordType: "sale", location: document.getElementById("locationSelect").value, orderId: orderId,
+        cart: cart,
+        appliedGcCode: appliedGcCode,
+        appliedGcAmount: appliedGcAmount,
+        services: cart.map(item => item.name).join(", "), subtotal: subtotal, taxAmount: taxAmount, grandTotal: grandTotal,
+        vehicleInfo: (make || plate) ? `${make} ${plate}`.trim() : "N/A", notes: document.getElementById("orderNotes").value, attendant: activeAttendant,
+        exemptDealer: isTaxExempt ? `${selectedDealer} (${taxExemptDealers[selectedDealer].id})` : "N/A", paymentType: selectedPaymentType,
+        customerPhone: activeCustomer ? activeCustomer.phone : null,
+        pointsUsed: pointsUsedThisTicket
+      };
+
+      // 15-SECOND NETWORK RECOVERY LOOP
+      let saveSuccess = false;
+      let attempt = 0;
+
+      while (attempt < 5 && !saveSuccess) {
+        attempt++;
+        try {
+          await fetch(GOOGLE_SCRIPT_URL, { 
+            method: "POST", 
+            mode: "no-cors", 
+            headers: { "Content-Type": "application/json" }, 
+            body: JSON.stringify(payload) 
+          });
+          
+          saveSuccess = true;
+          
+        } catch (err) {
+          console.warn(`Attempt ${attempt} failed. iPad Wi-Fi still waking up...`);
+          await new Promise(r => setTimeout(r, 3000)); 
+        }
+      }
+
+      if (!saveSuccess) {
+        statusMsg.style.color = "#ef4444";
+        statusMsg.innerText = "DATABASE SAVE FAILED.";
+        alert("⚠️ WAITING FOR WI-FI ⚠️\n\nSquare captured the payment successfully, but the iPad is struggling to reconnect to Wi-Fi.\n\nDO NOT CHARGE THE CARD AGAIN.\n\nMake sure the iPad has internet, then tap the blue 'RETRY SAVE' button at the bottom.");
+        
+        submitBtn.disabled = false;
+        submitBtn.innerText = "RETRY SAVE";
+        return; 
+      }
+
+      statusMsg.style.color = "#10b981"; 
+      statusMsg.innerText = "Order logged successfully!";
+      
+      const hasGiftCard = cart.some(item => item.isGiftCard);
+      let shouldPrint = false;
+      
+      if (hasGiftCard) {
+        shouldPrint = true; 
+      } else if (selectedPaymentType === 'Cash' || appliedGcCode) {
+        shouldPrint = confirm("Does the customer want a printed receipt?");
+      }
+
+      if (shouldPrint) {
+        let cashTenderedAmt = parseFloat(document.getElementById("cashReceived").value) || 0;
+        let changeAmt = cashTenderedAmt - grandTotal;
+        if (changeAmt < 0) changeAmt = 0;
+
+        const receiptData = {
+          location: document.getElementById("locationSelect").value,
+          date: new Date().toISOString(),
+          orderId: orderId,
+          vehicle: (make || plate) ? `${make} ${plate}`.trim() : "N/A",
+          services: cart.map(item => item.name).join(", "),
+          subtotal: `$${subtotal.toFixed(2)}`,
+          tax: isTaxExempt ? "$0.00" : `$${taxAmount.toFixed(2)}`,
+          total: `$${grandTotal.toFixed(2)}`,
+          exemptDealer: isTaxExempt ? selectedDealer : "",
+          cart: cart,
+          paymentMethod: selectedPaymentType,
+          appliedGcCode: appliedGcCode,
+          remainingGcBalance: remainingGcBalance,
+          cashTendered: selectedPaymentType === 'Cash' ? `$${cashTenderedAmt.toFixed(2)}` : null,
+          changeDue: selectedPaymentType === 'Cash' ? `$${changeAmt.toFixed(2)}` : null
+        };
+        printInvoice(receiptData);
+      }
+      
+      // Reset UI Elements
+      cart = []; 
+      selectedVehicleType = null; 
+      document.getElementById("vehicleMake").value = ""; 
+      document.getElementById("vehiclePlate").value = ""; 
+      document.getElementById("orderNotes").value = "";
+      if(isTaxExempt) document.getElementById("taxExemptToggle").click();
+      removeCustomer();
+      pointsUsedThisTicket = 0;
+      appliedGcCode = null;
+      appliedGcAmount = 0;
+      remainingGcBalance = 0;
+      updateCart(); 
+      renderMenu(); 
+      setTimeout(() => { statusMsg.innerText = ""; }, 3000);
+      
+      submitBtn.disabled = false; 
+      submitBtn.innerText = "RECORD SALE"; 
+    }          }
         } catch (error) {
           console.error("Square Error:", error);
           document.getElementById("squareModalOverlay").style.display = "none";
