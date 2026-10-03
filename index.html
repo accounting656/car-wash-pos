@@ -21,7 +21,7 @@
 
     /* Aggressive Print Stylesheet for AirPrint & HP Printers */
     @media print {
-      /* Margin 0 explicitly kills the URL and Date headers in iOS Safari */
+      /* THIS KILLS THE URL - Do not add !important here */
       @page { margin: 0; } 
       
       html, body { 
@@ -52,11 +52,12 @@
         top: 0 !important;
         left: 0 !important;
         width: 100% !important; 
+        /* This 40px padding is your new safe margin so text doesn't fall off the paper */
         padding: 40px !important; 
         margin: 0 !important;
       }
       
-      /* FORCE COMPOSITE BLACK: Bypasses the dead black ink cartridge */
+      /* FORCE COMPOSITE BLACK: Bypasses the dead black ink printhead */
       .active-print * {
         color: #111827 !important; 
         font-family: Arial, Helvetica, sans-serif !important;
@@ -69,8 +70,7 @@
       /* Protect Tables from collapsing on HP Printers */
       table { width: 100% !important; border-collapse: collapse !important; table-layout: fixed !important; }
       td, th { padding: 5px 0 !important; word-wrap: break-word !important; }
-    }
-    
+    }    
     * { box-sizing: border-box; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
     body { background: #f3f4f6; display: flex; height: 100vh; overflow: hidden; color: #1f2937; }
     
