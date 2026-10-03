@@ -405,6 +405,7 @@
       
       <div id="squareReportContent" style="text-align: left; margin-bottom: 20px; min-height: 100px;"></div>
       
+      <button id="printAuditBtn" class="modal-btn clock-in-btn" style="display: none; margin-bottom: 10px;" onclick="printSquareAudit()">🖨️ Print Audit</button>
       <button class="modal-btn btn-cancel" onclick="closeModals()">Close</button>
     </div>
   </div>
@@ -539,6 +540,16 @@
       <button id="submitBtn" class="submit-btn" onclick="promptPayment()">RECORD SALE</button>
       <div id="statusMsg" class="status-msg"></div>
     </div>
+  </div>
+  <!-- THE HIDDEN PRINTABLE SQUARE AUDIT -->
+  <div id="printableSquareAudit" class="print-section">
+    <h2 style="margin-bottom: 5px; text-align: center;">Square Audit Report</h2>
+    <p style="text-align: center; margin-top: 0; color: #555;" id="sqAuditLocationDisplay"></p>
+    <p style="text-align: center;"><strong>Date:</strong> <span id="sqAuditDateDisplay"></span></p>
+    
+    <hr style="border: 1px solid #ccc; margin: 20px 0;">
+    
+    <div id="sqAuditPrintContent"></div>
   </div>
   <!-- THE HIDDEN PRINTABLE INVOICE -->
 <div id="printableInvoice" class="print-section">
@@ -1556,6 +1567,9 @@ function openEODModal() {
     document.getElementById("squareReportModalOverlay").style.display = "flex";
     
     const content = document.getElementById("squareReportContent");
+    const printBtn = document.getElementById("printAuditBtn");
+    
+    printBtn.style.display = "none"; // Hide print button while loading
     content.innerHTML = `<div class="spinner"></div><p style="text-align:center;">Fetching live data from Square...</p>`;
     
     const location = document.getElementById("locationSelect").value;
@@ -1593,7 +1607,17 @@ function openEODModal() {
         });
         
         html += `</table><h3 style="text-align: right; margin-top: 15px; color: #111827;">Total Captured: $${total.toFixed(2)}</h3>`;
+        
+        // Set the on-screen modal content
         content.innerHTML = html;
+        
+        // Setup the hidden printable version
+        document.getElementById("sqAuditLocationDisplay").innerText = location;
+        document.getElementById("sqAuditDateDisplay").innerText = new Date().toLocaleDateString();
+        document.getElementById("sqAuditPrintContent").innerHTML = html;
+        
+        // Show the print button now that data is loaded
+        printBtn.style.display = "block";
         
       } else {
         content.innerHTML = `<p style="color: #ef4444; text-align:center;">Error: ${result.message}</p>`;
@@ -1601,6 +1625,21 @@ function openEODModal() {
     } catch (err) {
       content.innerHTML = `<p style="color: #ef4444; text-align:center;">Network Error. Try again.</p>`;
     }
+  }
+
+  function printSquareAudit() {
+    // Clear any existing print classes first
+    document.querySelectorAll('.print-section').forEach(el => el.classList.remove('active-print'));
+    
+    // Target the specific Square Audit layout
+    const auditDiv = document.getElementById("printableSquareAudit");
+    auditDiv.classList.add("active-print");
+    
+    // Print! (Our CSS will automatically force it to Composite Black for the HP printer)
+    setTimeout(() => {
+      window.print(); 
+      closeModals();
+    }, 300);
   }
   async function redeemGiftCard() {
       const code = prompt("Enter Gift Card Code (e.g., GC-XXXX-XXXX):");
