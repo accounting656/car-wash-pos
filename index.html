@@ -21,9 +21,9 @@
 
     /* Aggressive Print Stylesheet for AirPrint & HP Printers */
     @media print {
-      @page { size: auto; margin: 0.5cm; } 
+      /* Margin 0 explicitly kills the URL and Date headers in iOS Safari */
+      @page { size: auto; margin: 0 !important; } 
       
-      /* Nuke iOS Safari Flexbox constraints */
       html, body { 
         display: block !important; 
         height: auto !important; 
@@ -35,9 +35,14 @@
         -webkit-print-color-adjust: exact !important;
       }
       
-      /* Explicitly hide the iPad UI */
-      .menu-section, .cart-section, .modal-overlay, #loginOverlay { 
+      /* SAFELY HIDE EVERYTHING EXCEPT THE ACTIVE PRINT SECTION */
+      body > *:not(.active-print) { 
         display: none !important; 
+      }
+      
+      /* DOUBLE SAFEGUARD: Hide any print templates not currently active */
+      .print-section:not(.active-print) {
+        display: none !important;
       }
       
       /* Detach the print section and snap it to the top-left of the page */
@@ -47,13 +52,13 @@
         top: 0 !important;
         left: 0 !important;
         width: 100% !important; 
-        padding: 10px 20px !important;
+        padding: 40px !important; 
         margin: 0 !important;
       }
       
-      /* Force System Fonts and True Black on EVERY element */
+      /* FORCE COMPOSITE BLACK: Bypasses the dead black ink cartridge */
       .active-print * {
-        color: #000000 !important;
+        color: #111827 !important; 
         font-family: Arial, Helvetica, sans-serif !important;
         text-shadow: none !important;
         box-shadow: none !important;
