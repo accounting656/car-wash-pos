@@ -361,7 +361,21 @@
       <button class="modal-btn clock-in-btn" style="background: #3b82f6; border-color: #2563eb;" onclick="executeEOD('email')">✉️ Email Owner Only</button>
       <button class="modal-btn clock-in-btn" style="background: #8b5cf6; border-color: #7c3aed;" onclick="executeEOD('both')">🖨️ & ✉️ Print & Email</button>
       
+      <!-- NEW SQUARE AUDIT BUTTON -->
+      <button class="modal-btn clock-in-btn" style="background: #0f766e; border-color: #0d9488;" onclick="openSquareReport()">💳 Run Square Audit</button>
+      
       <button class="modal-btn btn-cancel" onclick="closeModals()">Cancel</button>
+    </div>
+  </div>
+  <!-- SQUARE AUDIT REPORT MODAL -->
+  <div id="squareReportModalOverlay" class="modal-overlay">
+    <div class="modal-box" style="max-width: 500px; max-height: 80vh; overflow-y: auto;">
+      <h2>Square Audit Report</h2>
+      <p style="margin-bottom: 20px; color: #4b5563;">Today's Live Terminal Transactions</p>
+      
+      <div id="squareReportContent" style="text-align: left; margin-bottom: 20px; min-height: 100px;"></div>
+      
+      <button class="modal-btn btn-cancel" onclick="closeModals()">Close</button>
     </div>
   </div>
   <!-- PAY PENDING INVOICE MODAL -->
@@ -864,7 +878,7 @@ function printInvoice(transaction) {
     function openTimeclock() { document.getElementById("tcName").innerText = activeAttendant; document.getElementById("timeclockModalOverlay").style.display = "flex"; }
     function openPromoModal() { document.getElementById("promoModalOverlay").style.display = "flex"; }
     function closeModals() { 
-  const modals = [
+const modals = [
     "paymentModalOverlay", 
     "timeclockModalOverlay", 
     "promoModalOverlay", 
@@ -873,7 +887,8 @@ function printInvoice(transaction) {
     "cashModalOverlay",
     "customerModalOverlay",
     "eodModalOverlay",
-    "payPendingModalOverlay"
+    "payPendingModalOverlay",
+    "squareReportModalOverlay"
   ];
   
   modals.forEach(id => {
@@ -1504,6 +1519,57 @@ function openEODModal() {
     } catch (err) {
       alert("Network error. Try again.");
       btn.innerText = originalText;
+    }
+  }
+  async function openSquareReport() {
+    document.getElementById("eodModalOverlay").style.display = "none";
+    document.getElementById("squareReportModalOverlay").style.display = "flex";
+    
+    const content = document.getElementById("squareReportContent");
+    content.innerHTML = `<div class="spinner"></div><p style="text-align:center;">Fetching live data from Square...</p>`;
+    
+    const location = document.getElementById("locationSelect").value;
+    
+    try {
+      const response = await fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({ recordType: "square_audit", location: location })
+      });
+      const result = await response.json();
+      
+      if (result.status === "success") {
+        if (result.data.length === 0) {
+          content.innerHTML = "<p style='text-align:center; font-weight:bold;'>No Square transactions found today.</p>";
+          return;
+        }
+        
+        let html = `<table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+                      <tr style="border-bottom: 2px solid #ccc;">
+                        <th style="padding-bottom: 8px;">Time</th>
+                        <th style="padding-bottom: 8px;">Amount</th>
+                        <th style="padding-bottom: 8px;">Status</th>
+                      </tr>`;
+        let total = 0;
+        
+        result.data.forEach(txn => {
+          let statusColor = txn.status === "COMPLETED" ? "#10b981" : (txn.status === "CANCELED" ? "#ef4444" : "#f59e0b");
+          html += `<tr style="border-bottom: 1px solid #eee;">
+                     <td style="padding: 10px 0;">${new Date(txn.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
+                     <td style="font-weight: bold;">$${txn.amount.toFixed(2)}</td>
+                     <td style="color: ${statusColor}; font-weight: bold;">${txn.status}</td>
+                   </tr>`;
+          if (txn.status === "COMPLETED") total += txn.amount;
+        });
+        
+        html += `</table><h3 style="text-align: right; margin-top: 15px; color: #111827;">Total Captured: $${total.toFixed(2)}</h3>`;
+        content.innerHTML = html;
+        
+      } else {
+        content.innerHTML = `<p style="color: #ef4444; text-align:center;">Error: ${result.message}</p>`;
+      }
+    } catch (err) {
+      content.innerHTML = `<p style="color: #ef4444; text-align:center;">Network Error. Try again.</p>`;
     }
   }
   async function redeemGiftCard() {
