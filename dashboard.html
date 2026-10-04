@@ -8,20 +8,49 @@
   <style>
     * { box-sizing: border-box; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
     body { background: #f3f4f6; color: #1f2937; }
+    
     #pinOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #111827; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; color: white; }
     #pinOverlay input { font-size: 24px; padding: 10px; text-align: center; border-radius: 8px; border: none; margin-bottom: 15px; }
     #pinOverlay button { padding: 10px 20px; font-size: 18px; font-weight: bold; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; }
-    #dashboardContent { padding: 30px; display: none; }
-    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
-    .kpi-card { background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; }
+    
+    #dashboardContent { padding: 30px; display: none; max-width: 1400px; margin: 0 auto; }
+    
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 15px; }
+    
+    .controls-bar { background: white; padding: 15px 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; gap: 15px; align-items: center; flex-wrap: wrap; margin-bottom: 30px; }
+    .date-input { padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; outline: none; }
+    .btn { padding: 10px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; transition: 0.2s; }
+    .btn-primary { background: #10b981; color: white; }
+    .btn-secondary { background: #3b82f6; color: white; }
+    .btn-print { background: #4b5563; color: white; }
+    
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+    .kpi-card { background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; border-top: 4px solid #10b981; }
+    .kpi-label { color: #6b7280; font-weight: bold; font-size: 13px; letter-spacing: 1px; }
+    .kpi-value { font-size: 36px; font-weight: 900; color: #111827; margin-top: 5px; }
+    
     .chart-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 30px; }
-    .chart-container { background: white; padding: 20px; border-radius: 16px; }
+    .chart-container { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+    
     .loc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-    .loc-card { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 4px solid #3b82f6; }
-    .loc-title { font-size: 18px; font-weight: 800; margin-bottom: 15px; color: #1f2937; }
-    .badge { background: #e0e7ff; color: #4338ca; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; margin-right: 5px; display: inline-block; margin-bottom: 5px;}
-    .list-item { font-size: 14px; color: #4b5563; border-bottom: 1px solid #f3f4f6; padding: 5px 0; display: flex; justify-content: space-between; }
+    .loc-card { background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 4px solid #3b82f6; }
+    .loc-title { font-size: 20px; font-weight: 800; margin-bottom: 15px; color: #1f2937; border-bottom: 2px solid #f3f4f6; padding-bottom: 10px;}
+    
+    .fin-row { display: flex; justify-content: space-between; font-size: 15px; margin-bottom: 8px; color: #4b5563; }
+    .fin-row.total { font-weight: 800; color: #111827; font-size: 18px; border-top: 1px solid #e5e7eb; padding-top: 8px; margin-top: 8px; }
+    
+    .badge { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; margin-right: 5px; display: inline-block; margin-bottom: 5px;}
+    .list-item { font-size: 14px; color: #4b5563; border-bottom: 1px solid #f3f4f6; padding: 6px 0; display: flex; justify-content: space-between; }
+    
+    /* PRINT STYLES */
+    @media print {
+      body { background: white; }
+      .controls-bar, #pinOverlay, .btn-print { display: none !important; }
+      #dashboardContent { padding: 0; max-width: 100%; }
+      .kpi-card, .loc-card, .chart-container { box-shadow: none; border: 1px solid #ccc; page-break-inside: avoid; margin-bottom: 20px; }
+      .chart-grid { display: block; }
+      canvas { max-width: 100%; height: auto !important; }
+    }
   </style>
 </head>
 <body>
@@ -36,23 +65,46 @@
 
   <div id="dashboardContent">
     <div class="header">
-      <h1 style="font-weight: 800; font-size: 32px;">📊 Owner Command Center</h1>
-      <button style="background: #10b981; color: white; padding: 10px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;" onclick="fetchData()">🔄 Refresh</button>
+      <h1 style="font-weight: 800; font-size: 32px;" id="reportTitle">📊 Owner Command Center</h1>
     </div>
 
+    <!-- DATE CONTROLS -->
+    <div class="controls-bar">
+      <div>
+        <label style="font-size: 13px; font-weight: bold; color: #6b7280; display: block;">Start Date</label>
+        <input type="date" id="startDate" class="date-input">
+      </div>
+      <div>
+        <label style="font-size: 13px; font-weight: bold; color: #6b7280; display: block;">End Date</label>
+        <input type="date" id="endDate" class="date-input">
+      </div>
+      <div style="margin-top: 18px; display: flex; gap: 10px;">
+        <button class="btn btn-primary" onclick="fetchData()" id="generateBtn">Generate Report</button>
+        <button class="btn btn-print" onclick="window.print()">🖨️ Print Report</button>
+      </div>
+    </div>
+
+    <!-- HIGH-LEVEL KPIs -->
     <div class="kpi-grid">
       <div class="kpi-card">
-        <div style="color: #6b7280; font-weight: bold;">TOTAL SALES</div>
-        <div id="kpiSales" style="font-size: 40px; font-weight: 900; color: #10b981;">$0.00</div>
+        <div class="kpi-label">TOTAL GROSS REVENUE</div>
+        <div class="kpi-value" id="kpiGross" style="color: #10b981;">$0.00</div>
       </div>
       <div class="kpi-card">
-        <div style="color: #6b7280; font-weight: bold;">TOTAL CARS</div>
-        <div id="kpiCars" style="font-size: 40px; font-weight: 900;">0</div>
+        <div class="kpi-label">NET SALES</div>
+        <div class="kpi-value" id="kpiNet">$0.00</div>
       </div>
-      <!-- NEW: Average Ticket KPI -->
       <div class="kpi-card">
-        <div style="color: #6b7280; font-weight: bold;">AVERAGE TICKET</div>
-        <div id="kpiAvg" style="font-size: 40px; font-weight: 900; color: #3b82f6;">$0.00</div>
+        <div class="kpi-label">TAX COLLECTED</div>
+        <div class="kpi-value" id="kpiTax">$0.00</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">TOTAL CARS WASHED</div>
+        <div class="kpi-value" id="kpiCars">0</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">AVERAGE TICKET</div>
+        <div class="kpi-value" id="kpiAvg" style="color: #3b82f6;">$0.00</div>
       </div>
     </div>
 
@@ -61,7 +113,7 @@
       <div class="chart-container"><canvas id="carsChart"></canvas></div>
     </div>
 
-    <h2 style="margin-bottom: 15px;">📍 Location Breakdown</h2>
+    <h2 style="margin-bottom: 15px; font-size: 24px;">📍 Location Breakdown</h2>
     <div class="loc-grid" id="locationCards"></div>
   </div>
 
@@ -69,6 +121,13 @@
     // ⚠️ PASTE YOUR REAL URL HERE:
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxJX6GJEcl5OvCZ7Z7JAD72jSK8d7g7EJeK9Ud4dAiDb8-gPidrYvIOGpVAKw8h3Q2VFQ/exec";
     
+    // Default dates to today on load
+    document.addEventListener("DOMContentLoaded", () => {
+      const today = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
+      document.getElementById('startDate').value = today;
+      document.getElementById('endDate').value = today;
+    });
+
     function checkPin() {
       if(document.getElementById('adminPin').value === '3589') {
         document.getElementById('pinOverlay').style.display = 'none';
@@ -80,74 +139,101 @@
     let salesChart, carsChart;
 
     async function fetchData() {
+      const btn = document.getElementById("generateBtn");
+      const originalText = btn.innerText;
+      btn.innerText = "Loading...";
+      btn.disabled = true;
+
+      const startDate = document.getElementById("startDate").value;
+      const endDate = document.getElementById("endDate").value;
+      
+      // Update Title
+      document.getElementById("reportTitle").innerText = `📊 Report: ${startDate} to ${endDate}`;
+
       try {
-        // CHANGED: Using POST request to match the POS security
         const response = await fetch(GOOGLE_SCRIPT_URL, {
           method: "POST",
           headers: { "Content-Type": "text/plain" },
-          body: JSON.stringify({ recordType: "dashboard_data" })
+          body: JSON.stringify({ 
+            recordType: "dashboard_data",
+            startDate: startDate,
+            endDate: endDate
+          })
         });
         
         const result = await response.json();
         
         if(result.status !== "success") {
           alert("Error: " + result.message);
+          btn.innerText = originalText;
+          btn.disabled = false;
           return;
         }
 
         const data = result.data;
 
-        // Set KPIs
-        document.getElementById("kpiSales").innerText = "$" + data.totalSales.toFixed(2);
+        // Set Main KPIs
+        document.getElementById("kpiGross").innerText = "$" + data.totalGross.toFixed(2);
+        document.getElementById("kpiNet").innerText = "$" + data.totalNet.toFixed(2);
+        document.getElementById("kpiTax").innerText = "$" + data.totalTax.toFixed(2);
         document.getElementById("kpiCars").innerText = data.totalCars;
         
-        // Calculate and set Average Ticket
-        const avgTicket = data.totalCars > 0 ? (data.totalSales / data.totalCars) : 0;
+        const avgTicket = data.totalCars > 0 ? (data.totalGross / data.totalCars) : 0;
         document.getElementById("kpiAvg").innerText = "$" + avgTicket.toFixed(2);
 
         const locNames = Object.keys(data.locations);
-        const salesData = locNames.map(l => data.locations[l].sales);
+        const grossData = locNames.map(l => data.locations[l].gross);
         const carsData = locNames.map(l => data.locations[l].cars);
 
         // Render Charts
         if(salesChart) salesChart.destroy();
         salesChart = new Chart(document.getElementById('salesChart'), { 
           type: 'bar', 
-          data: { labels: locNames, datasets: [{ label: 'Revenue ($)', data: salesData, backgroundColor: '#3b82f6' }] }
+          data: { labels: locNames, datasets: [{ label: 'Gross Revenue ($)', data: grossData, backgroundColor: '#3b82f6' }] },
+          options: { responsive: true, maintainAspectRatio: false }
         });
         
         if(carsChart) carsChart.destroy();
         carsChart = new Chart(document.getElementById('carsChart'), { 
           type: 'doughnut', 
-          data: { labels: locNames, datasets: [{ data: carsData, backgroundColor: ['#10b981', '#f59e0b', '#8b5cf6', '#ec4899'] }] }
+          data: { labels: locNames, datasets: [{ data: carsData, backgroundColor: ['#10b981', '#f59e0b', '#8b5cf6', '#ec4899'] }] },
+          options: { responsive: true, maintainAspectRatio: false }
         });
 
-        // Render Location Cards
+        // Render Detailed Location Cards
         let locHTML = "";
         locNames.forEach(loc => {
           let lData = data.locations[loc];
-          let staff = lData.employees.length > 0 ? lData.employees.map(e => `<span class="badge">👤 ${e}</span>`).join('') : "<span style='color:#9ca3af; font-size: 13px;'>No staff clocked in</span>";
-          
+          let staff = lData.employees.length > 0 ? lData.employees.map(e => `<span class="badge">👤 ${e}</span>`).join('') : "<span style='color:#9ca3af; font-size: 13px;'>No staff recorded</span>";
           let services = Object.entries(lData.services).sort((a,b) => b[1]-a[1]).map(s => `<div class="list-item"><span>${s[0]}</span><strong>${s[1]}</strong></div>`).join('');
           
           locHTML += `
             <div class="loc-card">
               <div class="loc-title">${loc}</div>
-              <div style="display: flex; justify-content: space-between; font-size: 20px; font-weight: 800; margin-bottom: 15px;">
-                <span style="color:#10b981;">$${lData.sales.toFixed(2)}</span>
-                <span>${lData.cars} Cars</span>
+              
+              <div style="margin-bottom: 20px; background: #f9fafb; padding: 15px; border-radius: 8px;">
+                <div class="fin-row"><span>Net Sales:</span> <span>$${lData.net.toFixed(2)}</span></div>
+                <div class="fin-row"><span>Tax Collected:</span> <span>$${lData.tax.toFixed(2)}</span></div>
+                <div class="fin-row total"><span>Gross Revenue:</span> <span style="color:#10b981;">$${lData.gross.toFixed(2)}</span></div>
+                <div class="fin-row" style="margin-top: 10px;"><span>Cars Washed:</span> <strong>${lData.cars}</strong></div>
               </div>
-              <p style="font-size: 12px; font-weight: bold; color: #6b7280; margin-bottom: 5px;">ON CLOCK:</p>
-              <div style="margin-bottom: 15px;">${staff}</div>
-              <p style="font-size: 12px; font-weight: bold; color: #6b7280; margin-bottom: 5px;">SERVICES RENDERED:</p>
-              <div>${services || "<span style='color:#9ca3af; font-size: 13px;'>No services yet</span>"}</div>
+
+              <p style="font-size: 12px; font-weight: bold; color: #6b7280; margin-bottom: 8px;">EMPLOYEES WORKED:</p>
+              <div style="margin-bottom: 20px;">${staff}</div>
+              
+              <p style="font-size: 12px; font-weight: bold; color: #6b7280; margin-bottom: 8px;">ITEMIZED BREAKDOWN:</p>
+              <div>${services || "<span style='color:#9ca3af; font-size: 13px;'>No services recorded</span>"}</div>
             </div>`;
         });
         document.getElementById("locationCards").innerHTML = locHTML;
+
       } catch (err) { 
         console.error(err); 
         alert("Error connecting to database."); 
       }
+      
+      btn.innerText = originalText;
+      btn.disabled = false;
     }
   </script>
 </body>
