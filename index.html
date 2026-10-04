@@ -242,51 +242,52 @@
     </div>
   </div>
 
-  <!-- PRINTABLE END OF DAY REPORT -->
+ <!-- PRINTABLE END OF DAY REPORT -->
   <div id="printableEOD" class="print-section">
-    <h2 style="margin-bottom: 5px; text-align: center;">End of Day Summary</h2>
-    <p style="text-align: center; margin-top: 0; color: #555;" id="eodLocation"></p>
-    <p style="text-align: center;"><strong>Date:</strong> <span id="eodDate"></span></p>
+    <h2 style="margin-bottom: 2px; text-align: center; font-size: 24px;">End of Day Summary</h2>
+    <p style="text-align: center; margin-top: 0; margin-bottom: 15px; color: #555; font-size: 14px;" id="eodLocation"></p>
     
-    <hr style="border: 1px solid #ccc; margin: 20px 0;">
-    
-    <table style="width: 100%; margin-top: 20px; text-align: left; font-size: 18px;">
-      <tr><th>Net Sales:</th><td id="eodNet"></td></tr>
-      <tr><th>Tax Collected:</th><td id="eodTax"></td></tr>
-      <tr><th style="padding-top: 10px; font-size: 20px;">Total Gross:</th><td id="eodTotal" style="padding-top: 10px; font-weight: bold; font-size: 20px;"></td></tr>
-    </table>
-    
-    <hr style="border: 1px dashed #ccc; margin: 20px 0;">
-    <h3>Tender Breakdown</h3>
-    <table style="width: 100%; text-align: left; font-size: 16px;">
-      <tr><th>Cash:</th><td id="eodCash"></td></tr>
-      <tr><th>Credit Card:</th><td id="eodCredit"></td></tr>
-      <tr><th>Check:</th><td id="eodCheck"></td></tr>
-      <tr><th>Pending:</th><td id="eodPending"></td></tr>
-    </table>
-    <hr style="border: 1px dashed #ccc; margin: 20px 0;">
-    <h3>Items Sold Breakdown</h3>
-    <table style="width: 100%; text-align: left; font-size: 16px;">
-      <tr><th>🚗 Wash Services:</th><td id="eodCatServices">0</td></tr>
-      <tr><th>🛍️️ Retail/Store:</th><td id="eodCatRetail">0</td></tr>
-      <tr><th>✏️ Custom Pricing:</th><td id="eodCatCustom">0</td></tr>
-      <tr><th>💳 Gift Cards Sold:</th><td id="eodCatGiftCard">0</td></tr>
-    </table>
-    <hr style="border: 1px dashed #ccc; margin: 20px 0;">
-    <h3>Services Breakdown</h3>
-    <table style="width: 100%; text-align: left; font-size: 16px;" id="eodServicesTable">
-      <!-- Populated by JS -->
-    </table>
-
-    <!-- NEW: BIG BOLD TOTAL CARS -->
-    <div style="text-align: right; margin-top: 15px;">
-      <span style="font-size: 18px; color: #555;">Total Cars Washed:</span><br>
-      <span id="eodTotalCars" style="font-size: 32px; font-weight: 800; color: #111827;">0</span>
+    <div style="border-bottom: 3px solid #111827; padding-bottom: 8px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: flex-end;">
+      <div style="font-size: 16px;"><strong>Date:</strong> <span id="eodDate"></span></div>
+      <div style="text-align: right;">
+        <span style="font-size: 14px; color: #555;">Total Cars Washed:</span><br>
+        <strong style="font-size: 24px;" id="eodTotalCars">0</strong>
+      </div>
     </div>
+    
+    <!-- Side-by-Side Bulletproof Table Layout -->
+    <table style="width: 100%; border-collapse: collapse; border: none;">
+      <tr>
+        <!-- LEFT COLUMN: Financials & Tender -->
+        <td style="width: 40%; vertical-align: top; padding-right: 30px; border-right: 1px dashed #ccc;">
+          
+          <table style="width: 100%; text-align: left; font-size: 15px; margin-bottom: 25px;">
+            <tr><th style="padding: 4px 0;">Net Sales:</th><td id="eodNet" style="text-align: right;"></td></tr>
+            <tr><th style="padding: 4px 0;">Tax Collected:</th><td id="eodTax" style="text-align: right;"></td></tr>
+            <tr><th style="padding: 8px 0; font-size: 18px; border-top: 1px solid #ccc;">Total Gross:</th><td id="eodTotal" style="padding: 8px 0; font-weight: 800; font-size: 18px; text-align: right; border-top: 1px solid #ccc;"></td></tr>
+          </table>
 
-    <hr style="border: 1px dashed #ccc; margin: 20px 0;">
-    <h3>Shift Employees</h3>
-    <p id="eodEmployees" style="font-size: 16px;"></p>
+          <h3 style="font-size: 16px; border-bottom: 1px solid #111827; padding-bottom: 4px; margin-bottom: 8px;">Tender Breakdown</h3>
+          <table style="width: 100%; text-align: left; font-size: 14px; margin-bottom: 30px;">
+            <tr><th style="padding: 3px 0; color: #4b5563;">Cash:</th><td id="eodCash" style="text-align: right; font-weight: 600;"></td></tr>
+            <tr><th style="padding: 3px 0; color: #4b5563;">Credit Card:</th><td id="eodCredit" style="text-align: right; font-weight: 600;"></td></tr>
+            <tr><th style="padding: 3px 0; color: #4b5563;">Check:</th><td id="eodCheck" style="text-align: right; font-weight: 600;"></td></tr>
+            <tr><th style="padding: 3px 0; color: #4b5563;">Pending:</th><td id="eodPending" style="text-align: right; font-weight: 600;"></td></tr>
+          </table>
+
+          <h3 style="font-size: 14px; color: #6b7280; margin-bottom: 5px;">Shift Employees</h3>
+          <p id="eodEmployees" style="font-size: 12px; margin: 0; line-height: 1.4;"></p>
+        </td>
+        
+        <!-- RIGHT COLUMN: Categorized Services Breakdown -->
+        <td style="width: 60%; vertical-align: top; padding-left: 20px;">
+          <h3 style="font-size: 16px; border-bottom: 1px solid #111827; padding-bottom: 4px; margin-top: 0; margin-bottom: 8px;">Items Sold Breakdown</h3>
+          <table style="width: 100%; text-align: left; font-size: 13px; border-collapse: collapse;" id="eodCategorizedTable">
+            <!-- Dynamically populated grouped list -->
+          </table>
+        </td>
+      </tr>
+    </table>
   </div>
   <!-- SQUARE TERMINAL WAITING MODAL (NEW) -->
   <div id="squareModalOverlay" class="modal-overlay">
@@ -1529,6 +1530,7 @@ function openEODModal() {
         const result = await response.json();
         
         if (result.status === "success") {
+          // 1. Set Financials & Totals
           document.getElementById("eodDate").innerText = new Date().toLocaleDateString();
           document.getElementById("eodLocation").innerText = location;
           document.getElementById("eodNet").innerText = `$${result.data.netSales.toFixed(2)}`;
@@ -1539,23 +1541,68 @@ function openEODModal() {
           document.getElementById("eodCheck").innerText = `$${result.data.check.toFixed(2)}`;
           document.getElementById("eodPending").innerText = `$${result.data.pending.toFixed(2)}`;
           document.getElementById("eodTotalCars").innerText = result.data.totalCars;
-          document.getElementById("eodCatServices").innerText = result.data.catServices || 0;
-          document.getElementById("eodCatRetail").innerText = result.data.catRetail || 0;
-          document.getElementById("eodCatCustom").innerText = result.data.catCustom || 0;
-          document.getElementById("eodCatGiftCard").innerText = result.data.catGiftCards || 0;
-          
-          const svcTable = document.getElementById("eodServicesTable");
-          svcTable.innerHTML = "";
-          const servicesObj = result.data.services;
-          if (Object.keys(servicesObj).length === 0) {
-            svcTable.innerHTML = "<tr><td>No services recorded today.</td></tr>";
-          } else {
-            for (const [svcName, count] of Object.entries(servicesObj)) {
-              svcTable.innerHTML += `<tr><th>${svcName}:</th><td>${count}</td></tr>`;
+
+          // 2. Sort and Group the Services
+          const servicesObj = result.data.services || {};
+          let grouped = { wash: {}, retail: {}, custom: {}, gift: {} };
+          let counts = { wash: 0, retail: 0, custom: 0, gift: 0 };
+          let totalItemsSold = 0;
+
+          // Organize into buckets
+          for (const [name, count] of Object.entries(servicesObj)) {
+            totalItemsSold += count;
+            if (name.startsWith("Retail -")) {
+              grouped.retail[name.replace("Retail - ", "")] = count;
+              counts.retail += count;
+            } else if (name.startsWith("Custom -")) {
+              grouped.custom[name.replace("Custom - ", "")] = count;
+              counts.custom += count;
+            } else if (name.startsWith("Gift Card (")) {
+              grouped.gift[name] = count;
+              counts.gift += count;
+            } else {
+              grouped.wash[name] = count;
+              counts.wash += count;
             }
           }
 
-          const empList = result.data.employees;
+          // 3. Build the Beautiful HTML Table for Categories
+          let html = "";
+          function buildSection(title, icon, itemsObj, totalCount) {
+            if (totalCount === 0) return "";
+            
+            // Category Header Row
+            let sec = `<tr><th colspan="2" style="background: #e5e7eb; padding: 6px 8px; font-size: 14px; border-bottom: 1px solid #9ca3af; margin-top: 5px;">${icon} ${title} <span style="float:right;">Qty: ${totalCount}</span></th></tr>`;
+            
+            // Individual Items Rows
+            for (const [n, c] of Object.entries(itemsObj)) {
+              sec += `<tr>
+                        <td style="padding: 4px 8px 4px 15px; border-bottom: 1px solid #f3f4f6;">${n}</td>
+                        <td style="padding: 4px 8px; border-bottom: 1px solid #f3f4f6; text-align: right; font-weight: 600;">${c}</td>
+                      </tr>`;
+            }
+            return sec;
+          }
+
+          html += buildSection("Wash Services", "🚗", grouped.wash, counts.wash);
+          html += buildSection("Retail / Store", "🛍️", grouped.retail, counts.retail);
+          html += buildSection("Custom Pricing", "✏️", grouped.custom, counts.custom);
+          html += buildSection("Gift Cards Sold", "💳", grouped.gift, counts.gift);
+
+          if (html === "") {
+            html = "<tr><td colspan='2' style='padding: 10px; text-align: center;'>No items sold today.</td></tr>";
+          } else {
+            // Grand Total Items Row
+            html += `<tr>
+                      <th style="padding: 10px 8px; text-align: right; font-size: 15px; border-top: 2px solid #111827;">Total Items & Services Sold:</th>
+                      <th style="padding: 10px 8px; text-align: right; font-size: 16px; border-top: 2px solid #111827; font-weight: 900;">${totalItemsSold}</th>
+                    </tr>`;
+          }
+
+          document.getElementById("eodCategorizedTable").innerHTML = html;
+
+          // 4. Set Employees
+          const empList = result.data.employees || [];
           document.getElementById("eodEmployees").innerText = empList.length > 0 ? empList.join(", ") : "No punches recorded.";
           
           document.querySelectorAll('.print-section').forEach(el => el.classList.remove('active-print'));
