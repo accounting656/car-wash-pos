@@ -895,10 +895,11 @@ function printInvoice(transaction) {
         const response = await fetch(GOOGLE_SCRIPT_URL, {
           method: "POST",
           headers: { "Content-Type": "text/plain" },
-          body: JSON.stringify({
-            recordType: "verify_pos_pin",
-            pin: enteredPin
-          })
+         body: JSON.stringify({
+          recordType: "verify_pos_pin",
+          location: document.getElementById("locationSelect").value, // 📍 Sends the tablet's location
+          pin: enteredPin
+        })
         });
         
         const result = await response.json();
