@@ -872,8 +872,8 @@ function printInvoice(transaction) {
       }
     }
 
-    function addPin(num) {
-      if(enteredPin.length < 4) { 
+ function addPin(num) {
+      if(enteredPin.length < 10) { // <-- Increased limit so Admin PINs fit!
         enteredPin += num; 
         document.getElementById("pinDisplay").innerText = "•".repeat(enteredPin.length); 
       }
