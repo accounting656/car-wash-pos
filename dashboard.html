@@ -152,14 +152,6 @@
       document.getElementById('endDate').value = today;
     });
 
-    function checkPin() {
-      if(document.getElementById('adminPin').value === '3589') {
-        document.getElementById('pinOverlay').style.display = 'none';
-        document.getElementById('dashboardContent').style.display = 'block';
-        fetchData();
-      } else { alert("Incorrect PIN"); document.getElementById('adminPin').value = ''; }
-    }
-
     let salesChart, carsChart;
 
     async function fetchData() {
