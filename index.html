@@ -905,7 +905,7 @@ function printInvoice(transaction) {
         const result = await response.json();
 
         if (result.status === "success") {
-          activeAttendant = result.name;
+         activeAttendant = result.name || (result.role === "Manager" ? "Store Manager" : "Attendant");
           document.getElementById("currentAttendantName").innerText = activeAttendant;
 
           if (result.role === "Manager") {
