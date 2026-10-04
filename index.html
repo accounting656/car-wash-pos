@@ -960,7 +960,11 @@ function printInvoice(transaction) {
     function addColor(colorStr) { const input = document.getElementById("vehiclePlate"); input.value = input.value ? colorStr + " " + input.value : colorStr + " "; }
 
     // --- MODALS & TIMECLOCK ---
-    function openTimeclock() { document.getElementById("tcName").innerText = activeAttendant; document.getElementById("timeclockModalOverlay").style.display = "flex"; }
+   function openTimeclock() { 
+  document.getElementById("timeclockModalOverlay").style.display = "flex"; 
+  document.getElementById("tcPin").value = ""; // Clears the PIN box for a fresh punch
+  document.getElementById("tcStatus").innerText = ""; // Clears any old status messages
+}
     function openPromoModal() { document.getElementById("promoModalOverlay").style.display = "flex"; }
     function closeModals() { 
 const modals = [
