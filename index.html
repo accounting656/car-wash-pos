@@ -904,19 +904,25 @@ async function submitPin() {
         
         const result = await response.json();
 
-        // 🔒 BULLETPROOF CHECK: Must be success AND have a role provided by the backend!
+// 🔒 BULLETPROOF CHECK: Must be success AND have a role!
         if (result.status === "success" && result.role) {
-          activeAttendant = result.name || (result.role === "Manager" ? "Store Manager" : "Attendant");
+          activeAttendant = result.name || result.role;
           document.getElementById("currentAttendantName").innerText = activeAttendant;
 
-          if (result.role === "Manager") {
-            // Manager Privileges
+          if (result.role === "Admin") {
+            // 👑 ADMIN PRIVILEGES (Settings Tab PINs): Unlocks Location & EOD
             document.getElementById("locationSelect").disabled = false;
             document.getElementById("locationSelect").style.borderColor = "#3b82f6";
             document.getElementById("locationSelect").style.borderWidth = "2px";
             document.getElementById("eodBtn").style.display = "block"; 
+          } else if (result.role === "Manager") {
+            // 👔 MANAGER PRIVILEGES (Roster Managers): Unlocks EOD Only
+            document.getElementById("locationSelect").disabled = true;
+            document.getElementById("locationSelect").style.borderColor = "#e5e7eb";
+            document.getElementById("locationSelect").style.borderWidth = "1px";
+            document.getElementById("eodBtn").style.display = "block"; 
           } else {
-            // Standard Employee Privileges
+            // 👤 ATTENDANT PRIVILEGES (Roster Attendants): Everything Locked
             document.getElementById("locationSelect").disabled = true;
             document.getElementById("locationSelect").style.borderColor = "#e5e7eb";
             document.getElementById("locationSelect").style.borderWidth = "1px";
