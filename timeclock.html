@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>A+ WashOS - Mobile Timeclock</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    body { 
+      font-family: 'Inter', sans-serif; 
+      background: #f3f4f6; 
+      margin: 0; 
+      padding: 20px; 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      justify-content: center; 
+      min-height: 100vh; 
+    }
+    .card { 
+      background: white; 
+      padding: 30px 20px; 
+      border-radius: 16px; 
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+      width: 100%; 
+      max-width: 400px; 
+      text-align: center; 
+    }
+    h2 { margin-top: 0; color: #1f2937; font-size: 24px; }
+    p { color: #6b7280; margin-bottom: 25px; font-size: 15px; }
+    
+    select, input { 
+      width: 100%; 
+      padding: 16px; 
+      margin-bottom: 20px; 
+      border-radius: 10px; 
+      border: 1px solid #d1d5db; 
+      font-size: 16px; 
+      box-sizing: border-box; 
+      background: #f9fafb;
+    }
+    
+    .btn-group { display: flex; gap: 15px; margin-top: 10px; }
+    button { 
+      flex: 1; 
+      padding: 18px 10px; 
+      font-size: 18px; 
+      font-weight: 800; 
+      border: none; 
+      border-radius: 10px; 
+      color: white; 
+      cursor: pointer; 
+      transition: 0.2s;
+    }
+    .btn-in { background: #10b981; }
+    .btn-in:active { background: #059669; }
+    .btn-out { background: #ef4444; }
+    .btn-out:active { background: #dc2626; }
+    
+    #statusMessage { margin-top: 20px; font-size: 16px; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <div class="card" id="clockForm">
+    <h2>⏱️ A+ WashOS Timeclock</h2>
+    <p>Select your location and enter your name to clock in or out.</p>
+    
+    <select id="location">
+      <option value="Location 1 - Tampa Bay">Tampa Bay</option>
+      <option value="Location 2 - Columbus">Columbus</option>
+      <option value="Location 3 - South">South</option>
+      <option value="Location 4 - Armenia">Armenia</option>
+    </select>
+    
+    <input type="text" id="employeeName" placeholder="Enter Your Full Name" required>
+    
+    <div class="btn-group">
+      <button class="btn-in" onclick="submitPunch('Clock In')">Clock In</button>
+      <button class="btn-out" onclick="submitPunch('Clock Out')">Clock Out</button>
+    </div>
+    
+    <div id="statusMessage"></div>
+  </div>
+
+  <script>
+    // ⚠️ PASTE YOUR REAL URL HERE:
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxJX6GJEcl5OvCZ7Z7JAD72jSK8d7g7EJeK9Ud4dAiDb8-gPidrYvIOGpVAKw8h3Q2VFQ/exec";
+
+    async function submitPunch(action) {
+      const loc = document.getElementById("location").value;
+      const name = document.getElementById("employeeName").value.trim();
+      
+      if (!name) { 
+        alert("Please enter your name first!"); 
+        return; 
+      }
+      
+      const statusDiv = document.getElementById("statusMessage");
+      statusDiv.style.color = "#3b82f6";
+      statusDiv.innerText = "⏳ Processing...";
+
+      try {
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({
+            recordType: "timeclock",
+            location: loc,
+            attendant: name,
+            action: action
+          })
+        });
+
+        const result = await response.json();
+        
+        if (result.status === "success") {
+           // Swap the screen to a massive success message
+           document.getElementById("clockForm").innerHTML = `
+             <h1 style="color: #10b981; font-size: 70px; margin: 0 0 10px 0;">✅</h1>
+             <h2 style="margin-bottom: 10px;">Success!</h2>
+             <p style="font-size: 18px; color: #111827;"><strong>${name}</strong> has been successfully <strong>${action}ed</strong>.</p>
+             <p style="color: #6b7280; margin-top: 25px; font-weight: bold;">Closing screen automatically...</p>
+           `;
+           
+           // Attempt to close the browser tab after 3 seconds
+           setTimeout(() => {
+             window.close();
+             // Fallback text just in case Apple/Android blocks the auto-close command
+             document.querySelector("#clockForm p:last-child").innerText = "You may now safely close this tab or lock your phone.";
+           }, 3000);
+
+        } else {
+           statusDiv.style.color = "#ef4444";
+           statusDiv.innerText = "❌ Error: " + result.message;
+        }
+      } catch (err) {
+        statusDiv.style.color = "#ef4444";
+        statusDiv.innerText = "❌ Network connection failed.";
+      }
+    }
+  </script>
+</body>
+</html>
