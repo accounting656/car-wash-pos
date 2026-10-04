@@ -298,11 +298,15 @@
     </div>
   </div>
 
-  <!-- TIMECLOCK MODAL -->
+ <!-- TIMECLOCK MODAL -->
   <div id="timeclockModalOverlay" class="modal-overlay">
     <div class="modal-box">
       <h2>Timeclock</h2>
-      <p style="margin-bottom: 20px; color: #4b5563;">Employee: <strong id="tcName" style="color: #111827;"></strong></p>
+      <p style="margin-bottom: 15px; color: #4b5563;">Enter your secure PIN to record your punch.</p>
+      
+      <!-- Added a secure PIN input field specifically for the timeclock -->
+      <input type="password" id="tcPin" class="input-field" placeholder="Enter PIN" inputmode="numeric" style="text-align: center; font-size: 24px; letter-spacing: 5px; margin-bottom: 20px; font-weight: bold;">
+      
       <button class="modal-btn clock-in-btn" onclick="logTimeclock('Clock In')">🟢 Clock In</button>
       <button class="modal-btn clock-out-btn" onclick="logTimeclock('Clock Out')">🔴 Clock Out</button>
       <button class="modal-btn btn-cancel" onclick="closeModals()">Cancel</button>
@@ -953,19 +957,51 @@ const modals = [
   if (searchResults) searchResults.innerHTML = "";
 }
 
-    async function logTimeclock(actionType) {
+async function logTimeclock(actionType) {
+      const pinInput = document.getElementById("tcPin").value.trim();
+      
+      if (!pinInput) { 
+        alert("Please enter your PIN to punch the clock."); 
+        return; 
+      }
+
       const statusDiv = document.getElementById("tcStatus");
       statusDiv.style.color = "#3b82f6"; 
-      statusDiv.innerText = "Recording punch...";
-      const payload = { recordType: "timeclock", location: document.getElementById("locationSelect").value, attendant: activeAttendant, action: actionType };
+      statusDiv.innerText = "Verifying PIN...";
+
+      // Exact same payload format as your QR codes
+      const payload = { 
+        recordType: "timeclock", 
+        location: document.getElementById("locationSelect").value, 
+        pin: pinInput, 
+        action: actionType 
+      };
+
       try {
-        await fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-        statusDiv.style.color = "#10b981"; 
-        statusDiv.innerText = `${actionType} recorded!`;
-        setTimeout(() => { closeModals(); statusDiv.innerText = ""; }, 1500);
+        // We removed 'mode: no-cors' here so the tablet can read the JSON success response
+        const response = await fetch(GOOGLE_SCRIPT_URL, { 
+          method: "POST", 
+          headers: { "Content-Type": "text/plain" }, 
+          body: JSON.stringify(payload) 
+        });
+        
+        const result = await response.json();
+
+        if (result.status === "success") {
+           statusDiv.style.color = "#10b981"; 
+           statusDiv.innerText = `✅ ${result.name} successfully ${actionType}ed!`;
+           
+           // Clear the PIN field for the next employee
+           document.getElementById("tcPin").value = ""; 
+           
+           setTimeout(() => { closeModals(); statusDiv.innerText = ""; }, 2500);
+        } else {
+           statusDiv.style.color = "#ef4444";
+           statusDiv.innerText = "❌ " + result.message;
+        }
       } catch (err) { 
         statusDiv.style.color = "#ef4444"; 
-        statusDiv.innerText = "Error."; 
+        statusDiv.innerText = "❌ Network Error. Please try again."; 
       }
     }
  
