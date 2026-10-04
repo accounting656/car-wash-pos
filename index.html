@@ -264,7 +264,14 @@
       <tr><th>Check:</th><td id="eodCheck"></td></tr>
       <tr><th>Pending:</th><td id="eodPending"></td></tr>
     </table>
-
+    <hr style="border: 1px dashed #ccc; margin: 20px 0;">
+    <h3>Items Sold Breakdown</h3>
+    <table style="width: 100%; text-align: left; font-size: 16px;">
+      <tr><th>🚗 Wash Services:</th><td id="eodCatServices">0</td></tr>
+      <tr><th>🛍️️ Retail/Store:</th><td id="eodCatRetail">0</td></tr>
+      <tr><th>✏️ Custom Pricing:</th><td id="eodCatCustom">0</td></tr>
+      <tr><th>💳 Gift Cards Sold:</th><td id="eodCatGiftCard">0</td></tr>
+    </table>
     <hr style="border: 1px dashed #ccc; margin: 20px 0;">
     <h3>Services Breakdown</h3>
     <table style="width: 100%; text-align: left; font-size: 16px;" id="eodServicesTable">
@@ -1532,6 +1539,10 @@ function openEODModal() {
           document.getElementById("eodCheck").innerText = `$${result.data.check.toFixed(2)}`;
           document.getElementById("eodPending").innerText = `$${result.data.pending.toFixed(2)}`;
           document.getElementById("eodTotalCars").innerText = result.data.totalCars;
+          document.getElementById("eodCatServices").innerText = result.data.catServices || 0;
+          document.getElementById("eodCatRetail").innerText = result.data.catRetail || 0;
+          document.getElementById("eodCatCustom").innerText = result.data.catCustom || 0;
+          document.getElementById("eodCatGiftCard").innerText = result.data.catGiftCards || 0;
           
           const svcTable = document.getElementById("eodServicesTable");
           svcTable.innerHTML = "";
