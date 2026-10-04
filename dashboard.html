@@ -163,10 +163,17 @@
     let salesChart, carsChart;
 
     async function fetchData() {
+      // 1. Grab the PIN directly from the input field
+      const pinInput = document.getElementById('adminPin').value;
+      if (!pinInput) { alert("Please enter the Admin PIN."); return; }
+
       const btn = document.getElementById("generateBtn");
-      const originalText = btn.innerText;
-      btn.innerText = "Loading...";
-      btn.disabled = true;
+      let originalText = "Generate Report";
+      if(btn) { 
+        originalText = btn.innerText;
+        btn.innerText = "Loading..."; 
+        btn.disabled = true; 
+      }
 
       const startDate = document.getElementById("startDate").value;
       const endDate = document.getElementById("endDate").value;
@@ -184,19 +191,22 @@
             location: "Location 1 - Tampa Bay",
             startDate: startDate,
             endDate: endDate,
-            paymentFilter: payFilter
+            paymentFilter: payFilter,
+            pin: pinInput // 🔒 Sends the PIN to the secure backend
           })
         });
         
         const result = await response.json();
         
         if(result.status !== "success") {
-          alert("Error: " + result.message);
-          btn.innerText = originalText;
-          btn.disabled = false;
+          alert("Access Denied: " + result.message);
+          if(btn) { btn.innerText = originalText; btn.disabled = false; }
           return;
         }
 
+        // 🔓 UNLOCK THE DASHBOARD: If the backend approves, hide the PIN screen
+        document.getElementById('pinOverlay').style.display = 'none';
+        document.getElementById('dashboardContent').style.display = 'block';
         currentDashboardData = result.data; 
         const data = result.data;
 
