@@ -22,7 +22,6 @@
     .date-input { padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; outline: none; }
     .btn { padding: 10px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; transition: 0.2s; }
     .btn-primary { background: #10b981; color: white; }
-    .btn-secondary { background: #3b82f6; color: white; }
     .btn-print { background: #4b5563; color: white; }
     .btn-tax { background: #1e3a8a; color: white; }
     
@@ -44,19 +43,14 @@
     .badge { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; margin-right: 5px; display: inline-block; margin-bottom: 5px;}
     .list-item { font-size: 14px; color: #4b5563; border-bottom: 1px solid #f3f4f6; padding: 6px 0; display: flex; justify-content: space-between; }
     
-    /* DYNAMIC PRINT STYLES */
     @media print {
       body { background: white; }
       .controls-bar, #pinOverlay, .btn-print, .btn-tax { display: none !important; }
-      
-      /* Standard Report Print */
       body.print-standard #dashboardContent { padding: 0; max-width: 100%; display: block !important; }
       body.print-standard .kpi-card, body.print-standard .loc-card, body.print-standard .chart-container { box-shadow: none; border: 1px solid #ccc; page-break-inside: avoid; margin-bottom: 20px; }
       body.print-standard .chart-grid { display: block; }
       body.print-standard canvas { max-width: 100%; height: auto !important; }
       body.print-standard #taxReportView { display: none !important; }
-
-      /* DR-15 Tax Report Print */
       body.print-tax #dashboardContent { display: none !important; }
       body.print-tax #taxReportView { display: block !important; padding: 0; }
     }
@@ -64,7 +58,6 @@
 </head>
 <body>
 
-  <!-- ADMIN PIN LOCK -->
   <div id="pinOverlay">
     <h2>Owner Access Required</h2>
     <p style="margin-bottom: 20px; color: #9ca3af;">Enter Admin PIN to view financials.</p>
@@ -72,13 +65,12 @@
     <button onclick="checkPin()">Unlock Dashboard</button>
   </div>
 
-  <!-- MAIN DASHBOARD -->
   <div id="dashboardContent">
     <div class="header">
       <h1 style="font-weight: 800; font-size: 32px;" id="reportTitle">📊 Owner Command Center</h1>
     </div>
 
-    <!-- DATE CONTROLS -->
+    <!-- DATE & FILTER CONTROLS -->
     <div class="controls-bar">
       <div>
         <label style="font-size: 13px; font-weight: bold; color: #6b7280; display: block;">Start Date</label>
@@ -87,6 +79,17 @@
       <div>
         <label style="font-size: 13px; font-weight: bold; color: #6b7280; display: block;">End Date</label>
         <input type="date" id="endDate" class="date-input">
+      </div>
+      <!-- NEW: PAYMENT FILTER -->
+      <div>
+        <label style="font-size: 13px; font-weight: bold; color: #6b7280; display: block;">Payment Type</label>
+        <select id="paymentFilter" class="date-input" style="cursor: pointer; min-width: 150px;">
+          <option value="All">All Payments</option>
+          <option value="Cash">Cash</option>
+          <option value="Credit Card">Credit Card</option>
+          <option value="Check">Check</option>
+          <option value="Pending">Pending (Bill Later)</option>
+        </select>
       </div>
       <div style="margin-top: 18px; display: flex; gap: 10px;">
         <button class="btn btn-primary" onclick="fetchData()" id="generateBtn">Generate Report</button>
@@ -128,16 +131,14 @@
     <div class="loc-grid" id="locationCards"></div>
   </div>
 
-  <!-- HIDDEN DR-15 TAX REPORT VIEW -->
   <div id="taxReportView"></div>
 
   <script>
     // ⚠️ PASTE YOUR REAL URL HERE:
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxJX6GJEcl5OvCZ7Z7JAD72jSK8d7g7EJeK9Ud4dAiDb8-gPidrYvIOGpVAKw8h3Q2VFQ/exec";
     
-    let currentDashboardData = null; // Stores the latest fetched data for the tax report
+    let currentDashboardData = null; 
 
-    // Corporate mappings based on DR-15 Requirements
     const corpEntities = {
       "Location 1 - Tampa Bay": { name: "A Plus Car Wash & Detailing Tampa Bay Inc.", cert: "39-8020182731-8" },
       "Location 2 - Columbus": { name: "A Plus Car Wash & Detailing West Tampa Inc.", cert: "39-8020182759-2" },
@@ -145,7 +146,6 @@
       "Location 4 - Armenia": { name: "A+ Car Wash & Detailing, Inc.", cert: "39-8018000918-3" }
     };
 
-    // Default dates to today on load
     document.addEventListener("DOMContentLoaded", () => {
       const today = new Date().toLocaleDateString('en-CA'); 
       document.getElementById('startDate').value = today;
@@ -170,8 +170,10 @@
 
       const startDate = document.getElementById("startDate").value;
       const endDate = document.getElementById("endDate").value;
+      const payFilter = document.getElementById("paymentFilter").value;
       
-      document.getElementById("reportTitle").innerText = `📊 Report: ${startDate} to ${endDate}`;
+      let titleFilter = payFilter === "All" ? "" : ` (${payFilter} Only)`;
+      document.getElementById("reportTitle").innerText = `📊 Report: ${startDate} to ${endDate}${titleFilter}`;
 
       try {
         const response = await fetch(GOOGLE_SCRIPT_URL, {
@@ -179,9 +181,10 @@
           headers: { "Content-Type": "text/plain" },
           body: JSON.stringify({ 
             recordType: "dashboard_data",
-            location: "Location 1 - Tampa Bay",
+            location: "Location 1 - Tampa Bay", // Gatekeeper bypass
             startDate: startDate,
-            endDate: endDate
+            endDate: endDate,
+            paymentFilter: payFilter // Send filter to backend
           })
         });
         
@@ -194,10 +197,9 @@
           return;
         }
 
-        currentDashboardData = result.data; // Save for DR-15 report
+        currentDashboardData = result.data; 
         const data = result.data;
 
-        // Set Main KPIs
         document.getElementById("kpiGross").innerText = "$" + data.totalGross.toFixed(2);
         document.getElementById("kpiNet").innerText = "$" + data.totalNet.toFixed(2);
         document.getElementById("kpiTax").innerText = "$" + data.totalTax.toFixed(2);
@@ -210,7 +212,6 @@
         const grossData = locNames.map(l => data.locations[l].gross);
         const carsData = locNames.map(l => data.locations[l].cars);
 
-        // Render Charts
         if(salesChart) salesChart.destroy();
         salesChart = new Chart(document.getElementById('salesChart'), { 
           type: 'bar', 
@@ -225,7 +226,6 @@
           options: { responsive: true, maintainAspectRatio: false }
         });
 
-        // Render Detailed Location Cards
         let locHTML = "";
         locNames.forEach(loc => {
           let lData = data.locations[loc];
@@ -241,6 +241,15 @@
                 <div class="fin-row"><span>Tax Collected:</span> <span>$${lData.tax.toFixed(2)}</span></div>
                 <div class="fin-row total"><span>Gross Revenue:</span> <span style="color:#10b981;">$${lData.gross.toFixed(2)}</span></div>
                 <div class="fin-row" style="margin-top: 10px;"><span>Cars Washed:</span> <strong>${lData.cars}</strong></div>
+              </div>
+
+              <!-- NEW: TENDER BREAKDOWN -->
+              <p style="font-size: 12px; font-weight: bold; color: #6b7280; margin-bottom: 8px;">TENDER BREAKDOWN:</p>
+              <div style="margin-bottom: 20px; font-size: 14px; background: white; padding: 10px; border-radius: 8px; border: 1px solid #e5e7eb;">
+                <div class="fin-row"><span>Cash:</span> <strong>$${lData.tenders.cash.toFixed(2)}</strong></div>
+                <div class="fin-row"><span>Credit Card:</span> <strong>$${lData.tenders.credit.toFixed(2)}</strong></div>
+                <div class="fin-row"><span>Check:</span> <strong>$${lData.tenders.check.toFixed(2)}</strong></div>
+                <div class="fin-row"><span>Pending:</span> <strong style="color: #ef4444;">$${lData.tenders.pending.toFixed(2)}</strong></div>
               </div>
 
               <p style="font-size: 12px; font-weight: bold; color: #6b7280; margin-bottom: 8px;">EMPLOYEES WORKED:</p>
@@ -261,7 +270,6 @@
       btn.disabled = false;
     }
 
-    // Print Logic
     function printStandard() {
       document.body.classList.add("print-standard");
       window.print();
@@ -276,15 +284,16 @@
 
       const startDate = document.getElementById("startDate").value;
       const endDate = document.getElementById("endDate").value;
+      const payFilter = document.getElementById("paymentFilter").value;
+      let filterText = payFilter === "All" ? "" : `(Filtered: ${payFilter} Only)`;
       
-      let html = `<h2 style="text-align:center; font-family: Arial, sans-serif; margin-bottom: 30px;">DR-15 MASTER TAX REPORT<br><span style="font-size: 16px; font-weight: normal; color: #555;">Period: ${startDate} to ${endDate}</span></h2>`;
+      let html = `<h2 style="text-align:center; font-family: Arial, sans-serif; margin-bottom: 30px;">DR-15 MASTER TAX REPORT<br><span style="font-size: 16px; font-weight: normal; color: #555;">Period: ${startDate} to ${endDate} ${filterText}</span></h2>`;
 
       for (let loc in currentDashboardData.locations) {
         let lData = currentDashboardData.locations[loc];
         let corp = corpEntities[loc] || { name: loc, cert: "N/A" };
 
-        // Reverse Tax Math
-        let drGrossSales = lData.net; // DR-15 "Gross" is POS "Net" (sales before tax)
+        let drGrossSales = lData.net; 
         let totalTaxCollected = lData.tax;
         
         let taxableSales = 0;
@@ -294,10 +303,9 @@
           taxableSales = totalTaxCollected / 0.075;
           exemptSales = drGrossSales - taxableSales;
         } else {
-          exemptSales = drGrossSales; // All sales were exempt
+          exemptSales = drGrossSales; 
         }
 
-        // Fix tiny JS decimal rounding errors
         if (exemptSales < 0.01) exemptSales = 0;
 
         html += `
