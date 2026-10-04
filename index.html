@@ -885,26 +885,53 @@ function printInvoice(transaction) {
       document.getElementById("loginError").innerText = ""; 
     }
   
-    function submitPin() {
-      if (enteredPin === "3589" || (employees && employees[enteredPin])) {
-        if (enteredPin === "3589") {
-          activeAttendant = "Store Manager";
-          document.getElementById("locationSelect").disabled = false;
-          document.getElementById("locationSelect").style.borderColor = "#3b82f6";
-          document.getElementById("locationSelect").style.borderWidth = "2px";
-          document.getElementById("eodBtn").style.display = "block"; // SHOW EOD BUTTON
+   async function submitPin() {
+      // Show loading state
+      const errorDisplay = document.getElementById("loginError");
+      errorDisplay.style.color = "#3b82f6";
+      errorDisplay.innerText = "Verifying PIN...";
+
+      try {
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({
+            recordType: "verify_pos_pin",
+            pin: enteredPin
+          })
+        });
+        
+        const result = await response.json();
+
+        if (result.status === "success") {
+          activeAttendant = result.name;
+          document.getElementById("currentAttendantName").innerText = activeAttendant;
+
+          if (result.role === "Manager") {
+            // Manager Privileges
+            document.getElementById("locationSelect").disabled = false;
+            document.getElementById("locationSelect").style.borderColor = "#3b82f6";
+            document.getElementById("locationSelect").style.borderWidth = "2px";
+            document.getElementById("eodBtn").style.display = "block"; // SHOW EOD BUTTON
+          } else {
+            // Standard Employee Privileges
+            document.getElementById("locationSelect").disabled = true;
+            document.getElementById("locationSelect").style.borderColor = "#e5e7eb";
+            document.getElementById("locationSelect").style.borderWidth = "1px";
+            document.getElementById("eodBtn").style.display = "none"; // HIDE EOD BUTTON
+          }
+          
+          errorDisplay.innerText = "";
+          document.getElementById("loginOverlay").style.display = "none";
+          clearPin();
         } else {
-          activeAttendant = employees[enteredPin];
-          document.getElementById("locationSelect").disabled = true;
-          document.getElementById("locationSelect").style.borderColor = "#e5e7eb";
-          document.getElementById("locationSelect").style.borderWidth = "1px";
-          document.getElementById("eodBtn").style.display = "none"; // HIDE EOD BUTTON
+          errorDisplay.style.color = "red";
+          errorDisplay.innerText = "Invalid PIN";
+          clearPin();
         }
-        document.getElementById("currentAttendantName").innerText = activeAttendant;
-        document.getElementById("loginOverlay").style.display = "none";
-        clearPin();
-      } else {
-        document.getElementById("loginError").innerText = "Invalid PIN";
+      } catch (err) {
+        errorDisplay.style.color = "red";
+        errorDisplay.innerText = "Network Error. Try again.";
         clearPin();
       }
     }
