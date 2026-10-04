@@ -154,11 +154,12 @@
         const response = await fetch(GOOGLE_SCRIPT_URL, {
           method: "POST",
           headers: { "Content-Type": "text/plain" },
-          body: JSON.stringify({ 
-            recordType: "dashboard_data",
-            startDate: startDate,
-            endDate: endDate
-          })
+         body: JSON.stringify({ 
+          recordType: "dashboard_data",
+          location: "All Locations", // <-- THIS SATISFIES THE GATEKEEPER
+          startDate: startDate,
+          endDate: endDate
+        })
         });
         
         const result = await response.json();
