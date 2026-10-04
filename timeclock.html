@@ -38,6 +38,13 @@
       font-size: 16px; 
       box-sizing: border-box; 
       background: #f9fafb;
+      text-align: center;
+    }
+    
+    input[type="password"] {
+      letter-spacing: 5px;
+      font-size: 24px;
+      font-weight: bold;
     }
     
     .btn-group { display: flex; gap: 15px; margin-top: 10px; }
@@ -64,7 +71,7 @@
 
   <div class="card" id="clockForm">
     <h2>⏱️ A+ WashOS Timeclock</h2>
-    <p>Select your location and enter your name to clock in or out.</p>
+    <p>Select your location and enter your PIN.</p>
     
     <select id="location">
       <option value="Location 1 - Tampa Bay">Tampa Bay</option>
@@ -73,7 +80,8 @@
       <option value="Location 4 - Armenia">Armenia</option>
     </select>
     
-    <input type="text" id="employeeName" placeholder="Enter Your Full Name" required>
+    <!-- Changed to a Numeric Password Field -->
+    <input type="password" id="employeePin" placeholder="Enter PIN" inputmode="numeric" pattern="[0-9]*" required>
     
     <div class="btn-group">
       <button class="btn-in" onclick="submitPunch('Clock In')">Clock In</button>
@@ -89,16 +97,16 @@
 
     async function submitPunch(action) {
       const loc = document.getElementById("location").value;
-      const name = document.getElementById("employeeName").value.trim();
+      const pin = document.getElementById("employeePin").value.trim();
       
-      if (!name) { 
-        alert("Please enter your name first!"); 
+      if (!pin) { 
+        alert("Please enter your PIN."); 
         return; 
       }
       
       const statusDiv = document.getElementById("statusMessage");
       statusDiv.style.color = "#3b82f6";
-      statusDiv.innerText = "⏳ Processing...";
+      statusDiv.innerText = "⏳ Verifying PIN...";
 
       try {
         const response = await fetch(GOOGLE_SCRIPT_URL, {
@@ -107,7 +115,7 @@
           body: JSON.stringify({
             recordType: "timeclock",
             location: loc,
-            attendant: name,
+            pin: pin, // Sending PIN instead of name
             action: action
           })
         });
@@ -115,24 +123,24 @@
         const result = await response.json();
         
         if (result.status === "success") {
-           // Swap the screen to a massive success message
+           // The backend sends back their real name to confirm!
+           const resolvedName = result.name; 
+           
            document.getElementById("clockForm").innerHTML = `
              <h1 style="color: #10b981; font-size: 70px; margin: 0 0 10px 0;">✅</h1>
              <h2 style="margin-bottom: 10px;">Success!</h2>
-             <p style="font-size: 18px; color: #111827;"><strong>${name}</strong> has been successfully <strong>${action}ed</strong>.</p>
+             <p style="font-size: 18px; color: #111827;"><strong>${resolvedName}</strong> has been successfully <strong>${action}ed</strong>.</p>
              <p style="color: #6b7280; margin-top: 25px; font-weight: bold;">Closing screen automatically...</p>
            `;
            
-           // Attempt to close the browser tab after 3 seconds
            setTimeout(() => {
              window.close();
-             // Fallback text just in case Apple/Android blocks the auto-close command
              document.querySelector("#clockForm p:last-child").innerText = "You may now safely close this tab or lock your phone.";
            }, 3000);
 
         } else {
            statusDiv.style.color = "#ef4444";
-           statusDiv.innerText = "❌ Error: " + result.message;
+           statusDiv.innerText = "❌ " + result.message;
         }
       } catch (err) {
         statusDiv.style.color = "#ef4444";
