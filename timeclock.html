@@ -26,10 +26,10 @@
       max-width: 400px; 
       text-align: center; 
     }
-    h2 { margin-top: 0; color: #1f2937; font-size: 24px; }
-    p { color: #6b7280; margin-bottom: 25px; font-size: 15px; }
+    h2 { margin-top: 0; color: #1f2937; font-size: 24px; margin-bottom: 5px; }
+    .loc-badge { color: #3b82f6; font-size: 14px; font-weight: bold; margin-bottom: 25px; display: block; }
     
-    select, input { 
+    input { 
       width: 100%; 
       padding: 16px; 
       margin-bottom: 20px; 
@@ -70,17 +70,9 @@
 <body>
 
   <div class="card" id="clockForm">
-    <h2>⏱️ A+ WashOS Timeclock</h2>
-    <p>Select your location and enter your PIN.</p>
+    <h2>⏱️ A+ WashOS</h2>
+    <span class="loc-badge" id="locationDisplay">Loading Location...</span>
     
-    <select id="location">
-      <option value="Location 1 - Tampa Bay">Tampa Bay</option>
-      <option value="Location 2 - Columbus">Columbus</option>
-      <option value="Location 3 - South">South</option>
-      <option value="Location 4 - Armenia">Armenia</option>
-    </select>
-    
-    <!-- Changed to a Numeric Password Field -->
     <input type="password" id="employeePin" placeholder="Enter PIN" inputmode="numeric" pattern="[0-9]*" required>
     
     <div class="btn-group">
@@ -95,8 +87,28 @@
     // ⚠️ PASTE YOUR REAL URL HERE:
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxJX6GJEcl5OvCZ7Z7JAD72jSK8d7g7EJeK9Ud4dAiDb8-gPidrYvIOGpVAKw8h3Q2VFQ/exec";
 
+    // Extract location from the URL (e.g., ?loc=tampa)
+    const urlParams = new URLSearchParams(window.location.search);
+    const locKey = urlParams.get('loc');
+    
+    const locMap = {
+      "tampa": "Location 1 - Tampa Bay",
+      "columbus": "Location 2 - Columbus",
+      "south": "Location 3 - South",
+      "armenia": "Location 4 - Armenia"
+    };
+
+    const actualLocation = locMap[locKey];
+
+    if (!actualLocation) {
+      document.getElementById("clockForm").innerHTML = "<h2>❌ Invalid QR Code</h2><p style='color: #6b7280; margin-top: 10px;'>Please scan a valid location QR code.</p>";
+    } else {
+      document.getElementById("locationDisplay").innerText = actualLocation;
+    }
+
     async function submitPunch(action) {
-      const loc = document.getElementById("location").value;
+      if (!actualLocation) return;
+      
       const pin = document.getElementById("employeePin").value.trim();
       
       if (!pin) { 
@@ -106,7 +118,7 @@
       
       const statusDiv = document.getElementById("statusMessage");
       statusDiv.style.color = "#3b82f6";
-      statusDiv.innerText = "⏳ Verifying PIN...";
+      statusDiv.innerText = "⏳ Verifying...";
 
       try {
         const response = await fetch(GOOGLE_SCRIPT_URL, {
@@ -114,8 +126,8 @@
           headers: { "Content-Type": "text/plain" },
           body: JSON.stringify({
             recordType: "timeclock",
-            location: loc,
-            pin: pin, // Sending PIN instead of name
+            location: actualLocation,
+            pin: pin,
             action: action
           })
         });
@@ -123,20 +135,19 @@
         const result = await response.json();
         
         if (result.status === "success") {
-           // The backend sends back their real name to confirm!
            const resolvedName = result.name; 
+           const actionText = action === 'Clock In' ? 'Signed in' : 'Signed out';
            
            document.getElementById("clockForm").innerHTML = `
              <h1 style="color: #10b981; font-size: 70px; margin: 0 0 10px 0;">✅</h1>
-             <h2 style="margin-bottom: 10px;">Success!</h2>
-             <p style="font-size: 18px; color: #111827;"><strong>${resolvedName}</strong> has been successfully <strong>${action}ed</strong>.</p>
-             <p style="color: #6b7280; margin-top: 25px; font-weight: bold;">Closing screen automatically...</p>
+             <h2 style="margin-bottom: 10px;">${resolvedName}</h2>
+             <p style="font-size: 20px; color: #111827; font-weight: bold;">Successfully ${actionText}</p>
            `;
            
            setTimeout(() => {
              window.close();
-             document.querySelector("#clockForm p:last-child").innerText = "You may now safely close this tab or lock your phone.";
-           }, 3000);
+             document.getElementById("clockForm").innerHTML += `<p style="color: #6b7280; margin-top: 25px; font-size: 14px;">You may safely close this screen.</p>`;
+           }, 2500);
 
         } else {
            statusDiv.style.color = "#ef4444";
