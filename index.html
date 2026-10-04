@@ -885,7 +885,7 @@ function printInvoice(transaction) {
       document.getElementById("loginError").innerText = ""; 
     }
   
-   async function submitPin() {
+async function submitPin() {
       // Show loading state
       const errorDisplay = document.getElementById("loginError");
       errorDisplay.style.color = "#3b82f6";
@@ -895,17 +895,18 @@ function printInvoice(transaction) {
         const response = await fetch(GOOGLE_SCRIPT_URL, {
           method: "POST",
           headers: { "Content-Type": "text/plain" },
-         body: JSON.stringify({
-          recordType: "verify_pos_pin",
-          location: document.getElementById("locationSelect").value, // 📍 Sends the tablet's location
-          pin: enteredPin
-        })
+          body: JSON.stringify({
+            recordType: "verify_pos_pin",
+            location: document.getElementById("locationSelect").value, // 📍 Sends the tablet's location
+            pin: enteredPin
+          })
         });
         
         const result = await response.json();
 
-        if (result.status === "success") {
-         activeAttendant = result.name || (result.role === "Manager" ? "Store Manager" : "Attendant");
+        // 🔒 BULLETPROOF CHECK: Must be success AND have a role provided by the backend!
+        if (result.status === "success" && result.role) {
+          activeAttendant = result.name || (result.role === "Manager" ? "Store Manager" : "Attendant");
           document.getElementById("currentAttendantName").innerText = activeAttendant;
 
           if (result.role === "Manager") {
