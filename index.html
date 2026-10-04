@@ -912,27 +912,31 @@ function printInvoice(transaction) {
             document.getElementById("locationSelect").disabled = false;
             document.getElementById("locationSelect").style.borderColor = "#3b82f6";
             document.getElementById("locationSelect").style.borderWidth = "2px";
-            document.getElementById("eodBtn").style.display = "block"; // SHOW EOD BUTTON
+            document.getElementById("eodBtn").style.display = "block"; 
           } else {
             // Standard Employee Privileges
             document.getElementById("locationSelect").disabled = true;
             document.getElementById("locationSelect").style.borderColor = "#e5e7eb";
             document.getElementById("locationSelect").style.borderWidth = "1px";
-            document.getElementById("eodBtn").style.display = "none"; // HIDE EOD BUTTON
+            document.getElementById("eodBtn").style.display = "none"; 
           }
           
           errorDisplay.innerText = "";
           document.getElementById("loginOverlay").style.display = "none";
           clearPin();
         } else {
-          errorDisplay.style.color = "red";
-          errorDisplay.innerText = "Invalid PIN";
-          clearPin();
+          // Display the backend error but DO NOT use clearPin()
+          errorDisplay.style.color = "#ef4444";
+          errorDisplay.innerText = "❌ " + (result.message || "Invalid PIN");
+          enteredPin = "";
+          document.getElementById("pinDisplay").innerText = "";
         }
       } catch (err) {
-        errorDisplay.style.color = "red";
-        errorDisplay.innerText = "Network Error. Try again.";
-        clearPin();
+        // Display the network/backend error
+        errorDisplay.style.color = "#ef4444";
+        errorDisplay.innerText = "❌ Backend Error: Make sure you Deployed New Version!";
+        enteredPin = "";
+        document.getElementById("pinDisplay").innerText = "";
       }
     }
     
