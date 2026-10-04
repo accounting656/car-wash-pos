@@ -14,7 +14,7 @@
     #pinOverlay button { padding: 10px 20px; font-size: 18px; font-weight: bold; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; }
     
     #dashboardContent { padding: 30px; display: none; max-width: 1400px; margin: 0 auto; }
-    #taxReportView { display: none; padding: 40px; background: white; min-height: 100vh; }
+    #taxReportView, #financialReportView { display: none; padding: 40px; background: white; min-height: 100vh; }
     
     .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 15px; }
     
@@ -46,12 +46,15 @@
     @media print {
       body { background: white; }
       .controls-bar, #pinOverlay, .btn-print, .btn-tax { display: none !important; }
-      body.print-standard #dashboardContent { padding: 0; max-width: 100%; display: block !important; }
-      body.print-standard .kpi-card, body.print-standard .loc-card, body.print-standard .chart-container { box-shadow: none; border: 1px solid #ccc; page-break-inside: avoid; margin-bottom: 20px; }
-      body.print-standard .chart-grid { display: block; }
-      body.print-standard canvas { max-width: 100%; height: auto !important; }
-      body.print-standard #taxReportView { display: none !important; }
+      
+      /* Financial Report Print */
+      body.print-financial #dashboardContent { display: none !important; }
+      body.print-financial #taxReportView { display: none !important; }
+      body.print-financial #financialReportView { display: block !important; padding: 0; }
+
+      /* DR-15 Tax Report Print */
       body.print-tax #dashboardContent { display: none !important; }
+      body.print-tax #financialReportView { display: none !important; }
       body.print-tax #taxReportView { display: block !important; padding: 0; }
     }
   </style>
@@ -80,7 +83,6 @@
         <label style="font-size: 13px; font-weight: bold; color: #6b7280; display: block;">End Date</label>
         <input type="date" id="endDate" class="date-input">
       </div>
-      <!-- NEW: PAYMENT FILTER -->
       <div>
         <label style="font-size: 13px; font-weight: bold; color: #6b7280; display: block;">Payment Type</label>
         <select id="paymentFilter" class="date-input" style="cursor: pointer; min-width: 150px;">
@@ -93,7 +95,7 @@
       </div>
       <div style="margin-top: 18px; display: flex; gap: 10px;">
         <button class="btn btn-primary" onclick="fetchData()" id="generateBtn">Generate Report</button>
-        <button class="btn btn-print" onclick="printStandard()">🖨️ Print Dashboard</button>
+        <button class="btn btn-print" onclick="printFinancial()">🖨️ Print Financial Report</button>
         <button class="btn btn-tax" onclick="printTax()">📄 Print DR-15 Tax Report</button>
       </div>
     </div>
@@ -131,6 +133,7 @@
     <div class="loc-grid" id="locationCards"></div>
   </div>
 
+  <div id="financialReportView"></div>
   <div id="taxReportView"></div>
 
   <script>
@@ -181,10 +184,10 @@
           headers: { "Content-Type": "text/plain" },
           body: JSON.stringify({ 
             recordType: "dashboard_data",
-            location: "Location 1 - Tampa Bay", // Gatekeeper bypass
+            location: "Location 1 - Tampa Bay",
             startDate: startDate,
             endDate: endDate,
-            paymentFilter: payFilter // Send filter to backend
+            paymentFilter: payFilter
           })
         });
         
@@ -243,7 +246,6 @@
                 <div class="fin-row" style="margin-top: 10px;"><span>Cars Washed:</span> <strong>${lData.cars}</strong></div>
               </div>
 
-              <!-- NEW: TENDER BREAKDOWN -->
               <p style="font-size: 12px; font-weight: bold; color: #6b7280; margin-bottom: 8px;">TENDER BREAKDOWN:</p>
               <div style="margin-bottom: 20px; font-size: 14px; background: white; padding: 10px; border-radius: 8px; border: 1px solid #e5e7eb;">
                 <div class="fin-row"><span>Cash:</span> <strong>$${lData.tenders.cash.toFixed(2)}</strong></div>
@@ -270,10 +272,96 @@
       btn.disabled = false;
     }
 
-    function printStandard() {
-      document.body.classList.add("print-standard");
+    // NEW: Clean Financial Ledger Print
+    function printFinancial() {
+      if (!currentDashboardData) {
+        alert("Please click 'Generate Report' to load data first.");
+        return;
+      }
+
+      const startDate = document.getElementById("startDate").value;
+      const endDate = document.getElementById("endDate").value;
+      const payFilter = document.getElementById("paymentFilter").value;
+      let filterText = payFilter === "All" ? "" : `(Filtered: ${payFilter} Only)`;
+      
+      const data = currentDashboardData;
+      const avgTicket = data.totalCars > 0 ? (data.totalGross / data.totalCars) : 0;
+
+      let html = `
+        <div style="font-family: Arial, sans-serif; color: #111827;">
+          <h2 style="text-align:center; margin-bottom: 10px; font-size: 24px;">A+ WashOS - Master Financial Report</h2>
+          <p style="text-align:center; color: #555; margin-top: 0; margin-bottom: 30px;">Period: ${startDate} to ${endDate} ${filterText}</p>
+          
+          <table style="width: 100%; border-collapse: collapse; margin-bottom: 40px;">
+            <tr style="background: #f3f4f6; border-top: 2px solid #111827; border-bottom: 2px solid #111827;">
+              <th style="padding: 10px; text-align: left;">Gross Revenue</th>
+              <th style="padding: 10px; text-align: left;">Net Sales</th>
+              <th style="padding: 10px; text-align: left;">Tax Collected</th>
+              <th style="padding: 10px; text-align: left;">Total Cars</th>
+              <th style="padding: 10px; text-align: left;">Avg Ticket</th>
+            </tr>
+            <tr>
+              <td style="padding: 10px; font-size: 18px; font-weight: bold; color: #10b981;">$${data.totalGross.toFixed(2)}</td>
+              <td style="padding: 10px; font-size: 16px;">$${data.totalNet.toFixed(2)}</td>
+              <td style="padding: 10px; font-size: 16px;">$${data.totalTax.toFixed(2)}</td>
+              <td style="padding: 10px; font-size: 16px;">${data.totalCars}</td>
+              <td style="padding: 10px; font-size: 16px; color: #3b82f6;">$${avgTicket.toFixed(2)}</td>
+            </tr>
+          </table>
+      `;
+
+      for (let loc in data.locations) {
+        let lData = data.locations[loc];
+        let staff = lData.employees.length > 0 ? lData.employees.join(', ') : "No staff recorded";
+        let services = Object.entries(lData.services).sort((a,b) => b[1]-a[1]).map(s => `<tr><td style="padding: 4px 0; border-bottom: 1px solid #f3f4f6;">${s[0]}</td><td style="padding: 4px 0; border-bottom: 1px solid #f3f4f6; text-align: right; font-weight: bold;">${s[1]}</td></tr>`).join('');
+        if (!services) services = `<tr><td colspan="2" style="padding: 4px 0; color: #9ca3af;">No services recorded</td></tr>`;
+
+        html += `
+          <div style="page-break-inside: avoid; margin-bottom: 40px; border: 1px solid #d1d5db; border-radius: 8px; padding: 20px;">
+            <h3 style="font-size: 20px; border-bottom: 2px solid #111827; padding-bottom: 5px; margin-top: 0; margin-bottom: 15px;">${loc}</h3>
+            
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <!-- Financials & Tender Left Column -->
+                <td style="width: 50%; vertical-align: top; padding-right: 20px; border-right: 1px dashed #d1d5db;">
+                  <h4 style="font-size: 14px; color: #6b7280; margin-bottom: 8px; margin-top: 0;">FINANCIALS</h4>
+                  <table style="width: 100%; font-size: 14px; margin-bottom: 20px;">
+                    <tr><td style="padding: 3px 0;">Net Sales:</td><td style="text-align: right;">$${lData.net.toFixed(2)}</td></tr>
+                    <tr><td style="padding: 3px 0;">Tax Collected:</td><td style="text-align: right;">$${lData.tax.toFixed(2)}</td></tr>
+                    <tr style="font-weight: bold; font-size: 16px;"><td style="padding: 5px 0; border-top: 1px solid #e5e7eb;">Gross Revenue:</td><td style="padding: 5px 0; border-top: 1px solid #e5e7eb; color: #10b981;">$${lData.gross.toFixed(2)}</td></tr>
+                    <tr><td style="padding: 3px 0; color: #4b5563;">Cars Washed:</td><td style="text-align: right; font-weight: bold;">${lData.cars}</td></tr>
+                  </table>
+
+                  <h4 style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">TENDER BREAKDOWN</h4>
+                  <table style="width: 100%; font-size: 14px; margin-bottom: 20px;">
+                    <tr><td style="padding: 3px 0;">Cash:</td><td style="text-align: right; font-weight: bold;">$${lData.tenders.cash.toFixed(2)}</td></tr>
+                    <tr><td style="padding: 3px 0;">Credit Card:</td><td style="text-align: right; font-weight: bold;">$${lData.tenders.credit.toFixed(2)}</td></tr>
+                    <tr><td style="padding: 3px 0;">Check:</td><td style="text-align: right; font-weight: bold;">$${lData.tenders.check.toFixed(2)}</td></tr>
+                    <tr><td style="padding: 3px 0;">Pending:</td><td style="text-align: right; font-weight: bold; color: #ef4444;">$${lData.tenders.pending.toFixed(2)}</td></tr>
+                  </table>
+
+                  <h4 style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">EMPLOYEES WORKED</h4>
+                  <p style="font-size: 13px; margin-top: 0; color: #374151;">${staff}</p>
+                </td>
+                <!-- Services Right Column -->
+                <td style="width: 50%; vertical-align: top; padding-left: 20px;">
+                  <h4 style="font-size: 14px; color: #6b7280; margin-bottom: 8px; margin-top: 0;">ITEMIZED BREAKDOWN</h4>
+                  <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
+                    ${services}
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </div>
+        `;
+      }
+      
+      html += `</div>`;
+      
+      document.getElementById("financialReportView").innerHTML = html;
+      document.body.classList.add("print-financial");
       window.print();
-      setTimeout(() => { document.body.classList.remove("print-standard"); }, 500);
+      setTimeout(() => { document.body.classList.remove("print-financial"); }, 500);
     }
 
     function printTax() {
