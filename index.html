@@ -205,13 +205,19 @@
       <h2>Select Payment Method</h2>
       <button id="gcBtn" onclick="redeemGiftCard()" style="width: 100%; padding: 15px; background: #f59e0b; color: white; border: none; border-radius: 8px; font-size: 18px; margin-bottom: 10px; cursor: pointer; font-weight: bold;">🎁 Redeem Gift Card </button>
       <button class="modal-btn" onclick="openCashCalculator()">💵 Cash</button>
+      
+      <div style="margin-bottom: 15px;">
+      <input type="checkbox" id="manualEntryCheck" style="transform: scale(1.5); margin-right: 10px;">
+      <label for="manualEntryCheck" style="font-size: 16px; font-weight: bold; color: #374151;">Phone Order (Manual Key-In)</label>
+      </div>
+
       <button class="modal-btn" onclick="processOrder('Credit Card')">💳 Credit Card</button>
       <button class="modal-btn" onclick="processOrder('Check')">📝 Check</button>
       <button class="modal-btn" onclick="processOrder('Pending')">⏳ Pending / Bill Later</button>
       <button class="modal-btn btn-cancel" onclick="closeModals()">Cancel</button>
     </div>
   </div>
-<!-- CASH TENDER CALCULATOR MODAL -->
+  <!-- CASH TENDER CALCULATOR MODAL -->
   <div id="cashModalOverlay" class="modal-overlay">
     <div class="modal-box" style="max-width: 420px;">
       <h2>Cash Tender</h2>
@@ -1335,14 +1341,15 @@ async function processOrder(selectedPaymentType) {
       location: document.getElementById("locationSelect").value,
       subtotal: subtotal,
       taxAmount: taxAmount,
-      ccFee: ccFee
+      ccFee: ccFee,
+      isManualEntry: document.getElementById("manualEntryCheck").checked, // 📞 Sends the Phone Order status!
     };
     
     try {
       let response = await fetch(GOOGLE_SCRIPT_URL, { 
         method: "POST", 
         headers: { "Content-Type": "text/plain" },
-        body: JSON.stringify(squarePayload) 
+        body: JSON.stringify(squarePayload)  
       });
       
       let result = await response.json();
