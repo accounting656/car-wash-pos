@@ -246,7 +246,9 @@
                 <div class="fin-row"><span>Net Sales:</span> <span>$${lData.net.toFixed(2)}</span></div>
                 <div class="fin-row"><span>Tax Collected:</span> <span>$${lData.tax.toFixed(2)}</span></div>
                 <div class="fin-row total"><span>Gross Revenue:</span> <span style="color:#10b981;">$${lData.gross.toFixed(2)}</span></div>
-                <div class="fin-row" style="margin-top: 10px;"><span>Cars Washed:</span> <strong>${lData.cars}</strong></div>
+                <div class="fin-row" style="font-size: 13px; margin-top: 4px;"><span>↳ Wash Services:</span> <strong>$${lData.wash.toFixed(2)}</strong></div>
+                <div class="fin-row" style="font-size: 13px;"><span>↳ Retail / Store:</span> <strong>$${lData.retail.toFixed(2)}</strong></div>
+                <div class="fin-row" style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #d1d5db;"><span>Cars Washed:</span> <strong>${lData.cars}</strong></div>
               </div>
 
               <p style="font-size: 12px; font-weight: bold; color: #6b7280; margin-bottom: 8px;">TENDER BREAKDOWN:</p>
@@ -255,6 +257,7 @@
                 <div class="fin-row"><span>Credit Card:</span> <strong>$${lData.tenders.credit.toFixed(2)}</strong></div>
                 <div class="fin-row"><span>Check:</span> <strong>$${lData.tenders.check.toFixed(2)}</strong></div>
                 <div class="fin-row"><span>Pending:</span> <strong style="color: #ef4444;">$${lData.tenders.pending.toFixed(2)}</strong></div>
+                <div class="fin-row"><span style="color: #10b981; font-weight: bold;">CC Tips:</span> <strong style="color: #10b981;">$${lData.tips.toFixed(2)}</strong></div>
                 <div class="fin-row" style="margin-top: 5px; padding-top: 5px; border-top: 1px dashed #d1d5db;"><span>Tax Exempt Sales:</span> <strong style="color: #8b5cf6;">$${exemptTotal.toFixed(2)}</strong></div>
               </div>
 
@@ -338,7 +341,9 @@
                       <tr><td style="padding: 4px 0;">Net Sales:</td><td style="text-align: right;">$${lData.net.toFixed(2)}</td></tr>
                       <tr><td style="padding: 4px 0;">Tax Collected:</td><td style="text-align: right;">$${lData.tax.toFixed(2)}</td></tr>
                       <tr style="font-weight: bold; font-size: 16px;"><td style="padding: 8px 0; border-top: 1px solid #e5e7eb; margin-top: 4px;">Gross Revenue:</td><td style="padding: 8px 0; border-top: 1px solid #e5e7eb; color: #10b981; text-align: right;">$${lData.gross.toFixed(2)}</td></tr>
-                      <tr><td style="padding: 4px 0; color: #4b5563;">Cars Washed:</td><td style="text-align: right; font-weight: bold;">${lData.cars}</td></tr>
+                      <tr><td style="padding: 2px 0 2px 15px; font-size: 13px; color: #6b7280;">↳ Wash Services:</td><td style="text-align: right; font-size: 13px; color: #6b7280;">$${lData.wash.toFixed(2)}</td></tr>
+                      <tr><td style="padding: 2px 0 2px 15px; font-size: 13px; color: #6b7280;">↳ Retail / Store:</td><td style="text-align: right; font-size: 13px; color: #6b7280;">$${lData.retail.toFixed(2)}</td></tr>
+                      <tr><td style="padding: 8px 0 4px 0; color: #4b5563;">Cars Washed:</td><td style="padding: 8px 0 4px 0; text-align: right; font-weight: bold;">${lData.cars}</td></tr>
                     </table>
                   </div>
 
@@ -349,8 +354,8 @@
                       <tr><td style="padding: 4px 0;">Credit Card:</td><td style="text-align: right; font-weight: bold;">$${lData.tenders.credit.toFixed(2)}</td></tr>
                       <tr><td style="padding: 4px 0;">Check:</td><td style="text-align: right; font-weight: bold;">$${lData.tenders.check.toFixed(2)}</td></tr>
                       <tr><td style="padding: 4px 0;">Pending:</td><td style="text-align: right; font-weight: bold; color: #ef4444;">$${lData.tenders.pending.toFixed(2)}</td></tr>
-                      <tr><th style="padding: 3px 0; color: #10b981;">CC Tips:</th><td style="text-align: right; color: #10b981; font-weight: bold;">$${loc.tips.toFixed(2)}</td></tr>
-                      <tr><td style="padding: 4px 0; color: #4b5563;">Tax Exempt Sales:</td><td style="text-align: right; font-weight: bold; color: #374151;">$${exemptTotal.toFixed(2)}</td></tr>
+                      <tr><td style="padding: 4px 0; color: #10b981; font-weight: bold;">CC Tips:</td><td style="text-align: right; color: #10b981; font-weight: bold;">$${lData.tips.toFixed(2)}</td></tr>
+                      <tr><td style="padding: 8px 0 4px 0; border-top: 1px dashed #e5e7eb; color: #4b5563;">Tax Exempt Sales:</td><td style="padding: 8px 0 4px 0; border-top: 1px dashed #e5e7eb; text-align: right; font-weight: bold; color: #374151;">$${exemptTotal.toFixed(2)}</td></tr>
                     </table>
                   </div>
 
