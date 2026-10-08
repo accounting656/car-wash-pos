@@ -171,7 +171,39 @@
     </div>
   <div id="financialReportView"></div>
   <div id="taxReportView"></div>
+<!-- THE HIDDEN PRINTABLE INVOICE -->
+  <style>
+    @media print {
+      body.print-invoice #dashboardContent, body.print-invoice #financialReportView, body.print-invoice #taxReportView { display: none !important; }
+      body.print-invoice #printableInvoice { display: block !important; position: absolute; top: 0; left: 0; width: 100%; padding: 40px; }
+    }
+    #printableInvoice { display: none; background: white; color: black; font-family: Arial, sans-serif; }
+  </style>
+  
+  <div id="printableInvoice">
+    <h2 style="margin-bottom: 5px;">A Plus Car Wash & Detailing Inc.</h2>
+    <p id="invLocationAddress" style="margin-top: 0; color: #555;"></p>
+    <hr style="border: 1px solid #ccc; margin: 20px 0;">
+    <p><strong>Date:</strong> <span id="invDate"></span></p>
+    <p><strong>Order ID:</strong> <span id="invOrder"></span></p>
+    <p><strong>Vehicle:</strong> <span id="invVehicle"></span></p>
+    
+    <div id="invDealerContainer" style="display: none; margin-top: 15px; padding: 15px; border: 2px solid #ccc; background: #f9fafb; border-radius: 8px;">
+      <strong style="font-size: 14px; color: #6b7280; text-transform: uppercase;">Billed To (Tax Exempt):</strong><br>
+      <span id="invDealerName" style="font-size: 18px; font-weight: bold; color: #111827;"></span><br>
+      <span style="color: #d32f2f; font-weight: bold; margin-top: 8px; display: inline-block;">Resale Cert: <span id="invDealerCert"></span></span>
+    </div>
 
+    <hr style="border: 1px solid #ccc; margin: 20px 0;">
+    <p><strong>Services Rendered:</strong> <span id="invServices"></span></p>
+    <table style="width: 100%; margin-top: 20px; text-align: left;">
+      <tr><th>Subtotal:</th><td id="invSubtotal"></td></tr>
+      <tr><th>Tax:</th><td id="invTax"></td></tr>
+      <tr><th>Total Paid:</th><td id="invTotal" style="font-weight: bold;"></td></tr>
+      <tr><th>Payment Method:</th><td id="invPaymentMethod" style="font-style: italic;"></td></tr>
+    </table>
+    <p style="margin-top: 40px; text-align: center; font-style: italic;">Thank you for your business!</p>
+  </div>
   <script>
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxJX6GJEcl5OvCZ7Z7JAD72jSK8d7g7EJeK9Ud4dAiDb8-gPidrYvIOGpVAKw8h3Q2VFQ/exec";
     
@@ -517,9 +549,11 @@
         });
         const result = await response.json();
 
-        if (result.status === "success" && result.data.length > 0) {
-          let html = `<table class="data-table"><tr><th>Date</th><th>Location</th><th>Order ID</th><th>Vehicle</th><th>Total</th><th>Status</th></tr>`;
-          result.data.forEach(t => {
+       if (result.status === "success" && result.data.length > 0) {
+          window.currentSearchResults = result.data; // 💾 Saves the data for the print function
+          
+          let html = `<table class="data-table"><tr><th>Date</th><th>Location</th><th>Order ID</th><th>Vehicle</th><th>Total</th><th>Status</th><th>Action</th></tr>`;
+          result.data.forEach((t, index) => {
             let statusColor = t.paymentType === 'Pending' ? '#ef4444' : '#10b981';
             html += `<tr>
               <td>${new Date(t.date).toLocaleDateString()}</td>
@@ -528,7 +562,9 @@
               <td>${t.vehicle} <br><small style="color: #6b7280;">${t.services}</small></td>
               <td style="font-weight: bold;">${t.total}</td>
               <td style="color: ${statusColor}; font-weight: bold;">${t.paymentType}</td>
+              <td><button class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;" onclick="printSearchedInvoice(${index})">🖨️ Print</button></td>
             </tr>`;
+    
           });
           content.innerHTML = html + "</table>";
         } else {
@@ -584,6 +620,41 @@
         }
       } catch (err) { content.innerHTML = "<p style='color: #ef4444;'>Network Error.</p>"; }
       btn.innerText = "Generate Dealer Report"; btn.disabled = false;
+    }
+    const locationAddresses = {
+      "Location 1 - Tampa Bay": "2522 W Tampa Bay Blvd, Tampa, FL 33607",
+      "Location 2 - Columbus": "3204 W Columbus Dr, Tampa, FL 33607",
+      "Location 3 - South": "6101 S Dale Mabry Hwy, Tampa FL 33611",
+      "Location 4 - Armenia": "6410 N Armenia Ave, Tampa FL 33604"
+    };
+
+    function printSearchedInvoice(index) {
+      const transaction = window.currentSearchResults[index];
+      if (!transaction) return;
+
+      document.getElementById("invLocationAddress").innerText = locationAddresses[transaction.location] || "Address Not Found";
+      document.getElementById("invDate").innerText = new Date(transaction.date).toLocaleString();
+      document.getElementById("invOrder").innerText = transaction.orderId;
+      document.getElementById("invVehicle").innerText = transaction.vehicle;
+      document.getElementById("invServices").innerText = transaction.services;
+      document.getElementById("invSubtotal").innerText = transaction.subtotal;
+      document.getElementById("invTax").innerText = transaction.tax;
+      document.getElementById("invTotal").innerText = transaction.total;
+      document.getElementById("invPaymentMethod").innerText = transaction.paymentType || "N/A";
+
+      const dealerContainer = document.getElementById("invDealerContainer");
+      if (transaction.exemptDealer && transaction.exemptDealer.trim() !== "" && transaction.exemptDealer !== "N/A") {
+        let rawDealerName = transaction.exemptDealer.split(" (")[0].trim();
+        document.getElementById("invDealerName").innerText = rawDealerName;
+        document.getElementById("invDealerCert").innerText = transaction.exemptDealer;
+        dealerContainer.style.display = "block";
+      } else {
+        dealerContainer.style.display = "none";
+      }
+
+      document.body.classList.add("print-invoice");
+      window.print();
+      setTimeout(() => { document.body.classList.remove("print-invoice"); }, 500);
     }
   </script>
 </body>
