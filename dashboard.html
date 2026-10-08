@@ -6,6 +6,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
+    .dash-tabs { display: flex; gap: 10px; margin-bottom: 25px; border-bottom: 2px solid #e5e7eb; padding-bottom: 15px; }
+    .tab-btn { padding: 10px 20px; font-size: 15px; font-weight: bold; border-radius: 8px; border: none; cursor: pointer; background: #e5e7eb; color: #4b5563; transition: 0.2s; }
+    .tab-btn.active { background: #3b82f6; color: white; }
+    .data-table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+    .data-table th { background: #1f2937; color: white; padding: 12px 15px; text-align: left; font-size: 14px; }
+    .data-table td { padding: 12px 15px; border-bottom: 1px solid #f3f4f6; font-size: 14px; color: #374151; }
+    .data-table tr:hover { background: #f9fafb; }
     * { box-sizing: border-box; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
     body { background: #f3f4f6; color: #1f2937; }
     
@@ -70,7 +77,16 @@
     <div class="header">
       <h1 style="font-weight: 800; font-size: 32px;" id="reportTitle">📊 Owner Command Center</h1>
     </div>
+    
+    <!-- TAB NAVIGATION -->
+    <div class="dash-tabs">
+      <button class="tab-btn active" id="tab-overview" onclick="switchTab('overview')">📊 Overview</button>
+      <button class="tab-btn" id="tab-dealers" onclick="switchTab('dealers')">🏢 Tax Exempt Dealers</button>
+      <button class="tab-btn" id="tab-invoices" onclick="switchTab('invoices')">🔍 Invoice Search</button>
+    </div>
 
+    <!-- VIEW 1: MAIN OVERVIEW (Existing Layout) -->
+    <div id="view-overview" class="dash-view">
     <!-- DATE & FILTER CONTROLS -->
     <div class="controls-bar">
       <div>
@@ -130,7 +146,29 @@
     <h2 style="margin-bottom: 15px; font-size: 24px;">📍 Location Breakdown</h2>
     <div class="loc-grid" id="locationCards"></div>
   </div>
+</div> <!-- End View 1 -->
 
+    <!-- VIEW 2: DEALER REPORT -->
+    <div id="view-dealers" class="dash-view" style="display: none;">
+      <div style="background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+        <h2 style="margin-bottom: 20px; font-size: 20px;">Tax Exempt Dealer Activity</h2>
+        <p style="color: #6b7280; font-size: 14px; margin-bottom: 20px;">Showing data for the selected date range in the controls above.</p>
+        <button class="btn btn-primary" onclick="generateDealerReport()" id="btnDealerReport" style="margin-bottom: 25px;">Generate Dealer Report</button>
+        <div id="dealerReportContent"></div>
+      </div>
+    </div>
+
+    <!-- VIEW 3: INVOICE SEARCH -->
+    <div id="view-invoices" class="dash-view" style="display: none;">
+      <div style="background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+        <h2 style="margin-bottom: 20px; font-size: 20px;">Global Invoice Search</h2>
+        <div style="display: flex; gap: 10px; margin-bottom: 25px;">
+          <input type="text" id="globalSearchTerm" placeholder="Search by name, Order ID, vehicle, or license plate..." style="flex: 1; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 15px;">
+          <button class="btn btn-primary" onclick="searchGlobalInvoices()" id="btnGlobalSearch">Search All Locations</button>
+        </div>
+        <div id="invoiceSearchContent"></div>
+      </div>
+    </div>
   <div id="financialReportView"></div>
   <div id="taxReportView"></div>
 
@@ -453,6 +491,99 @@
       document.body.classList.add("print-tax");
       window.print();
       setTimeout(() => { document.body.classList.remove("print-tax"); }, 500);
+    }
+    // --- NEW DASHBOARD INTERACTIVITY LOGIC ---
+    function switchTab(tabName) {
+      document.querySelectorAll('.dash-view').forEach(el => el.style.display = 'none');
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      
+      document.getElementById('view-' + tabName).style.display = 'block';
+      document.getElementById('tab-' + tabName).classList.add('active');
+    }
+
+    async function searchGlobalInvoices() {
+      const term = document.getElementById("globalSearchTerm").value.trim();
+      if (!term) return alert("Enter a search term.");
+      
+      const btn = document.getElementById("btnGlobalSearch");
+      btn.innerText = "Searching..."; btn.disabled = true;
+      const content = document.getElementById("invoiceSearchContent");
+      content.innerHTML = "<p style='color: #6b7280;'>Scanning all locations...</p>";
+
+      try {
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST", headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({ recordType: "dashboard_invoice_search", searchTerm: term, pin: document.getElementById('adminPin').value })
+        });
+        const result = await response.json();
+
+        if (result.status === "success" && result.data.length > 0) {
+          let html = `<table class="data-table"><tr><th>Date</th><th>Location</th><th>Order ID</th><th>Vehicle</th><th>Total</th><th>Status</th></tr>`;
+          result.data.forEach(t => {
+            let statusColor = t.paymentType === 'Pending' ? '#ef4444' : '#10b981';
+            html += `<tr>
+              <td>${new Date(t.date).toLocaleDateString()}</td>
+              <td>${t.location}</td>
+              <td style="font-weight: bold;">${t.orderId}</td>
+              <td>${t.vehicle} <br><small style="color: #6b7280;">${t.services}</small></td>
+              <td style="font-weight: bold;">${t.total}</td>
+              <td style="color: ${statusColor}; font-weight: bold;">${t.paymentType}</td>
+            </tr>`;
+          });
+          content.innerHTML = html + "</table>";
+        } else {
+          content.innerHTML = "<p style='color: #ef4444;'>No invoices found.</p>";
+        }
+      } catch (err) { content.innerHTML = "<p style='color: #ef4444;'>Network Error.</p>"; }
+      btn.innerText = "Search All Locations"; btn.disabled = false;
+    }
+
+    async function generateDealerReport() {
+      const btn = document.getElementById("btnDealerReport");
+      btn.innerText = "Generating..."; btn.disabled = true;
+      const content = document.getElementById("dealerReportContent");
+      
+      try {
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST", headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({ 
+            recordType: "dashboard_dealer_report", 
+            startDate: document.getElementById("startDate").value, 
+            endDate: document.getElementById("endDate").value,
+            pin: document.getElementById('adminPin').value 
+          })
+        });
+        const result = await response.json();
+
+        if (result.status === "success" && result.transactions.length > 0) {
+          // Build Totals Summary
+          let summaryHtml = `<div style="display: flex; gap: 15px; margin-bottom: 25px; flex-wrap: wrap;">`;
+          for (let dealer in result.totals) {
+            summaryHtml += `<div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 15px; border-radius: 8px; min-width: 200px;">
+              <div style="font-size: 13px; color: #1e3a8a; font-weight: bold; margin-bottom: 5px;">${dealer}</div>
+              <div style="font-size: 24px; color: #1d4ed8; font-weight: 900;">$${result.totals[dealer].toFixed(2)} <span style="font-size: 12px; color: #6b7280; font-weight: normal;">Net</span></div>
+            </div>`;
+          }
+          summaryHtml += `</div>`;
+
+          // Build Transactions Table
+          let tableHtml = `<table class="data-table"><tr><th>Date</th><th>Location</th><th>Dealer</th><th>Order ID</th><th>Net Total</th><th>Services</th></tr>`;
+          result.transactions.forEach(t => {
+            tableHtml += `<tr>
+              <td>${new Date(t.date).toLocaleDateString()}</td>
+              <td>${t.location.replace("Location ", "Loc ")}</td>
+              <td style="font-weight: bold; color: #4f46e5;">${t.dealer}</td>
+              <td>${t.orderId}</td>
+              <td style="font-weight: bold;">$${t.net.toFixed(2)}</td>
+              <td style="font-size: 12px; color: #6b7280;">${t.services}</td>
+            </tr>`;
+          });
+          content.innerHTML = summaryHtml + tableHtml + "</table>";
+        } else {
+          content.innerHTML = "<p style='color: #ef4444;'>No exempt dealer transactions found in this date range.</p>";
+        }
+      } catch (err) { content.innerHTML = "<p style='color: #ef4444;'>Network Error.</p>"; }
+      btn.innerText = "Generate Dealer Report"; btn.disabled = false;
     }
   </script>
 </body>
