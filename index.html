@@ -270,9 +270,14 @@
           <table style="width: 100%; text-align: left; font-size: 15px; margin-bottom: 25px;">
             <tr><th style="padding: 4px 0;">Net Sales:</th><td id="eodNet" style="text-align: right;"></td></tr>
             <tr><th style="padding: 4px 0;">Tax Collected:</th><td id="eodTax" style="text-align: right;"></td></tr>
+            <tr><th style="padding: 4px 0;">CC Tips:</th><td id="eodTips" style="text-align: right; color: #10b981; font-weight: bold;"></td></tr>
             <tr><th style="padding: 8px 0; font-size: 18px; border-top: 1px solid #ccc;">Total Gross:</th><td id="eodTotal" style="padding: 8px 0; font-weight: 800; font-size: 18px; text-align: right; border-top: 1px solid #ccc;"></td></tr>
           </table>
-
+          <h3 style="font-size: 16px; border-bottom: 1px solid #111827; padding-bottom: 4px; margin-bottom: 8px;">Revenue Split</h3>
+          <table style="width: 100%; text-align: left; font-size: 14px; margin-bottom: 25px;">
+            <tr><th style="padding: 3px 0; color: #4b5563;">Wash Services:</th><td id="eodWashRev" style="text-align: right; font-weight: 600;"></td></tr>
+            <tr><th style="padding: 3px 0; color: #4b5563;">Retail / Store:</th><td id="eodRetailRev" style="text-align: right; font-weight: 600;"></td></tr>
+          </table>
           <h3 style="font-size: 16px; border-bottom: 1px solid #111827; padding-bottom: 4px; margin-bottom: 8px;">Tender Breakdown</h3>
           <table style="width: 100%; text-align: left; font-size: 14px; margin-bottom: 30px;">
             <tr><th style="padding: 3px 0; color: #4b5563;">Cash:</th><td id="eodCash" style="text-align: right; font-weight: 600;"></td></tr>
@@ -1310,6 +1315,7 @@ function applyReward(rewardName, pointCost) {
 
   // --- SQUARE INTEGRATION LOGIC ---
 async function processOrder(selectedPaymentType) {
+  let squareTip = 0;
   closeModals(); 
   const submitBtn = document.getElementById("submitBtn"); 
   const statusMsg = document.getElementById("statusMsg");
@@ -1341,6 +1347,7 @@ async function processOrder(selectedPaymentType) {
       location: document.getElementById("locationSelect").value,
       subtotal: subtotal,
       taxAmount: taxAmount,
+      tipAmount: squareTip,
       ccFee: ccFee,
       isManualEntry: document.getElementById("manualEntryCheck").checked, // 📞 Sends the Phone Order status!
     };
@@ -1397,6 +1404,7 @@ async function processOrder(selectedPaymentType) {
         let currentStatus = statusResult.checkoutStatus;
         if (currentStatus === "COMPLETED") {
           isWaiting = false; 
+          squareTip = statusResult.tipAmount || 0; // 💸 Grabs the tip!
           document.getElementById("squareModalOverlay").style.display = "none";
         } else if (currentStatus === "CANCELED") {
           isWaiting = false; 
@@ -1635,6 +1643,9 @@ function openEODModal() {
           document.getElementById("eodCheck").innerText = `$${result.data.check.toFixed(2)}`;
           document.getElementById("eodPending").innerText = `$${result.data.pending.toFixed(2)}`;
           document.getElementById("eodTotalCars").innerText = result.data.totalCars;
+          document.getElementById("eodTips").innerText = `$${result.data.totalTips.toFixed(2)}`;
+          document.getElementById("eodWashRev").innerText = `$${result.data.washRevenue.toFixed(2)}`;
+          document.getElementById("eodRetailRev").innerText = `$${result.data.retailRevenue.toFixed(2)}`;
 
           // 2. Sort and Group the Services
           const servicesObj = result.data.services || {};
@@ -1744,21 +1755,27 @@ function openEODModal() {
                       <tr style="border-bottom: 2px solid #ccc;">
                         <th style="padding-bottom: 8px;">Time</th>
                         <th style="padding-bottom: 8px;">Amount</th>
+                        <th style="padding-bottom: 8px;">Tip</th>
                         <th style="padding-bottom: 8px;">Status</th>
                       </tr>`;
         let total = 0;
+        let totalTips = 0;
         
         result.data.forEach(txn => {
           let statusColor = txn.status === "COMPLETED" ? "#10b981" : (txn.status === "CANCELED" ? "#ef4444" : "#f59e0b");
           html += `<tr style="border-bottom: 1px solid #eee;">
                      <td style="padding: 10px 0;">${new Date(txn.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
                      <td style="font-weight: bold;">$${txn.amount.toFixed(2)}</td>
+                     <td style="font-weight: bold; color: #10b981;">$${txn.tip.toFixed(2)}</td>
                      <td style="color: ${statusColor}; font-weight: bold;">${txn.status}</td>
                    </tr>`;
-          if (txn.status === "COMPLETED") total += txn.amount;
+          if (txn.status === "COMPLETED") {
+              total += txn.amount;
+              totalTips += txn.tip;
+          }
         });
         
-        html += `</table><h3 style="text-align: right; margin-top: 15px; color: #111827;">Total Captured: $${total.toFixed(2)}</h3>`;
+        html += `</table><h3 style="text-align: right; margin-top: 15px; color: #111827;">Captured: $${total.toFixed(2)} <span style="color: #10b981;">(Tips: $${totalTips.toFixed(2)})</span></h3>`;
         
         // Set the on-screen modal content
         content.innerHTML = html;
