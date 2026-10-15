@@ -1313,7 +1313,7 @@ function applyReward(rewardName, pointCost) {
       document.getElementById("paymentModalOverlay").style.display = "flex";
     }
 
-  // --- SQUARE INTEGRATION LOGIC ---
+// --- SQUARE INTEGRATION & VERIFIED LOGGING LOGIC ---
 async function processOrder(selectedPaymentType) {
   let squareTip = 0;
   closeModals(); 
@@ -1333,6 +1333,28 @@ async function processOrder(selectedPaymentType) {
   const plate = document.getElementById("vehiclePlate").value;
   const orderId = "ORD-" + Math.floor(100000 + Math.random() * 900000);
 
+  // Build the full sale data upfront so the backend can auto-save it if Square completes!
+  const baseSaleData = {
+    location: document.getElementById("locationSelect").value,
+    orderId: orderId,
+    cart: cart,
+    appliedGcCode: appliedGcCode,
+    appliedGcAmount: appliedGcAmount,
+    services: cart.map(item => item.name).join(", "),
+    subtotal: subtotal,
+    taxAmount: taxAmount,
+    grandTotal: grandTotal,
+    vehicleInfo: (make || plate) ? `${make} ${plate}`.trim() : "N/A",
+    notes: document.getElementById("orderNotes").value,
+    attendant: activeAttendant,
+    exemptDealer: isTaxExempt ? `${selectedDealer} (${taxExemptDealers[selectedDealer].id})` : "N/A",
+    paymentType: selectedPaymentType,
+    customerPhone: activeCustomer ? activeCustomer.phone : null,
+    pointsUsed: pointsUsedThisTicket
+  };
+
+  let alreadySavedByServer = false;
+
   // =====================================================================
   // 1. TRIGGER SQUARE IF CREDIT CARD IS SELECTED
   // =====================================================================
@@ -1342,14 +1364,10 @@ async function processOrder(selectedPaymentType) {
     let ccFee = +(grandTotal * 0.03).toFixed(2); 
 
     const squarePayload = {
+      ...baseSaleData,
       recordType: "square_checkout",
-      orderId: orderId,
-      location: document.getElementById("locationSelect").value,
-      subtotal: subtotal,
-      taxAmount: taxAmount,
-      tipAmount: squareTip,
       ccFee: ccFee,
-      isManualEntry: document.getElementById("manualEntryCheck").checked, // 📞 Sends the Phone Order status!
+      isManualEntry: document.getElementById("manualEntryCheck").checked // 📞 Phone Order status
     };
     
     try {
@@ -1362,16 +1380,16 @@ async function processOrder(selectedPaymentType) {
       let result = await response.json();
   
       if (result.error) {
-          console.error("Backend Error:", result.error);
-          alert("Google Error: " + result.error);
-          document.getElementById("squareModalOverlay").style.display = "none";
-          submitBtn.disabled = false; submitBtn.innerText = "RECORD SALE"; return;
+        console.error("Backend Error:", result.error);
+        alert("Google Error: " + result.error);
+        document.getElementById("squareModalOverlay").style.display = "none";
+        submitBtn.disabled = false; submitBtn.innerText = "RECORD SALE"; return;
       }
       if (result.errors) {
-          console.error("Square API Error:", result.errors);
-          alert("Square Error: " + result.errors[0].detail); 
-          document.getElementById("squareModalOverlay").style.display = "none";
-          submitBtn.disabled = false; submitBtn.innerText = "RECORD SALE"; return;
+        console.error("Square API Error:", result.errors);
+        alert("Square Error: " + result.errors[0].detail); 
+        document.getElementById("squareModalOverlay").style.display = "none";
+        submitBtn.disabled = false; submitBtn.innerText = "RECORD SALE"; return;
       }
   
       let checkoutId = result.checkout.id;
@@ -1404,7 +1422,10 @@ async function processOrder(selectedPaymentType) {
         let currentStatus = statusResult.checkoutStatus;
         if (currentStatus === "COMPLETED") {
           isWaiting = false; 
-          squareTip = statusResult.tipAmount || 0; // 💸 Grabs the tip!
+          squareTip = statusResult.tipAmount || 0;
+          if (statusResult.autoLogged === true) {
+            alreadySavedByServer = true; // ✅ Server already wrote it to the Sheet!
+          }
           document.getElementById("squareModalOverlay").style.display = "none";
         } else if (currentStatus === "CANCELED") {
           isWaiting = false; 
@@ -1422,42 +1443,38 @@ async function processOrder(selectedPaymentType) {
   }
 
   // =====================================================================
-  // 2. PROCEED TO LOG SALE NORMALLY IN SHEETS
+  // 2. LOG SALE IN SHEETS (WITH VERIFIED RESPONSE & DUPLICATE PROTECTION)
   // =====================================================================
   submitBtn.innerText = "SAVING TO DATABASE..."; 
   statusMsg.style.color = "#3b82f6"; 
   statusMsg.innerText = "Logging transaction...";
 
   const payload = {
-    recordType: "sale", location: document.getElementById("locationSelect").value, orderId: orderId,
-    cart: cart,
-    appliedGcCode: appliedGcCode,
-    appliedGcAmount: appliedGcAmount,
-    services: cart.map(item => item.name).join(", "), subtotal: subtotal, taxAmount: taxAmount, grandTotal: grandTotal,
-    vehicleInfo: (make || plate) ? `${make} ${plate}`.trim() : "N/A", notes: document.getElementById("orderNotes").value, attendant: activeAttendant,
-    exemptDealer: isTaxExempt ? `${selectedDealer} (${taxExemptDealers[selectedDealer].id})` : "N/A", paymentType: selectedPaymentType,
-    customerPhone: activeCustomer ? activeCustomer.phone : null,
-    pointsUsed: pointsUsedThisTicket
+    ...baseSaleData,
+    recordType: "sale",
+    tipAmount: squareTip
   };
 
-  // 15-SECOND NETWORK RECOVERY LOOP
-  let saveSuccess = false;
+  let saveSuccess = alreadySavedByServer;
   let attempt = 0;
 
   while (attempt < 5 && !saveSuccess) {
     attempt++;
     try {
-      await fetch(GOOGLE_SCRIPT_URL, { 
+      const saveRes = await fetch(GOOGLE_SCRIPT_URL, { 
         method: "POST", 
-        mode: "no-cors", 
-        headers: { "Content-Type": "application/json" }, 
+        headers: { "Content-Type": "text/plain" }, 
         body: JSON.stringify(payload) 
       });
       
-      saveSuccess = true;
-      
+      const saveJson = await saveRes.json();
+      if (saveJson && saveJson.status === "success") {
+        saveSuccess = true;
+      } else {
+        throw new Error(saveJson.message || "Database did not confirm save");
+      }
     } catch (err) {
-      console.warn(`Attempt ${attempt} failed. iPad Wi-Fi still waking up...`);
+      console.warn(`Attempt ${attempt} failed. Retrying...`, err);
       await new Promise(r => setTimeout(r, 3000)); 
     }
   }
@@ -1465,7 +1482,7 @@ async function processOrder(selectedPaymentType) {
   if (!saveSuccess) {
     statusMsg.style.color = "#ef4444";
     statusMsg.innerText = "DATABASE SAVE FAILED.";
-    alert("⚠️️ WAITING FOR WI-FI ⚠️\n\nSquare captured the payment successfully, but the iPad is struggling to reconnect to Wi-Fi.\n\nDO NOT CHARGE THE CARD AGAIN.\n\nMake sure the iPad has internet, then tap the blue 'RETRY SAVE' button at the bottom.");
+    alert("⚠ WAITING FOR WI-FI ⚠️\n\nSquare captured the payment, but the iPad lost internet connection.\n\nDO NOT CHARGE THE CARD AGAIN.\n\nReconnect to Wi-Fi and tap the button to finish.");
     
     submitBtn.disabled = false;
     submitBtn.innerText = "RETRY SAVE";
@@ -1515,6 +1532,7 @@ async function processOrder(selectedPaymentType) {
   document.getElementById("vehicleMake").value = ""; 
   document.getElementById("vehiclePlate").value = ""; 
   document.getElementById("orderNotes").value = "";
+  document.getElementById("manualEntryCheck").checked = false; // Uncheck Phone Order box
   if(isTaxExempt) document.getElementById("taxExemptToggle").click();
   removeCustomer();
   pointsUsedThisTicket = 0;
@@ -1527,8 +1545,7 @@ async function processOrder(selectedPaymentType) {
   
   submitBtn.disabled = false; 
   submitBtn.innerText = "RECORD SALE"; 
-}  
-    // Initialize UI
+}    // Initialize UI
     loadTabletLocation();
     renderMenu(); 
     updateCart(); 
