@@ -1797,27 +1797,35 @@ function openEODModal() {
           document.getElementById("eodWashRev").innerText = `$${result.data.washRevenue.toFixed(2)}`;
           document.getElementById("eodRetailRev").innerText = `$${result.data.retailRevenue.toFixed(2)}`;
 
-          // 2. Sort and Group the Services
+// 2. Sort and Group the Services (Wash Services strictly counts ONLY cars!)
           const servicesObj = result.data.services || {};
-          let grouped = { wash: {}, retail: {}, custom: {}, gift: {} };
-          let counts = { wash: 0, retail: 0, custom: 0, gift: 0 };
+          let grouped = { wash: {}, addons: {}, discounts: {}, retail: {}, custom: {}, gift: {} };
+          let counts = { wash: 0, addons: 0, discounts: 0, retail: 0, custom: 0, gift: 0 };
           let totalItemsSold = 0;
 
-          // Organize into buckets
           for (const [name, count] of Object.entries(servicesObj)) {
-            totalItemsSold += count;
             if (name.startsWith("Retail -")) {
               grouped.retail[name.replace("Retail - ", "")] = count;
               counts.retail += count;
+              totalItemsSold += count;
             } else if (name.startsWith("Custom -")) {
               grouped.custom[name.replace("Custom - ", "")] = count;
               counts.custom += count;
+              totalItemsSold += count;
             } else if (name.startsWith("Gift Card (")) {
               grouped.gift[name] = count;
               counts.gift += count;
+              totalItemsSold += count;
+            } else if (name.startsWith("Add-On -") || name.startsWith("🎁 Reward:")) {
+              grouped.addons[name.replace("Add-On - ", "")] = count;
+              counts.addons += count;
+            } else if (name.startsWith("Discount -")) {
+              grouped.discounts[name.replace("Discount - ", "")] = count;
+              counts.discounts += count;
             } else {
               grouped.wash[name] = count;
               counts.wash += count;
+              totalItemsSold += count;
             }
           }
 
@@ -1838,6 +1846,8 @@ function openEODModal() {
           }
 
           html += buildSection("Wash Services", "🚗", grouped.wash, counts.wash);
+          html += buildSection("Additional Work & Add-Ons", "➕", grouped.addons, counts.addons);
+          html += buildSection("Discounts Applied", "🏷️", grouped.discounts, counts.discounts);
           html += buildSection("Retail / Store", "🛍️", grouped.retail, counts.retail);
           html += buildSection("Custom Pricing", "✏️", grouped.custom, counts.custom);
           html += buildSection("Gift Cards Sold", "💳", grouped.gift, counts.gift);
