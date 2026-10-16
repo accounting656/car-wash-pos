@@ -1607,14 +1607,13 @@ function openEODModal() {
     document.getElementById("eodModalOverlay").style.display = "flex";
   }
 
-  async function executeEOD(action) {
+ async function executeEOD(action) {
     closeModals();
     const location = document.getElementById("locationSelect").value;
     const btn = document.getElementById("eodBtn");
     const originalText = btn.innerText;
 
     try {
-      // 1. If they want to email, ping the backend
       // 1. If they want to email, ping the backend and check for errors
       if (action === 'email' || action === 'both') {
         btn.innerText = "✉️ Sending...";
@@ -1655,7 +1654,7 @@ function openEODModal() {
           document.getElementById("eodLocation").innerText = location;
           document.getElementById("eodNet").innerText = `$${result.data.netSales.toFixed(2)}`;
           document.getElementById("eodTax").innerText = `$${result.data.tax.toFixed(2)}`;
-          document.getElementById("eodCcFees").innerText = `$${(s.ccFees || 0).toFixed(2)}`;
+          document.getElementById("eodCcFees").innerText = `$${(result.data.ccFees || 0).toFixed(2)}`;
           document.getElementById("eodTotal").innerText = `$${result.data.total.toFixed(2)}`;
           document.getElementById("eodCash").innerText = `$${result.data.cash.toFixed(2)}`;
           document.getElementById("eodCredit").innerText = `$${result.data.credit.toFixed(2)}`;
@@ -1695,10 +1694,8 @@ function openEODModal() {
           function buildSection(title, icon, itemsObj, totalCount) {
             if (totalCount === 0) return "";
             
-            // Category Header Row
             let sec = `<tr><th colspan="2" style="background: #e5e7eb; padding: 6px 8px; font-size: 14px; border-bottom: 1px solid #9ca3af; margin-top: 5px;">${icon} ${title} <span style="float:right;">Qty: ${totalCount}</span></th></tr>`;
             
-            // Individual Items Rows
             for (const [n, c] of Object.entries(itemsObj)) {
               sec += `<tr>
                         <td style="padding: 4px 8px 4px 15px; border-bottom: 1px solid #f3f4f6;">${n}</td>
@@ -1716,7 +1713,6 @@ function openEODModal() {
           if (html === "") {
             html = "<tr><td colspan='2' style='padding: 10px; text-align: center;'>No items sold today.</td></tr>";
           } else {
-            // Grand Total Items Row
             html += `<tr>
                       <th style="padding: 10px 8px; text-align: right; font-size: 15px; border-top: 2px solid #111827;">Total Items & Services Sold:</th>
                       <th style="padding: 10px 8px; text-align: right; font-size: 16px; border-top: 2px solid #111827; font-weight: 900;">${totalItemsSold}</th>
@@ -1743,8 +1739,7 @@ function openEODModal() {
       alert("Network error. Try again.");
       btn.innerText = originalText;
     }
-  }
-  async function openSquareReport() {
+  }  async function openSquareReport() {
     document.getElementById("eodModalOverlay").style.display = "none";
     document.getElementById("squareReportModalOverlay").style.display = "flex";
     
