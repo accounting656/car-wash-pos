@@ -270,6 +270,7 @@
           <table style="width: 100%; text-align: left; font-size: 15px; margin-bottom: 25px;">
             <tr><th style="padding: 4px 0;">Net Sales:</th><td id="eodNet" style="text-align: right;"></td></tr>
             <tr><th style="padding: 4px 0;">Tax Collected:</th><td id="eodTax" style="text-align: right;"></td></tr>
+            <tr><th style="padding: 4px 0;">CC Surcharge:</th><td id="eodCcFees" style="text-align: right;"></td></tr>
             <tr><th style="padding: 8px 0; font-size: 18px; border-top: 1px solid #ccc;">Total Gross:</th><td id="eodTotal" style="padding: 8px 0; font-weight: 800; font-size: 18px; text-align: right; border-top: 1px solid #ccc;"></td></tr>
           </table>
           <h3 style="font-size: 16px; border-bottom: 1px solid #111827; padding-bottom: 4px; margin-bottom: 8px;">Revenue Split</h3>
@@ -1654,6 +1655,7 @@ function openEODModal() {
           document.getElementById("eodLocation").innerText = location;
           document.getElementById("eodNet").innerText = `$${result.data.netSales.toFixed(2)}`;
           document.getElementById("eodTax").innerText = `$${result.data.tax.toFixed(2)}`;
+          document.getElementById("eodCcFees").innerText = `$${(s.ccFees || 0).toFixed(2)}`;
           document.getElementById("eodTotal").innerText = `$${result.data.total.toFixed(2)}`;
           document.getElementById("eodCash").innerText = `$${result.data.cash.toFixed(2)}`;
           document.getElementById("eodCredit").innerText = `$${result.data.credit.toFixed(2)}`;
