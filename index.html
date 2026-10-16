@@ -1361,7 +1361,7 @@ async function processOrder(selectedPaymentType) {
   if (selectedPaymentType === 'Credit Card') {
     document.getElementById("squareModalOverlay").style.display = "flex";
     
-    let ccFee = +(grandTotal * 0.03).toFixed(2); 
+ let ccFee = +((grandTotal * 0.026) + 0.15).toFixed(2); // Matches Square 2.6% + $0.15
 
     const squarePayload = {
       ...baseSaleData,
