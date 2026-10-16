@@ -107,8 +107,9 @@
           <option value="Pending">Pending (Bill Later)</option>
         </select>
       </div>
-      <div style="margin-top: 18px; display: flex; gap: 10px;">
+     <div style="margin-top: 18px; display: flex; gap: 10px; flex-wrap: wrap;">
         <button class="btn btn-primary" onclick="fetchData()" id="generateBtn">Generate Report</button>
+        <button class="btn" style="background: #8b5cf6; color: white;" onclick="reconcileSquare()" id="reconcileBtn">🔄 Reconcile Square</button>
         <button class="btn btn-print" onclick="printFinancial()">🖨️ Print Financial Report</button>
         <button class="btn btn-tax" onclick="printTax()">📄 Print DR-15 Tax Report</button>
       </div>
@@ -655,6 +656,41 @@
       document.body.classList.add("print-invoice");
       window.print();
       setTimeout(() => { document.body.classList.remove("print-invoice"); }, 500);
+    }
+    async function reconcileSquare() {
+      const pinInput = document.getElementById('adminPin').value;
+      const startDate = document.getElementById("startDate").value;
+      const endDate = document.getElementById("endDate").value;
+      const btn = document.getElementById("reconcileBtn");
+
+      btn.innerText = "⏳ Auditing Square...";
+      btn.disabled = true;
+
+      try {
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({
+            recordType: "reconcile_square",
+            startDate: startDate,
+            endDate: endDate,
+            pin: pinInput
+          })
+        });
+        const result = await response.json();
+        if (result.status === "success") {
+          alert(`✅ Square Audit Complete!\n\n• Square Payments Checked: ${result.checked}\n• Missing Sales Restored: ${result.restored}\n• Missing Tips Backfilled: ${result.tipsUpdated}`);
+          if (result.restored > 0 || result.tipsUpdated > 0) {
+            fetchData(); // Automatically refresh the dashboard numbers!
+          }
+        } else {
+          alert("Error: " + result.message);
+        }
+      } catch (err) {
+        alert("Network Error during Square Reconciliation.");
+      }
+      btn.innerText = "🔄 Reconcile Square";
+      btn.disabled = false;
     }
   </script>
 </body>
