@@ -354,6 +354,55 @@
       <button class="modal-btn btn-cancel" onclick="closeModals()">Cancel</button>
     </div>
   </div>
+  <!-- TRANSACTION DISCOUNT MODAL (NEW) -->
+  <div id="ticketDiscountModalOverlay" class="modal-overlay">
+    <div class="modal-box">
+      <h2>Transaction Discount</h2>
+      <p style="margin-bottom: 15px; color: #4b5563; font-size: 14px;">Apply a one-time discount directly to this ticket.</p>
+      
+      <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+        <button class="modal-btn" style="margin: 0; padding: 10px; font-size: 14px;" onclick="setQuickDiscount('10% Off', 'percent', 10)">10% Off</button>
+        <button class="modal-btn" style="margin: 0; padding: 10px; font-size: 14px;" onclick="setQuickDiscount('15% Off', 'percent', 15)">15% Off</button>
+        <button class="modal-btn" style="margin: 0; padding: 10px; font-size: 14px;" onclick="setQuickDiscount('$5 Off', 'dollar', 5)">$5 Off</button>
+        <button class="modal-btn" style="margin: 0; padding: 10px; font-size: 14px;" onclick="setQuickDiscount('$10 Off', 'dollar', 10)">$10 Off</button>
+      </div>
+
+      <input type="text" id="ticketDiscReason" class="input-field" placeholder="Reason (e.g., Military, Manager Comp)">
+      <div style="display: flex; gap: 8px; margin-bottom: 20px;">
+        <select id="ticketDiscType" class="input-field" style="width: 45%; margin: 0; font-weight: bold; cursor: pointer;">
+          <option value="dollar">$ Dollar Off</option>
+          <option value="percent">% Percent Off</option>
+        </select>
+        <input type="number" id="ticketDiscValue" class="input-field" placeholder="Amount" step="0.01" style="width: 55%; margin: 0;">
+      </div>
+
+      <button class="modal-btn clock-in-btn" onclick="applyTicketDiscount()">Apply to Ticket</button>
+      <button class="modal-btn btn-cancel" onclick="closeModals()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- ADDITIONAL WORK / UPCHARGE MODAL (NEW) -->
+  <div id="extraWorkModalOverlay" class="modal-overlay">
+    <div class="modal-box">
+      <h2>Add Additional Work</h2>
+      <p style="margin-bottom: 15px; color: #4b5563; font-size: 14px;">Select a quick add-on or enter custom extra labor:</p>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px;">
+        <button class="modal-btn" style="margin: 0; padding: 10px; font-size: 13px;" onclick="fillExtraWork('Heavy Pet Hair', 15)">🐾 Pet Hair (+$15)</button>
+        <button class="modal-btn" style="margin: 0; padding: 10px; font-size: 13px;" onclick="fillExtraWork('Heavy Soil / Mud', 15)">💩 Heavy Mud (+$15)</button>
+        <button class="modal-btn" style="margin: 0; padding: 10px; font-size: 13px;" onclick="fillExtraWork('Floor Mat Shampoo', 15)">🧼 Mat Shampoo (+$15)</button>
+        <button class="modal-btn" style="margin: 0; padding: 10px; font-size: 13px;" onclick="fillExtraWork('Seat Spot / Stain', 20)">💺 Stain Removal (+$20)</button>
+        <button class="modal-btn" style="margin: 0; padding: 10px; font-size: 13px;" onclick="fillExtraWork('Tar / Bug / Sap', 20)">🪲 Bug / Sap (+$20)</button>
+        <button class="modal-btn" style="margin: 0; padding: 10px; font-size: 13px;" onclick="fillExtraWork('Oversized / Lifted', 15)">🛻 Lifted / XL (+$15)</button>
+      </div>
+
+      <input type="text" id="extraWorkDesc" class="input-field" placeholder="Work Description (e.g., Extra Vacuuming)">
+      <input type="number" id="extraWorkPrice" class="input-field" placeholder="Additional Charge ($)" step="0.01" style="margin-bottom: 20px;">
+
+      <button class="modal-btn clock-in-btn" onclick="applyExtraWork()">Add to Ticket</button>
+      <button class="modal-btn btn-cancel" onclick="closeModals()">Cancel</button>
+    </div>
+  </div>
   <!-- CUSTOMER LOYALTY MODAL -->
 <div id="customerModalOverlay" class="modal-overlay">
   <div class="modal-box">
@@ -489,7 +538,13 @@
     </div>
     <div class="cart-items" id="cartItems"></div>
 
-    <div class="cart-footer">
+      <div class="cart-footer">
+      <!-- NEW: QUICK TICKET ADJUSTMENTS (DISCOUNT & ADDITIONAL WORK) -->
+      <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+        <button onclick="openTicketDiscountModal()" style="flex: 1; padding: 10px; background: #fef2f2; color: #dc2626; border: 1px dashed #f87171; border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer;">🏷️ + Discount</button>
+        <button onclick="openExtraWorkModal()" style="flex: 1; padding: 10px; background: #eff6ff; color: #2563eb; border: 1px dashed #60a5fa; border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer;">➕ Additional Work</button>
+      </div>
+
       <div class="color-badges">
         <button class="color-badge" onclick="addColor('⚪️ White')">White</button>
         <button class="color-badge" onclick="addColor('⚫️ Black')">Black</button>
@@ -996,7 +1051,9 @@ const modals = [
     "customerModalOverlay",
     "eodModalOverlay",
     "payPendingModalOverlay",
-    "squareReportModalOverlay"
+    "squareReportModalOverlay",
+    "ticketDiscountModalOverlay",
+    "extraWorkModalOverlay"
   ];
   
   modals.forEach(id => {
@@ -1192,6 +1249,81 @@ function applyReward(rewardName, pointCost) {
       if (!name || isNaN(price) || price < 0) return alert("Enter valid data.");
       cart.push({ id: 'custom-' + Date.now(), name: "Custom - " + name, price: price });
       document.getElementById("customItemName").value = ""; document.getElementById("customItemPrice").value = ""; updateCart();
+    }
+  // --- TICKET DISCOUNT & ADDITIONAL WORK LOGIC ---
+    function openTicketDiscountModal() {
+      if (cart.length === 0) return alert("Add a service to the ticket first before applying a discount.");
+      document.getElementById("ticketDiscReason").value = "";
+      document.getElementById("ticketDiscType").value = "dollar";
+      document.getElementById("ticketDiscValue").value = "";
+      document.getElementById("ticketDiscountModalOverlay").style.display = "flex";
+    }
+
+    function setQuickDiscount(reason, type, val) {
+      document.getElementById("ticketDiscReason").value = reason;
+      document.getElementById("ticketDiscType").value = type;
+      document.getElementById("ticketDiscValue").value = val;
+    }
+
+    function applyTicketDiscount() {
+      const reason = document.getElementById("ticketDiscReason").value.trim() || "Special";
+      const type = document.getElementById("ticketDiscType").value;
+      const val = parseFloat(document.getElementById("ticketDiscValue").value);
+
+      if (isNaN(val) || val <= 0) return alert("Please enter a valid discount amount.");
+
+      const currentSubtotal = cart.reduce((sum, item) => sum + item.price, 0);
+      if (currentSubtotal <= 0) return alert("Ticket subtotal is already $0.00.");
+
+      let discountDollars = 0;
+      let label = "";
+
+      if (type === "percent") {
+        if (val > 100) return alert("Percentage cannot exceed 100%.");
+        discountDollars = +(currentSubtotal * (val / 100)).toFixed(2);
+        label = `Discount - ${reason} (${val}% Off)`;
+      } else {
+        discountDollars = Math.min(val, currentSubtotal); // Prevent negative ticket totals
+        label = `Discount - ${reason}`;
+      }
+
+      cart.push({
+        id: 'disc-' + Date.now(),
+        name: label,
+        price: -discountDollars
+      });
+
+      updateCart();
+      closeModals();
+    }
+
+    function openExtraWorkModal() {
+      document.getElementById("extraWorkDesc").value = "";
+      document.getElementById("extraWorkPrice").value = "";
+      document.getElementById("extraWorkModalOverlay").style.display = "flex";
+    }
+
+    function fillExtraWork(desc, price) {
+      document.getElementById("extraWorkDesc").value = desc;
+      document.getElementById("extraWorkPrice").value = price;
+    }
+
+    function applyExtraWork() {
+      const desc = document.getElementById("extraWorkDesc").value.trim();
+      const price = parseFloat(document.getElementById("extraWorkPrice").value);
+
+      if (!desc || isNaN(price) || price <= 0) {
+        return alert("Please enter both a description and a valid dollar amount.");
+      }
+
+      cart.push({
+        id: 'extra-' + Date.now(),
+        name: `Add-On - ${desc}`,
+        price: price
+      });
+
+      updateCart();
+      closeModals();
     }
 
     function renderMenu() {
