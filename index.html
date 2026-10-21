@@ -1110,6 +1110,8 @@ function promptPayPending(orderId, totalAmount) {
     document.getElementById("eodBtn").style.display = "none";
     resetToRetail(); 
     updateCart();
+    loadAppData(); // Pulls latest Store Products, Dealers & PINs from Google Sheets
+    checkForSilentUpdate(); // Auto-reloads if you pushed a new GitHub commit
   }
 
   function saveTabletLocation() { localStorage.setItem("washos_location", document.getElementById("locationSelect").value); }
