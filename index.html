@@ -12,9 +12,8 @@
   
   <title>Premium Car Wash POS</title>
   <style>
-
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-   /* Hide printable docs on the iPad screen */
+    /* Hide printable docs on the iPad screen */
     @media screen {
       .print-section { display: none !important; }
     }
@@ -52,7 +51,6 @@
         top: 0 !important;
         left: 0 !important;
         width: 100% !important; 
-        /* This 40px padding is your new safe margin so text doesn't fall off the paper */
         padding: 40px !important; 
         margin: 0 !important;
       }
@@ -217,16 +215,15 @@
       <button class="modal-btn btn-cancel" onclick="closeModals()">Cancel</button>
     </div>
   </div>
+
   <!-- CASH TENDER CALCULATOR MODAL -->
   <div id="cashModalOverlay" class="modal-overlay">
     <div class="modal-box" style="max-width: 420px;">
       <h2>Cash Tender</h2>
       <p style="font-size: 20px; font-weight: bold; margin-bottom: 10px;">Total Due: <span id="cashTotalDue">$0.00</span></p>
       
-      <!-- 'readonly' ensures the iPad keyboard NEVER pops up -->
       <input type="text" id="cashReceived" class="input-field" placeholder="Amount Received ($)" style="font-size: 24px; text-align: center; margin-bottom: 15px; font-weight: bold; background: white;" readonly>
       
-      <!-- Custom Mini Numpad -->
       <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;">
         <button class="modal-btn" style="margin: 0; font-size: 20px; padding: 12px;" onclick="addCash('1')">1</button>
         <button class="modal-btn" style="margin: 0; font-size: 20px; padding: 12px;" onclick="addCash('2')">2</button>
@@ -248,7 +245,7 @@
     </div>
   </div>
 
- <!-- PRINTABLE END OF DAY REPORT -->
+  <!-- PRINTABLE END OF DAY REPORT -->
   <div id="printableEOD" class="print-section">
     <h2 style="margin-bottom: 2px; text-align: center; font-size: 24px;">End of Day Summary</h2>
     <p style="text-align: center; margin-top: 0; margin-bottom: 15px; color: #555; font-size: 14px;" id="eodLocation"></p>
@@ -301,7 +298,8 @@
       </tr>
     </table>
   </div>
-  <!-- SQUARE TERMINAL WAITING MODAL (NEW) -->
+
+  <!-- SQUARE TERMINAL WAITING MODAL -->
   <div id="squareModalOverlay" class="modal-overlay">
     <div class="modal-box">
       <div class="spinner"></div>
@@ -310,13 +308,12 @@
     </div>
   </div>
 
- <!-- TIMECLOCK MODAL -->
+  <!-- TIMECLOCK MODAL -->
   <div id="timeclockModalOverlay" class="modal-overlay">
     <div class="modal-box">
       <h2>Timeclock</h2>
       <p style="margin-bottom: 15px; color: #4b5563;">Enter your secure PIN to record your punch.</p>
       
-      <!-- Added a secure PIN input field specifically for the timeclock -->
       <input type="password" id="tcPin" class="input-field" placeholder="Enter PIN" inputmode="numeric" style="text-align: center; font-size: 24px; letter-spacing: 5px; margin-bottom: 20px; font-weight: bold;">
       
       <button class="modal-btn clock-in-btn" onclick="logTimeclock('Clock In')">🟢 Clock In</button>
@@ -326,7 +323,7 @@
     </div>
   </div>
 
- <!-- PROMO & DISCOUNT MODAL -->
+  <!-- PROMO & DISCOUNT MODAL -->
   <div id="promoModalOverlay" class="modal-overlay">
     <div class="modal-box">
       <h2>Apply Discount</h2>
@@ -354,7 +351,8 @@
       <button class="modal-btn btn-cancel" onclick="closeModals()">Cancel</button>
     </div>
   </div>
-  <!-- TRANSACTION DISCOUNT MODAL (NEW) -->
+
+  <!-- TRANSACTION DISCOUNT MODAL -->
   <div id="ticketDiscountModalOverlay" class="modal-overlay">
     <div class="modal-box">
       <h2>Transaction Discount</h2>
@@ -381,7 +379,7 @@
     </div>
   </div>
 
-  <!-- ADDITIONAL WORK / UPCHARGE MODAL (NEW) -->
+  <!-- ADDITIONAL WORK / UPCHARGE MODAL -->
   <div id="extraWorkModalOverlay" class="modal-overlay">
     <div class="modal-box">
       <h2>Add Additional Work</h2>
@@ -403,57 +401,55 @@
       <button class="modal-btn btn-cancel" onclick="closeModals()">Cancel</button>
     </div>
   </div>
+
   <!-- CUSTOMER LOYALTY MODAL -->
-<div id="customerModalOverlay" class="modal-overlay">
-  <div class="modal-box">
-    <h2>Customer Loyalty</h2>
-    
-    <!-- 1. Search Section -->
-    <div id="customerSearchSection">
-      <input type="tel" id="customerPhone" class="input-field" placeholder="📱 Phone Number (e.g. 8135551234)">
-      <button class="modal-btn clock-in-btn" onclick="lookupCustomer()">Search Database</button>
-    </div>
-
-    <!-- 2. Registration Section (Hidden by default) -->
-    <div id="customerRegSection" style="display: none; margin-top: 15px;">
-      <p style="color: #4b5563; font-size: 14px; margin-bottom: 10px;">New Customer! Create Profile:</p>
-      <input type="text" id="customerName" class="input-field" placeholder="👤 Full Name">
-      <input type="email" id="customerEmail" class="input-field" placeholder="📧 Email (Optional)">
-      <button class="modal-btn clock-in-btn" onclick="registerCustomer()">Create Profile</button>
-    </div>
-
-    <!-- 3. Active Customer Section (Hidden by default) -->
-    <div id="activeCustomerSection" style="display: none; margin-top: 15px; text-align: left;">
-      <p><strong>Name:</strong> <span id="dispCustName"></span></p>
-      <p><strong>Available Points:</strong> <span id="dispCustPoints" style="color: #10b981; font-weight: bold; font-size: 18px;"></span></p>
+  <div id="customerModalOverlay" class="modal-overlay">
+    <div class="modal-box">
+      <h2>Customer Loyalty</h2>
       
-      <!-- Redeemable Upgrades -->
-      <div id="rewardsList" style="margin-top: 15px; border-top: 1px dashed #ccc; padding-top: 15px;">
-        <p style="font-size: 14px; color: #6b7280; margin-bottom: 10px;">Redeem Upgrades:</p>
-        <button id="rewardWax" class="modal-btn" style="background: #fdf4ff; color: #a21caf; border-color: #f0abfc;" onclick="applyReward('Speed Ceramic Wax Upgrade', 150)">✨ Speed Ceramic (150 pts)</button>
-        <button id="rewardShampoo" class="modal-btn" style="background: #eff6ff; color: #1e3a8a; border-color: #bfdbfe;" onclick="applyReward('Floor Mat Shampoo Upgrade', 100)">🧼 Mat Shampoo (100 pts)</button>
+      <div id="customerSearchSection">
+        <input type="tel" id="customerPhone" class="input-field" placeholder="📱 Phone Number (e.g. 8135551234)">
+        <button class="modal-btn clock-in-btn" onclick="lookupCustomer()">Search Database</button>
       </div>
-      
-      <button class="modal-btn logout-btn" style="margin-top: 15px;" onclick="removeCustomer()">Remove from Ticket</button>
-    </div>
 
-    <button class="modal-btn btn-cancel" onclick="closeModals()">Close</button>
-  </div>
-</div>
-<div id="searchModalOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
-  <div style="background: white; padding: 20px; border-radius: 8px; width: 600px; max-width: 90%; max-height: 80vh; overflow-y: auto; color: black;">
-    <h3 style="margin-top: 0;">Find Invoice</h3>
-    <input type="text" id="searchInput" placeholder="Search by name, order ID, or vehicle..." style="width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px;">
-    
-    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-      <button onclick="executeSearch()" style="padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 5px; cursor: pointer; flex: 1;">Search</button>
-      <!-- NEW CLOSE BUTTON -->
-      <button onclick="closeModals()" style="padding: 10px 20px; background: #fee2e2; color: #b91c1c; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Close</button>
+      <div id="customerRegSection" style="display: none; margin-top: 15px;">
+        <p style="color: #4b5563; font-size: 14px; margin-bottom: 10px;">New Customer! Create Profile:</p>
+        <input type="text" id="customerName" class="input-field" placeholder="👤 Full Name">
+        <input type="email" id="customerEmail" class="input-field" placeholder="📧 Email (Optional)">
+        <button class="modal-btn clock-in-btn" onclick="registerCustomer()">Create Profile</button>
+      </div>
+
+      <div id="activeCustomerSection" style="display: none; margin-top: 15px; text-align: left;">
+        <p><strong>Name:</strong> <span id="dispCustName"></span></p>
+        <p><strong>Available Points:</strong> <span id="dispCustPoints" style="color: #10b981; font-weight: bold; font-size: 18px;"></span></p>
+        
+        <div id="rewardsList" style="margin-top: 15px; border-top: 1px dashed #ccc; padding-top: 15px;">
+          <p style="font-size: 14px; color: #6b7280; margin-bottom: 10px;">Redeem Upgrades:</p>
+          <button id="rewardWax" class="modal-btn" style="background: #fdf4ff; color: #a21caf; border-color: #f0abfc;" onclick="applyReward('Speed Ceramic Wax Upgrade', 150)">✨ Speed Ceramic (150 pts)</button>
+          <button id="rewardShampoo" class="modal-btn" style="background: #eff6ff; color: #1e3a8a; border-color: #bfdbfe;" onclick="applyReward('Floor Mat Shampoo Upgrade', 100)">🧼 Mat Shampoo (100 pts)</button>
+        </div>
+        
+        <button class="modal-btn logout-btn" style="margin-top: 15px;" onclick="removeCustomer()">Remove from Ticket</button>
+      </div>
+
+      <button class="modal-btn btn-cancel" onclick="closeModals()">Close</button>
     </div>
- 
-    <div id="searchResults" style="display: flex; flex-direction: column; gap: 10px;"></div>
   </div>
-</div>
+
+  <div id="searchModalOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+    <div style="background: white; padding: 20px; border-radius: 8px; width: 600px; max-width: 90%; max-height: 80vh; overflow-y: auto; color: black;">
+      <h3 style="margin-top: 0;">Find Invoice</h3>
+      <input type="text" id="searchInput" placeholder="Search by name, order ID, or vehicle..." style="width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px;">
+      
+      <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+        <button onclick="executeSearch()" style="padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 5px; cursor: pointer; flex: 1;">Search</button>
+        <button onclick="closeModals()" style="padding: 10px 20px; background: #fee2e2; color: #b91c1c; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Close</button>
+      </div>
+   
+      <div id="searchResults" style="display: flex; flex-direction: column; gap: 10px;"></div>
+    </div>
+  </div>
+
   <!-- END OF DAY ACTION MODAL -->
   <div id="eodModalOverlay" class="modal-overlay">
     <div class="modal-box">
@@ -463,13 +459,12 @@
       <button class="modal-btn clock-in-btn" onclick="executeEOD('print')">🖨️ Print Receipt Only</button>
       <button class="modal-btn clock-in-btn" style="background: #3b82f6; border-color: #2563eb;" onclick="executeEOD('email')">✉️ Email Owner Only</button>
       <button class="modal-btn clock-in-btn" style="background: #8b5cf6; border-color: #7c3aed;" onclick="executeEOD('both')">🖨️ & ✉️ Print & Email</button>
-      
-      <!-- NEW SQUARE AUDIT BUTTON -->
       <button class="modal-btn clock-in-btn" style="background: #0f766e; border-color: #0d9488;" onclick="openSquareReport()">💳 Run Square Audit</button>
       
       <button class="modal-btn btn-cancel" onclick="closeModals()">Cancel</button>
     </div>
   </div>
+
   <!-- SQUARE AUDIT REPORT MODAL -->
   <div id="squareReportModalOverlay" class="modal-overlay">
     <div class="modal-box" style="max-width: 500px; max-height: 80vh; overflow-y: auto;">
@@ -482,6 +477,7 @@
       <button class="modal-btn btn-cancel" onclick="closeModals()">Close</button>
     </div>
   </div>
+
   <!-- PAY PENDING INVOICE MODAL -->
   <div id="payPendingModalOverlay" class="modal-overlay">
     <div class="modal-box">
@@ -495,6 +491,7 @@
       <button class="modal-btn btn-cancel" onclick="closeModals()">Cancel</button>
     </div>
   </div>
+
   <div class="menu-section">
     <div class="header">
       <div style="display: flex; gap: 15px; align-items: center;">
@@ -512,7 +509,7 @@
         
         <div class="attendant-badge">
           👤 <span id="currentAttendantName">None</span>
-       <div style="display: flex; gap: 8px;">
+          <div style="display: flex; gap: 8px;">
             <button id="eodBtn" class="header-btn" style="background: #8b5cf6; color: white; display: none;" onclick="openEODModal()">📈 End of Day</button>
             <button id="addCustomerBtn" class="header-btn" style="background: #fce7f3; color: #be185d;" onclick="document.getElementById('customerModalOverlay').style.display='flex'">👤 Add Customer</button>
             <button class="header-btn" style="background: #e0f2fe; color: #0369a1;" onclick="window.open('dashboard.html', '_blank')">📊 Dashboard</button>
@@ -538,8 +535,8 @@
     </div>
     <div class="cart-items" id="cartItems"></div>
 
-      <div class="cart-footer">
-      <!-- NEW: QUICK TICKET ADJUSTMENTS (DISCOUNT & ADDITIONAL WORK) -->
+    <div class="cart-footer">
+      <!-- QUICK TICKET ADJUSTMENTS (DISCOUNT & ADDITIONAL WORK) -->
       <div style="display: flex; gap: 8px; margin-bottom: 10px;">
         <button onclick="openTicketDiscountModal()" style="flex: 1; padding: 10px; background: #fef2f2; color: #dc2626; border: 1px dashed #f87171; border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer;">🏷️ + Discount</button>
         <button onclick="openExtraWorkModal()" style="flex: 1; padding: 10px; background: #eff6ff; color: #2563eb; border: 1px dashed #60a5fa; border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer;">➕ Additional Work</button>
@@ -553,7 +550,7 @@
         <button class="color-badge" onclick="addColor('🔵 Blue')">Blue</button>
       </div>
 
-     <select id="vehicleMake" class="input-field" style="cursor: pointer;">
+      <select id="vehicleMake" class="input-field" style="cursor: pointer;">
         <option value="">-- Select Vehicle Make --</option>
         <option value="Acura">Acura</option>
         <option value="Alfa Romeo">Alfa Romeo</option>
@@ -620,6 +617,7 @@
       <div id="statusMsg" class="status-msg"></div>
     </div>
   </div>
+
   <!-- THE HIDDEN PRINTABLE SQUARE AUDIT -->
   <div id="printableSquareAudit" class="print-section">
     <h2 style="margin-bottom: 5px; text-align: center;">Square Audit Report</h2>
@@ -630,1073 +628,1123 @@
     
     <div id="sqAuditPrintContent"></div>
   </div>
+
   <!-- THE HIDDEN PRINTABLE INVOICE -->
-<div id="printableInvoice" class="print-section">
-  <h2 style="margin-bottom: 5px;">A Plus Car Wash & Detailing Inc.</h2>
-  <p id="invLocationAddress" style="margin-top: 0; color: #555;"></p>
-  
-  <hr style="border: 1px solid #ccc; margin: 20px 0;">
-  
-  <p><strong>Date:</strong> <span id="invDate"></span></p>
-  <p><strong>Order ID:</strong> <span id="invOrder"></span></p>
-  <p><strong>Vehicle:</strong> <span id="invVehicle"></span></p>
-  
-  <div id="invDealerContainer" style="display: none; margin-top: 15px; padding: 15px; border: 2px solid #ccc; background: #f9fafb; border-radius: 8px;">
-    <strong style="font-size: 14px; color: #6b7280; text-transform: uppercase;">Billed To (Tax Exempt):</strong><br>
-    <span id="invDealerName" style="font-size: 18px; font-weight: bold; color: #111827;"></span><br>
-    <span id="invDealerAddress" style="color: #374151; font-size: 16px;"></span><br>
-    <span style="color: #d32f2f; font-weight: bold; margin-top: 8px; display: inline-block;">Resale Cert: <span id="invDealerCert"></span></span>
+  <div id="printableInvoice" class="print-section">
+    <h2 style="margin-bottom: 5px;">A Plus Car Wash & Detailing Inc.</h2>
+    <p id="invLocationAddress" style="margin-top: 0; color: #555;"></p>
+    
+    <hr style="border: 1px solid #ccc; margin: 20px 0;">
+    
+    <p><strong>Date:</strong> <span id="invDate"></span></p>
+    <p><strong>Order ID:</strong> <span id="invOrder"></span></p>
+    <p><strong>Vehicle:</strong> <span id="invVehicle"></span></p>
+    
+    <div id="invDealerContainer" style="display: none; margin-top: 15px; padding: 15px; border: 2px solid #ccc; background: #f9fafb; border-radius: 8px;">
+      <strong style="font-size: 14px; color: #6b7280; text-transform: uppercase;">Billed To (Tax Exempt):</strong><br>
+      <span id="invDealerName" style="font-size: 18px; font-weight: bold; color: #111827;"></span><br>
+      <span id="invDealerAddress" style="color: #374151; font-size: 16px;"></span><br>
+      <span style="color: #d32f2f; font-weight: bold; margin-top: 8px; display: inline-block;">Resale Cert: <span id="invDealerCert"></span></span>
+    </div>
+
+    <hr style="border: 1px solid #ccc; margin: 20px 0;">
+    
+    <p><strong>Services Rendered:</strong> <span id="invServices"></span></p>
+    
+    <table style="width: 100%; margin-top: 20px; text-align: left;">
+      <tr><th>Subtotal:</th><td id="invSubtotal"></td></tr>
+      <tr><th>Tax:</th><td id="invTax"></td></tr>
+      <tr><th>Total Paid:</th><td id="invTotal" style="font-weight: bold;"></td></tr>
+      <tr><th>Payment Method:</th><td id="invPaymentMethod" style="font-style: italic;"></td></tr>
+      <tr id="invCashTenderedRow" style="display: none;"><th>Cash Tendered:</th><td id="invCashTendered"></td></tr>
+      <tr id="invChangeRow" style="display: none;"><th>Change:</th><td id="invChange"></td></tr>
+      <tr id="invGcBalanceRow" style="display: none;"><th>GC Remaining Balance:</th><td id="invGcBalance" style="font-weight: bold;"></td></tr>
+    </table>
+    
+    <div id="invReceiptItems"></div>
+    
+    <p style="margin-top: 40px; text-align: center; font-style: italic;">Thank you for your business!</p>
   </div>
 
-  <hr style="border: 1px solid #ccc; margin: 20px 0;">
-  
-  <p><strong>Services Rendered:</strong> <span id="invServices"></span></p>
-  
-  <table style="width: 100%; margin-top: 20px; text-align: left;">
-    <tr><th>Subtotal:</th><td id="invSubtotal"></td></tr>
-    <tr><th>Tax:</th><td id="invTax"></td></tr>
-    <tr><th>Total Paid:</th><td id="invTotal" style="font-weight: bold;"></td></tr>
-    <tr><th>Payment Method:</th><td id="invPaymentMethod" style="font-style: italic;"></td></tr>
-    <tr id="invCashTenderedRow" style="display: none;"><th>Cash Tendered:</th><td id="invCashTendered"></td></tr>
-    <tr id="invChangeRow" style="display: none;"><th>Change:</th><td id="invChange"></td></tr>
-    <tr id="invGcBalanceRow" style="display: none;"><th>GC Remaining Balance:</th><td id="invGcBalance" style="font-weight: bold;"></td></tr>
-  </table>
-  
-  <!-- NEW: Container for the Gift Certificate -->
-  <div id="invReceiptItems"></div>
-  
-  <p style="margin-top: 40px; text-align: center; font-style: italic;">Thank you for your business!</p>
-</div>
-
 <script>
- let currentSearchResults = [];
-let pendingPayOrderId = ""; // Remembers which order we are paying
+  let currentSearchResults = [];
+  let pendingPayOrderId = "";
+  let pendingPayTransaction = null;
 
-async function executeSearch() {
-  const term = document.getElementById("searchInput").value;
-  if (!term) return;
+  async function executeSearch() {
+    const term = document.getElementById("searchInput").value;
+    if (!term) return;
 
-  const resultsDiv = document.getElementById("searchResults");
-  resultsDiv.innerHTML = "<p>Searching database...</p>";
+    const resultsDiv = document.getElementById("searchResults");
+    resultsDiv.innerHTML = "<p>Searching database...</p>";
 
-  try {
-    const activeLocation = document.getElementById("locationSelect").value; 
+    try {
+      const activeLocation = document.getElementById("locationSelect").value; 
 
-    const response = await fetch(GOOGLE_SCRIPT_URL, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain" },
-      body: JSON.stringify({
-        recordType: "search_transactions",
-        location: activeLocation,
-        searchTerm: term
-      })
-    });
-    
-    const result = await response.json();
-    
-    if (result.status === "success" && result.data.length > 0) {
-      currentSearchResults = result.data;
-      resultsDiv.innerHTML = currentSearchResults.map((t, index) => {
-        // Highlight Pending invoices in red
-        const isPending = t.paymentType === 'Pending';
-        const statusColor = isPending ? '#ef4444' : '#6b7280';
-        const fw = isPending ? 'bold' : 'normal';
+      const response = await fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({
+          recordType: "search_transactions",
+          location: activeLocation,
+          searchTerm: term
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (result.status === "success" && result.data.length > 0) {
+        currentSearchResults = result.data;
+        resultsDiv.innerHTML = currentSearchResults.map((t, index) => {
+          const isPending = t.paymentType === 'Pending';
+          const statusColor = isPending ? '#ef4444' : '#6b7280';
+          const fw = isPending ? 'bold' : 'normal';
 
-        return `
-        <div style="padding: 15px; border: 1px solid #e5e7eb; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; background: #f9fafb;">
-          <div>
-            <strong style="font-size: 16px;">${t.vehicle}</strong><br>
-            <small style="color: #6b7280;">${new Date(t.date).toLocaleDateString()} | ${t.services}</small><br>
-            <small style="color: ${statusColor}; font-weight: ${fw};">Total: ${t.total} (${t.paymentType})</small>
+          return `
+          <div style="padding: 15px; border: 1px solid #e5e7eb; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; background: #f9fafb;">
+            <div>
+              <strong style="font-size: 16px;">${t.vehicle}</strong><br>
+              <small style="color: #6b7280;">${new Date(t.date).toLocaleDateString()} | ${t.services}</small><br>
+              <small style="color: ${statusColor}; font-weight: ${fw};">Total: ${t.total} (${t.paymentType})</small>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              ${isPending ? `<button onclick="promptPayPending('${t.orderId}', '${t.total}')" style="padding: 10px 15px; background: #f59e0b; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Pay Bill</button>` : ''}
+              <button onclick="printInvoice(currentSearchResults[${index}])" style="padding: 10px 15px; background: #10b981; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Print PDF</button>
+            </div>
           </div>
-          <div style="display: flex; gap: 8px;">
-            ${isPending ? `<button onclick="promptPayPending('${t.orderId}', '${t.total}')" style="padding: 10px 15px; background: #f59e0b; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Pay Bill</button>` : ''}
-            <button onclick="printInvoice(currentSearchResults[${index}])" style="padding: 10px 15px; background: #10b981; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Print PDF</button>
-          </div>
-        </div>
-        `
-      }).join('');
-    } else {
-      resultsDiv.innerHTML = "<p>No transactions found. Try another search term.</p>";
-    }
-  } catch (err) {
-    resultsDiv.innerHTML = "<p>Error searching. Please try again.</p>";
-    console.error(err);
-  }
-}
-
-function promptPayPending(orderId, totalAmount) {
-  pendingPayOrderId = orderId;
-  document.getElementById("pendingOrderIdDisplay").innerText = orderId;
-  document.getElementById("pendingTotalDisplay").innerText = totalAmount;
-  // Hide the search modal temporarily so it doesn't overlap
-  document.getElementById("searchModalOverlay").style.display = "none"; 
-  document.getElementById("payPendingModalOverlay").style.display = "flex";
-}
-
-async function submitPendingPayment(method) {
-  const location = document.getElementById("locationSelect").value;
-  const btn = event.target;
-  const originalText = btn.innerText;
-  btn.innerText = "⏳ Processing...";
-  
-  try {
-    const response = await fetch(GOOGLE_SCRIPT_URL, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain" },
-      body: JSON.stringify({
-        recordType: "pay_pending_invoice",
-        location: location,
-        orderId: pendingPayOrderId,
-        newPaymentType: method
-      })
-    });
-    const result = await response.json();
-    
-    if (result.status === "success") {
-      alert(`Invoice successfully paid with ${method}!`);
-      closeModals();
-      document.getElementById('searchModalOverlay').style.display='flex'; 
-      executeSearch(); // Refresh the search results automatically
-    } else {
-      alert("Error: " + result.message);
-    }
-  } catch (err) {
-    alert("Network Error");
-  }
-  btn.innerText = originalText;
-}
-  // Map your locations to their physical addresses here:
-const locationAddresses = {
-  "Location 1 - Tampa Bay": "2522 W Tampa Bay Blvd, Tampa, FL 33607",
-  "Location 2 - Columbus": "3204 W Columbus Dr, Tampa, FL 33607",
-  "Location 3 - South": "6101 S Dale Mabry Hwy, Tampa FL 33611",
-  "Location 4 - Armenia": "6410 N Armenia Ave, Tampa FL 33604"
-};
-
-// Function to populate and print the invoice
-function printInvoice(transaction) {
-  // 1. Fill in the basic info
-  document.getElementById("invLocationAddress").innerText = locationAddresses[transaction.location] || "Address Not Found";
-  document.getElementById("invDate").innerText = new Date(transaction.date).toLocaleString();
-  document.getElementById("invOrder").innerText = transaction.orderId;
-  document.getElementById("invVehicle").innerText = transaction.vehicle;
-  document.getElementById("invServices").innerText = transaction.services;
-  document.getElementById("invSubtotal").innerText = transaction.subtotal;
-  document.getElementById("invTax").innerText = transaction.tax;
-  document.getElementById("invTotal").innerText = transaction.total;
- // NEW: Smart Payment Method Logic
-  let pMethod = (transaction.paymentMethod || transaction.paymentType || "Credit / Square").toString().trim(); 
-
-  if (transaction.appliedGcCode) {
-    let methodText = `Gift Card (${transaction.appliedGcCode})`;
-    if (transaction.total !== "$0.00" && transaction.total !== 0) {
-      methodText += ` & ${pMethod}`;
-    }
-    document.getElementById("invPaymentMethod").innerText = methodText;
-    document.getElementById("invGcBalanceRow").style.display = "table-row";
-    document.getElementById("invGcBalance").innerText = `$${transaction.remainingGcBalance.toFixed(2)}`;
-  } else {
-    if (pMethod === 'Pending') {
-      document.getElementById("invPaymentMethod").innerText = 'Pending (Bill Later)';
-    } else {
-      document.getElementById("invPaymentMethod").innerText = pMethod;
-    }
-    document.getElementById("invGcBalanceRow").style.display = "none";
-  }
-// NEW: Display Cash Tendered and Change
-  if (transaction.cashTendered) {
-    document.getElementById("invCashTenderedRow").style.display = "table-row";
-    document.getElementById("invCashTendered").innerText = transaction.cashTendered;
-    document.getElementById("invChangeRow").style.display = "table-row";
-    document.getElementById("invChange").innerText = transaction.changeDue;
-  } else {
-    document.getElementById("invCashTenderedRow").style.display = "none";
-    document.getElementById("invChangeRow").style.display = "none";
-  }
-// 2. Handle Dealer Logic
-  const dealerContainer = document.getElementById("invDealerContainer");
-  if (transaction.exemptDealer && transaction.exemptDealer.trim() !== "" && transaction.exemptDealer !== "N/A") {
-    
-    // This safely extracts just the dealer's name, even if they are re-printing an old receipt
-    let rawDealerName = transaction.exemptDealer.split(" (")[0].trim();
-    
-    document.getElementById("invDealerName").innerText = rawDealerName;
-    
-    // If it's a new sale, it just has the name. If it's a reprint, it has the cert inside parentheses.
-    document.getElementById("invDealerCert").innerText = transaction.exemptDealer;
-    
-    // Look up the address from the global dealers list
-    if (taxExemptDealers[rawDealerName] && taxExemptDealers[rawDealerName].address) {
-       document.getElementById("invDealerAddress").innerText = taxExemptDealers[rawDealerName].address;
-       document.getElementById("invDealerAddress").style.display = "block";
-    } else {
-       document.getElementById("invDealerAddress").style.display = "none";
-    }
-    
-    dealerContainer.style.display = "block";
-  } else {
-    dealerContainer.style.display = "none";
-  }
-
-  // NEW: Check if there are any gift cards in the order and build the printout
-  document.getElementById("invReceiptItems").innerHTML = ""; // 👇 THIS CLEARS THE GHOST RECEIPTS!
-  
-  let giftCardHTML = "";
-  (transaction.cart || []).forEach(item => {
-    if (item.isGiftCard && item.gcCode) {
-      giftCardHTML += `
-        <div style="border: 2px dashed #000; padding: 20px; margin-top: 30px; text-align: center; page-break-inside: avoid;">
-          <h2 style="margin: 0; font-size: 24px;">A+ WashOS Gift Certificate</h2>
-          <p style="font-size: 18px; margin: 10px 0;">Amount: <strong>$${item.price.toFixed(2)}</strong></p>
-          <div style="font-size: 32px; font-weight: 900; letter-spacing: 2px; margin: 15px 0;">${item.gcCode}</div>
-          <p style="font-size: 12px; color: #555;">Present this code at checkout to redeem.</p>
-        </div>
-      `;
-    }
-  });
-  
-  // Append it to the receipt items
-  document.getElementById("invReceiptItems").innerHTML += giftCardHTML;
-// 3. Trigger iPad Print Dialog (SAFARI FIX)
-  // Clear any existing print classes first
-  document.querySelectorAll('.print-section').forEach(el => el.classList.remove('active-print'));
-  
-  const invoiceDiv = document.getElementById("printableInvoice");
-  invoiceDiv.classList.add("active-print");
-  
-  // Give the iPad 300ms to render, then print without a removal timer
-  setTimeout(() => {
-    window.print(); 
-    closeModals();
-  }, 300);
-}
-    // --- 1. CONFIGURATION (REPLACE URL CAREFULLY, KEEP THE QUOTES!) ---
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxJX6GJEcl5OvCZ7Z7JAD72jSK8d7g7EJeK9Ud4dAiDb8-gPidrYvIOGpVAKw8h3Q2VFQ/exec"; 
-
-    const STATE_TAX_RATE = 0.06;
-    const LOCAL_TAX_RATE = 0.015;
-    const TOTAL_TAX_RATE = STATE_TAX_RATE + LOCAL_TAX_RATE;
-
-    let employees = {};
-    let taxExemptDealers = {};
-    let storeProducts = [];
-    let cart = [];
-    let appliedGcCode = null;
-    let appliedGcAmount = 0;
-    let remainingGcBalance = 0; //
-    let enteredPin = "";
-    let activeAttendant = "";
-    let activeCustomer = null;
-    
-    let isTaxExempt = false;
-    let selectedDealer = null;
-    let activePromo = null;
-    let promoDiscountPercent = 0;
-    let pointsUsedThisTicket = 0;
-    let selectedVehicleType = null;
-    
-    const standardServices = [
-      { id: 1, name: "Exterior", desc: "Outside hand wash, clean exterior windows, rims tire dressing.", prices: { "Car": 15, "SUV": 20, "Van/Large SUV": 25, "Truck": 25 } },
-      { id: 2, name: "Interior and Exterior", desc: "Outside hand wash, full vacuum, door jams, dashboard & console spray detailing, windows, perfume.", prices: { "Car": 20, "SUV": 25, "Van/Large SUV": 30, "Truck": 30 } },
-      { id: 3, name: "Deluxe", desc: "Interior and exterior with more detail, liquid wax, leather conditioner.", prices: { "Car": 30, "SUV": 40, "Van/Large SUV": 50, "Truck": 50 } },
-      { id: 4, name: "Speed Ceramic", desc: "Deluxe + Ceramic Spray Sealant, Meguiar's Ultimate, Microfiber Buff.", prices: { "Car": 50, "SUV": 60, "Van/Large SUV": 70, "Truck": 70 } },
-      { id: 5, name: "Ultimate Exterior", desc: "Deluxe, cream wax with orbital polisher, leather conditioner.", prices: { "Car": 70, "SUV": 80, "Van/Large SUV": 90, "Truck": 90 } },
-      { id: 6, name: "Engine Wash", desc: "Degreaser, steam clean, plastic dressing.", prices: { "Car": 30, "SUV": 30, "Van/Large SUV": 30, "Truck": 30 } },
-      { id: 7, name: "Lights Restoration", desc: "Full restoration of foggy or yellowed headlights.", prices: { "Car": 40, "SUV": 40, "Van/Large SUV": 40, "Truck": 40 } },
-      { id: 8, name: "Clay Bar", desc: "Remove paint impurities.", prices: { "Car": 150, "SUV": 150, "Van/Large SUV": 150, "Truck": 150 } },
-      { id: 9, name: "Exterior and Shampoo", desc: "Ultimate exterior plus deep interior shampoo treatment.", prices: { "Car": 160, "SUV": 180, "Van/Large SUV": 200, "Truck": 200 } },
-      { id: 10, name: "Supreme", desc: "Ultimate exterior and shampoo, engine wash.", prices: { "Car": 180, "SUV": 200, "Van/Large SUV": 220, "Truck": 220 } },
-      { id: 11, name: "A Plus House Pack", desc: "Hand wash, compound, wax and nano sealant polish.", prices: { "Car": 240, "SUV": 260, "Van/Large SUV": 280, "Truck": 280 } }
-    ];
-    let activeServices = JSON.parse(JSON.stringify(standardServices));
-
-    // --- DATA LOADING & PIN ENTRY ---
-    async function loadAppData() {
-      const statusDiv = document.getElementById("systemStatus");
-      const dealerSelect = document.getElementById("dealerSelect");
-      try {
-        const response = await fetch(GOOGLE_SCRIPT_URL);
-        const data = await response.json();
-        
-        if (data.employees) { employees = data.employees; }
-        if (data.dealers) {
-          taxExemptDealers = data.dealers;
-          dealerSelect.innerHTML = '<option value="">-- Select Exempt Dealer --</option>';
-          Object.keys(taxExemptDealers).forEach(dealerName => {
-            const option = document.createElement("option");
-            option.value = dealerName;
-            const discountPct = (taxExemptDealers[dealerName].discountRate * 100).toFixed(0);
-            option.text = `${dealerName} (${taxExemptDealers[dealerName].id}) - ${discountPct}% off`;
-            dealerSelect.add(option);
-          });
-        }
-       if (data.products) { storeProducts = data.products; } 
-        statusDiv.innerText = "🟢 System Ready (PINs Loaded)";
-      } catch (error) { 
-        statusDiv.innerText = "⚠️ Network Issue (Use Admin PIN)";
-        console.error("Failed to load app data."); 
+          `;
+        }).join('');
+      } else {
+        resultsDiv.innerHTML = "<p>No transactions found. Try another search term.</p>";
       }
+    } catch (err) {
+      resultsDiv.innerHTML = "<p>Error searching. Please try again.</p>";
+      console.error(err);
     }
+  }
 
- function addPin(num) {
-      if(enteredPin.length < 10) { // <-- Increased limit so Admin PINs fit!
-        enteredPin += num; 
-        document.getElementById("pinDisplay").innerText = "•".repeat(enteredPin.length); 
+  function promptPayPending(orderId, totalAmount) {
+    pendingPayOrderId = orderId;
+    pendingPayTransaction = currentSearchResults.find(t => t.orderId === orderId) || null;
+    document.getElementById("pendingOrderIdDisplay").innerText = orderId;
+    document.getElementById("pendingTotalDisplay").innerText = totalAmount;
+    document.getElementById("searchModalOverlay").style.display = "none"; 
+    document.getElementById("payPendingModalOverlay").style.display = "flex";
+  }
+
+  async function submitPendingPayment(method) {
+    const location = document.getElementById("locationSelect").value;
+    const btn = event.target;
+    const originalText = btn.innerText;
+    btn.innerText = "⏳ Processing...";
+    btn.disabled = true;
+
+    let squareTip = 0;
+
+    // 1. IF PAYING BY CREDIT CARD, WAKE UP THE SQUARE TERMINAL FIRST
+    if (method === "Credit Card") {
+      const cleanTotal = pendingPayTransaction 
+        ? (parseFloat(String(pendingPayTransaction.total).replace(/[^0-9.-]+/g, "")) || 0)
+        : (parseFloat(document.getElementById("pendingTotalDisplay").innerText.replace(/[^0-9.-]+/g, "")) || 0);
+      const cleanSub = pendingPayTransaction
+        ? (parseFloat(String(pendingPayTransaction.subtotal).replace(/[^0-9.-]+/g, "")) || cleanTotal)
+        : cleanTotal;
+      const cleanTax = pendingPayTransaction
+        ? (parseFloat(String(pendingPayTransaction.tax).replace(/[^0-9.-]+/g, "")) || 0)
+        : 0;
+
+      if (cleanTotal <= 0) {
+        alert("Invalid invoice total for Square checkout.");
+        btn.innerText = originalText;
+        btn.disabled = false;
+        return;
       }
-    }
-    
-    function clearPin() { 
-      enteredPin = ""; 
-      document.getElementById("pinDisplay").innerText = ""; 
-      document.getElementById("loginError").innerText = ""; 
-    }
-  
-async function submitPin() {
-      // Show loading state
-      const errorDisplay = document.getElementById("loginError");
-      errorDisplay.style.color = "#3b82f6";
-      errorDisplay.innerText = "Verifying PIN...";
+
+      let ccFee = Math.ceil((((cleanTotal * 0.026) + 0.15) / 0.974) * 100) / 100;
+
+      document.getElementById("payPendingModalOverlay").style.display = "none";
+      document.getElementById("squareModalOverlay").style.display = "flex";
 
       try {
-        const response = await fetch(GOOGLE_SCRIPT_URL, {
+        // Omit 'orderId' here so check_square_status doesn't create a duplicate new row
+        let sqRes = await fetch(GOOGLE_SCRIPT_URL, {
           method: "POST",
           headers: { "Content-Type": "text/plain" },
           body: JSON.stringify({
-            recordType: "verify_pos_pin",
-            location: document.getElementById("locationSelect").value, // 📍 Sends the tablet's location
-            pin: enteredPin
+            recordType: "square_checkout",
+            location: location,
+            subtotal: cleanSub,
+            taxAmount: cleanTax,
+            ccFee: ccFee,
+            isManualEntry: false
           })
         });
-        
-        const result = await response.json();
 
-// 🔒 BULLETPROOF CHECK: Must be success AND have a role!
-        if (result.status === "success" && result.role) {
-          activeAttendant = result.name || result.role;
-          document.getElementById("currentAttendantName").innerText = activeAttendant;
+        let sqResult = await sqRes.json();
+        if (sqResult.error || sqResult.errors) {
+          let errMsg = sqResult.error || sqResult.errors[0].detail;
+          alert("Square Error: " + errMsg);
+          document.getElementById("squareModalOverlay").style.display = "none";
+          btn.innerText = originalText;
+          btn.disabled = false;
+          return;
+        }
 
-          if (result.role === "Admin") {
-            // 👑 ADMIN PRIVILEGES (Settings Tab PINs): Unlocks Location & EOD
-            document.getElementById("locationSelect").disabled = false;
-            document.getElementById("locationSelect").style.borderColor = "#3b82f6";
-            document.getElementById("locationSelect").style.borderWidth = "2px";
-            document.getElementById("eodBtn").style.display = "block"; 
-          } else if (result.role === "Manager") {
-            // 👔 MANAGER PRIVILEGES (Roster Managers): Unlocks EOD Only
-            document.getElementById("locationSelect").disabled = true;
-            document.getElementById("locationSelect").style.borderColor = "#e5e7eb";
-            document.getElementById("locationSelect").style.borderWidth = "1px";
-            document.getElementById("eodBtn").style.display = "block"; 
-          } else {
-            // 👤 ATTENDANT PRIVILEGES (Roster Attendants): Everything Locked
-            document.getElementById("locationSelect").disabled = true;
-            document.getElementById("locationSelect").style.borderColor = "#e5e7eb";
-            document.getElementById("locationSelect").style.borderWidth = "1px";
-            document.getElementById("eodBtn").style.display = "none"; 
+        let checkoutId = sqResult.checkout.id;
+        let isWaiting = true;
+
+        while (isWaiting) {
+          await new Promise(r => setTimeout(r, 3000));
+          let statusRes;
+          try {
+            statusRes = await fetch(GOOGLE_SCRIPT_URL, {
+              method: "POST",
+              headers: { "Content-Type": "text/plain" },
+              body: JSON.stringify({ recordType: "check_square_status", checkoutId: checkoutId })
+            });
+          } catch (netErr) { continue; }
+
+          let statusJson;
+          try { statusJson = await statusRes.json(); } catch (e) { continue; }
+
+          if (statusJson.checkoutStatus === "COMPLETED") {
+            isWaiting = false;
+            squareTip = statusJson.tipAmount || 0;
+            document.getElementById("squareModalOverlay").style.display = "none";
+          } else if (statusJson.checkoutStatus === "CANCELED") {
+            isWaiting = false;
+            document.getElementById("squareModalOverlay").style.display = "none";
+            alert("Payment Canceled or Declined on Terminal.");
+            btn.innerText = originalText;
+            btn.disabled = false;
+            return;
           }
-          
-          errorDisplay.innerText = "";
-          document.getElementById("loginOverlay").style.display = "none";
-          clearPin();
-        } else {
-          // Display the backend error but DO NOT use clearPin()
-          errorDisplay.style.color = "#ef4444";
-          errorDisplay.innerText = "❌ " + (result.message || "Invalid PIN");
-          enteredPin = "";
-          document.getElementById("pinDisplay").innerText = "";
         }
       } catch (err) {
-        // Display the network/backend error
+        document.getElementById("squareModalOverlay").style.display = "none";
+        alert("Terminal Connection Error: " + err.message);
+        btn.innerText = originalText;
+        btn.disabled = false;
+        return;
+      }
+    }
+
+    // 2. MARK THE PENDING INVOICE AS PAID IN GOOGLE SHEETS
+    try {
+      const response = await fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({
+          recordType: "pay_pending_invoice",
+          location: location,
+          orderId: pendingPayOrderId,
+          newPaymentType: method,
+          tipAmount: squareTip
+        })
+      });
+      const result = await response.json();
+      
+      if (result.status === "success") {
+        alert(`Invoice ${pendingPayOrderId} successfully paid with ${method}!`);
+        closeModals();
+        document.getElementById('searchModalOverlay').style.display = 'flex'; 
+        executeSearch();
+      } else {
+        alert("Error: " + result.message);
+      }
+    } catch (err) {
+      alert("Network Error while updating invoice status.");
+    }
+    btn.innerText = originalText;
+    btn.disabled = false;
+  }
+
+  const locationAddresses = {
+    "Location 1 - Tampa Bay": "2522 W Tampa Bay Blvd, Tampa, FL 33607",
+    "Location 2 - Columbus": "3204 W Columbus Dr, Tampa, FL 33607",
+    "Location 3 - South": "6101 S Dale Mabry Hwy, Tampa FL 33611",
+    "Location 4 - Armenia": "6410 N Armenia Ave, Tampa FL 33604"
+  };
+
+  function printInvoice(transaction) {
+    document.getElementById("invLocationAddress").innerText = locationAddresses[transaction.location] || "Address Not Found";
+    document.getElementById("invDate").innerText = new Date(transaction.date).toLocaleString();
+    document.getElementById("invOrder").innerText = transaction.orderId;
+    document.getElementById("invVehicle").innerText = transaction.vehicle;
+    document.getElementById("invServices").innerText = transaction.services;
+    document.getElementById("invSubtotal").innerText = transaction.subtotal;
+    document.getElementById("invTax").innerText = transaction.tax;
+    document.getElementById("invTotal").innerText = transaction.total;
+
+    let pMethod = (transaction.paymentMethod || transaction.paymentType || "Credit / Square").toString().trim(); 
+
+    if (transaction.appliedGcCode) {
+      let methodText = `Gift Card (${transaction.appliedGcCode})`;
+      if (transaction.total !== "$0.00" && transaction.total !== 0) {
+        methodText += ` & ${pMethod}`;
+      }
+      document.getElementById("invPaymentMethod").innerText = methodText;
+      document.getElementById("invGcBalanceRow").style.display = "table-row";
+      document.getElementById("invGcBalance").innerText = `$${transaction.remainingGcBalance.toFixed(2)}`;
+    } else {
+      if (pMethod === 'Pending') {
+        document.getElementById("invPaymentMethod").innerText = 'Pending (Bill Later)';
+      } else {
+        document.getElementById("invPaymentMethod").innerText = pMethod;
+      }
+      document.getElementById("invGcBalanceRow").style.display = "none";
+    }
+
+    if (transaction.cashTendered) {
+      document.getElementById("invCashTenderedRow").style.display = "table-row";
+      document.getElementById("invCashTendered").innerText = transaction.cashTendered;
+      document.getElementById("invChangeRow").style.display = "table-row";
+      document.getElementById("invChange").innerText = transaction.changeDue;
+    } else {
+      document.getElementById("invCashTenderedRow").style.display = "none";
+      document.getElementById("invChangeRow").style.display = "none";
+    }
+
+    const dealerContainer = document.getElementById("invDealerContainer");
+    if (transaction.exemptDealer && transaction.exemptDealer.trim() !== "" && transaction.exemptDealer !== "N/A") {
+      let rawDealerName = transaction.exemptDealer.split(" (")[0].trim();
+      document.getElementById("invDealerName").innerText = rawDealerName;
+      document.getElementById("invDealerCert").innerText = transaction.exemptDealer;
+      
+      if (taxExemptDealers[rawDealerName] && taxExemptDealers[rawDealerName].address) {
+         document.getElementById("invDealerAddress").innerText = taxExemptDealers[rawDealerName].address;
+         document.getElementById("invDealerAddress").style.display = "block";
+      } else {
+         document.getElementById("invDealerAddress").style.display = "none";
+      }
+      dealerContainer.style.display = "block";
+    } else {
+      dealerContainer.style.display = "none";
+    }
+
+    document.getElementById("invReceiptItems").innerHTML = "";
+    
+    let giftCardHTML = "";
+    (transaction.cart || []).forEach(item => {
+      if (item.isGiftCard && item.gcCode) {
+        giftCardHTML += `
+          <div style="border: 2px dashed #000; padding: 20px; margin-top: 30px; text-align: center; page-break-inside: avoid;">
+            <h2 style="margin: 0; font-size: 24px;">A+ WashOS Gift Certificate</h2>
+            <p style="font-size: 18px; margin: 10px 0;">Amount: <strong>$${item.price.toFixed(2)}</strong></p>
+            <div style="font-size: 32px; font-weight: 900; letter-spacing: 2px; margin: 15px 0;">${item.gcCode}</div>
+            <p style="font-size: 12px; color: #555;">Present this code at checkout to redeem.</p>
+          </div>
+        `;
+      }
+    });
+    
+    document.getElementById("invReceiptItems").innerHTML += giftCardHTML;
+
+    document.querySelectorAll('.print-section').forEach(el => el.classList.remove('active-print'));
+    const invoiceDiv = document.getElementById("printableInvoice");
+    invoiceDiv.classList.add("active-print");
+    
+    setTimeout(() => {
+      window.print(); 
+      closeModals();
+    }, 300);
+  }
+
+  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxJX6GJEcl5OvCZ7Z7JAD72jSK8d7g7EJeK9Ud4dAiDb8-gPidrYvIOGpVAKw8h3Q2VFQ/exec"; 
+
+  const STATE_TAX_RATE = 0.06;
+  const LOCAL_TAX_RATE = 0.015;
+  const TOTAL_TAX_RATE = STATE_TAX_RATE + LOCAL_TAX_RATE;
+
+  let employees = {};
+  let taxExemptDealers = {};
+  let storeProducts = [];
+  let cart = [];
+  let appliedGcCode = null;
+  let appliedGcAmount = 0;
+  let remainingGcBalance = 0;
+  let enteredPin = "";
+  let activeAttendant = "";
+  let activeCustomer = null;
+  
+  let isTaxExempt = false;
+  let selectedDealer = null;
+  let activePromo = null;
+  let promoDiscountPercent = 0;
+  let pointsUsedThisTicket = 0;
+  let selectedVehicleType = null;
+  
+  const standardServices = [
+    { id: 1, name: "Exterior", desc: "Outside hand wash, clean exterior windows, rims tire dressing.", prices: { "Car": 15, "SUV": 20, "Van/Large SUV": 25, "Truck": 25 } },
+    { id: 2, name: "Interior and Exterior", desc: "Outside hand wash, full vacuum, door jams, dashboard & console spray detailing, windows, perfume.", prices: { "Car": 20, "SUV": 25, "Van/Large SUV": 30, "Truck": 30 } },
+    { id: 3, name: "Deluxe", desc: "Interior and exterior with more detail, liquid wax, leather conditioner.", prices: { "Car": 30, "SUV": 40, "Van/Large SUV": 50, "Truck": 50 } },
+    { id: 4, name: "Speed Ceramic", desc: "Deluxe + Ceramic Spray Sealant, Meguiar's Ultimate, Microfiber Buff.", prices: { "Car": 50, "SUV": 60, "Van/Large SUV": 70, "Truck": 70 } },
+    { id: 5, name: "Ultimate Exterior", desc: "Deluxe, cream wax with orbital polisher, leather conditioner.", prices: { "Car": 70, "SUV": 80, "Van/Large SUV": 90, "Truck": 90 } },
+    { id: 6, name: "Engine Wash", desc: "Degreaser, steam clean, plastic dressing.", prices: { "Car": 30, "SUV": 30, "Van/Large SUV": 30, "Truck": 30 } },
+    { id: 7, name: "Lights Restoration", desc: "Full restoration of foggy or yellowed headlights.", prices: { "Car": 40, "SUV": 40, "Van/Large SUV": 40, "Truck": 40 } },
+    { id: 8, name: "Clay Bar", desc: "Remove paint impurities.", prices: { "Car": 150, "SUV": 150, "Van/Large SUV": 150, "Truck": 150 } },
+    { id: 9, name: "Exterior and Shampoo", desc: "Ultimate exterior plus deep interior shampoo treatment.", prices: { "Car": 160, "SUV": 180, "Van/Large SUV": 200, "Truck": 200 } },
+    { id: 10, name: "Supreme", desc: "Ultimate exterior and shampoo, engine wash.", prices: { "Car": 180, "SUV": 200, "Van/Large SUV": 220, "Truck": 220 } },
+    { id: 11, name: "A Plus House Pack", desc: "Hand wash, compound, wax and nano sealant polish.", prices: { "Car": 240, "SUV": 260, "Van/Large SUV": 280, "Truck": 280 } }
+  ];
+  let activeServices = JSON.parse(JSON.stringify(standardServices));
+
+  async function loadAppData() {
+    const statusDiv = document.getElementById("systemStatus");
+    const dealerSelect = document.getElementById("dealerSelect");
+    try {
+      const response = await fetch(GOOGLE_SCRIPT_URL);
+      const data = await response.json();
+      
+      if (data.employees) { employees = data.employees; }
+      if (data.dealers) {
+        taxExemptDealers = data.dealers;
+        dealerSelect.innerHTML = '<option value="">-- Select Exempt Dealer --</option>';
+        Object.keys(taxExemptDealers).forEach(dealerName => {
+          const option = document.createElement("option");
+          option.value = dealerName;
+          const discountPct = (taxExemptDealers[dealerName].discountRate * 100).toFixed(0);
+          option.text = `${dealerName} (${taxExemptDealers[dealerName].id}) - ${discountPct}% off`;
+          dealerSelect.add(option);
+        });
+      }
+      if (data.products) { storeProducts = data.products; } 
+      statusDiv.innerText = "🟢 System Ready (PINs Loaded)";
+    } catch (error) { 
+      statusDiv.innerText = "⚠️ Network Issue (Use Admin PIN)";
+      console.error("Failed to load app data."); 
+    }
+  }
+
+  function addPin(num) {
+    if(enteredPin.length < 10) {
+      enteredPin += num; 
+      document.getElementById("pinDisplay").innerText = "•".repeat(enteredPin.length); 
+    }
+  }
+  
+  function clearPin() { 
+    enteredPin = ""; 
+    document.getElementById("pinDisplay").innerText = ""; 
+    document.getElementById("loginError").innerText = ""; 
+  }
+ 
+  async function submitPin() {
+    const errorDisplay = document.getElementById("loginError");
+    errorDisplay.style.color = "#3b82f6";
+    errorDisplay.innerText = "Verifying PIN...";
+
+    try {
+      const response = await fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({
+          recordType: "verify_pos_pin",
+          location: document.getElementById("locationSelect").value,
+          pin: enteredPin
+        })
+      });
+      
+      const result = await response.json();
+
+      if (result.status === "success" && result.role) {
+        activeAttendant = result.name || result.role;
+        document.getElementById("currentAttendantName").innerText = activeAttendant;
+
+        if (result.role === "Admin") {
+          document.getElementById("locationSelect").disabled = false;
+          document.getElementById("locationSelect").style.borderColor = "#3b82f6";
+          document.getElementById("locationSelect").style.borderWidth = "2px";
+          document.getElementById("eodBtn").style.display = "block"; 
+        } else if (result.role === "Manager") {
+          document.getElementById("locationSelect").disabled = true;
+          document.getElementById("locationSelect").style.borderColor = "#e5e7eb";
+          document.getElementById("locationSelect").style.borderWidth = "1px";
+          document.getElementById("eodBtn").style.display = "block"; 
+        } else {
+          document.getElementById("locationSelect").disabled = true;
+          document.getElementById("locationSelect").style.borderColor = "#e5e7eb";
+          document.getElementById("locationSelect").style.borderWidth = "1px";
+          document.getElementById("eodBtn").style.display = "none"; 
+        }
+        
+        errorDisplay.innerText = "";
+        document.getElementById("loginOverlay").style.display = "none";
+        clearPin();
+      } else {
         errorDisplay.style.color = "#ef4444";
-        errorDisplay.innerText = "❌ Backend Error: Make sure you Deployed New Version!";
+        errorDisplay.innerText = "❌ " + (result.message || "Invalid PIN");
         enteredPin = "";
         document.getElementById("pinDisplay").innerText = "";
       }
+    } catch (err) {
+      errorDisplay.style.color = "#ef4444";
+      errorDisplay.innerText = "❌ Backend Error: Make sure you Deployed New Version!";
+      enteredPin = "";
+      document.getElementById("pinDisplay").innerText = "";
     }
-    
- function logout() {
-      activeAttendant = ""; 
-      document.getElementById("currentAttendantName").innerText = "None";
-      document.getElementById("loginOverlay").style.display = "flex"; 
-      cart = []; 
-      selectedVehicleType = null;
-      document.getElementById("locationSelect").disabled = true;
-      document.getElementById("locationSelect").style.borderColor = "#e5e7eb";
-      document.getElementById("locationSelect").style.borderWidth = "1px";
-      document.getElementById("eodBtn").style.display = "none"; // HIDE EOD BUTTON
-      resetToRetail(); 
-      updateCart();
-    }
-
-    function saveTabletLocation() { localStorage.setItem("washos_location", document.getElementById("locationSelect").value); }
-    function loadTabletLocation() { const savedLoc = localStorage.getItem("washos_location"); if(savedLoc) { document.getElementById("locationSelect").value = savedLoc; } }
-    function addColor(colorStr) { const input = document.getElementById("vehiclePlate"); input.value = input.value ? colorStr + " " + input.value : colorStr + " "; }
-
-    // --- MODALS & TIMECLOCK ---
-   function openTimeclock() { 
-  document.getElementById("timeclockModalOverlay").style.display = "flex"; 
-  document.getElementById("tcPin").value = ""; // Clears the PIN box for a fresh punch
-  document.getElementById("tcStatus").innerText = ""; // Clears any old status messages
-}
-    function openPromoModal() { document.getElementById("promoModalOverlay").style.display = "flex"; }
-    function closeModals() { 
-const modals = [
-    "paymentModalOverlay", 
-    "timeclockModalOverlay", 
-    "promoModalOverlay", 
-    "squareModalOverlay", 
-    "searchModalOverlay", 
-    "cashModalOverlay",
-    "customerModalOverlay",
-    "eodModalOverlay",
-    "payPendingModalOverlay",
-    "squareReportModalOverlay",
-    "ticketDiscountModalOverlay",
-    "extraWorkModalOverlay"
-  ];
-  
-  modals.forEach(id => {
-    let el = document.getElementById(id);
-    if (el) el.style.display = "none"; 
-  });
-
-  // NEW: Wipe the search modal clean when closed
-  const searchInput = document.getElementById("searchInput");
-  if (searchInput) searchInput.value = "";
-  
-  const searchResults = document.getElementById("searchResults");
-  if (searchResults) searchResults.innerHTML = "";
-}
-
-async function logTimeclock(actionType) {
-      const pinInput = document.getElementById("tcPin").value.trim();
-      
-      if (!pinInput) { 
-        alert("Please enter your PIN to punch the clock."); 
-        return; 
-      }
-
-      const statusDiv = document.getElementById("tcStatus");
-      statusDiv.style.color = "#3b82f6"; 
-      statusDiv.innerText = "Verifying PIN...";
-
-      // Exact same payload format as your QR codes
-      const payload = { 
-        recordType: "timeclock", 
-        location: document.getElementById("locationSelect").value, 
-        pin: pinInput, 
-        action: actionType 
-      };
-
-      try {
-        // We removed 'mode: no-cors' here so the tablet can read the JSON success response
-        const response = await fetch(GOOGLE_SCRIPT_URL, { 
-          method: "POST", 
-          headers: { "Content-Type": "text/plain" }, 
-          body: JSON.stringify(payload) 
-        });
-        
-        const result = await response.json();
-
-        if (result.status === "success") {
-           statusDiv.style.color = "#10b981"; 
-           statusDiv.innerText = `✅ ${result.name} successfully ${actionType}ed!`;
-           
-           // Clear the PIN field for the next employee
-           document.getElementById("tcPin").value = ""; 
-           
-           setTimeout(() => { closeModals(); statusDiv.innerText = ""; }, 2500);
-        } else {
-           statusDiv.style.color = "#ef4444";
-           statusDiv.innerText = "❌ " + result.message;
-        }
-      } catch (err) { 
-        statusDiv.style.color = "#ef4444"; 
-        statusDiv.innerText = "❌ Network Error. Please try again."; 
-      }
-    }
- 
-  // --- CUSTOMER LOYALTY LOGIC ---
-async function lookupCustomer() {
-  const phone = document.getElementById("customerPhone").value.trim();
-  if (phone.length < 10) return alert("Enter a valid phone number.");
-  
-  try {
-    const response = await fetch(GOOGLE_SCRIPT_URL, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain" },
-      body: JSON.stringify({ recordType: "lookup_customer", phone: phone })
-    });
-    const result = await response.json();
-    
-    if (result.status === "success") {
-      setActiveCustomer(result.data);
-    } else {
-      document.getElementById("customerSearchSection").style.display = "none";
-      document.getElementById("customerRegSection").style.display = "block";
-    }
-  } catch (err) { alert("Error connecting to database."); }
-}
-
-async function registerCustomer() {
-  const name = document.getElementById("customerName").value.trim();
-  const email = document.getElementById("customerEmail").value.trim();
-  const phone = document.getElementById("customerPhone").value.trim();
-  
-  if (!name) return alert("Name is required.");
-  
-  try {
-    const response = await fetch(GOOGLE_SCRIPT_URL, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain" },
-      body: JSON.stringify({ recordType: "register_customer", name: name, phone: phone, email: email })
-    });
-    const result = await response.json();
-    
-    if (result.status === "success") {
-      setActiveCustomer({ name: name, phone: phone, points: 0 });
-    }
-  } catch (err) { alert("Error registering customer."); }
-}
-
-function setActiveCustomer(custData) {
-  activeCustomer = custData;
-  document.getElementById("customerSearchSection").style.display = "none";
-  document.getElementById("customerRegSection").style.display = "none";
-  document.getElementById("activeCustomerSection").style.display = "block";
-  
-  document.getElementById("dispCustName").innerText = custData.name;
-  document.getElementById("dispCustPoints").innerText = custData.points;
-  
-  // Update top bar button to show their name
-  document.getElementById("addCustomerBtn").innerText = `👤 ${custData.name} (${custData.points} pts)`;
-  document.getElementById("addCustomerBtn").style.background = "#10b981"; // Turn green
-  document.getElementById("addCustomerBtn").style.color = "white";
-}
-
-function removeCustomer() {
-  activeCustomer = null;
-  document.getElementById("addCustomerBtn").innerText = "👤 Add Customer";
-  document.getElementById("addCustomerBtn").style.background = "#fce7f3";
-  document.getElementById("addCustomerBtn").style.color = "#be185d";
-  
-  document.getElementById("customerPhone").value = "";
-  document.getElementById("customerName").value = "";
-  document.getElementById("activeCustomerSection").style.display = "none";
-  document.getElementById("customerSearchSection").style.display = "block";
-  closeModals();
-}
-
-function applyReward(rewardName, pointCost) {
-  if (activeCustomer.points < pointCost) return alert("Not enough points for this reward.");
-  if (cart.length === 0) return alert("Add a standard service to the ticket first.");
-  
-  // Add the free upgrade to the cart
-  cart.push({ id: 'reward-' + Date.now(), name: `🎁 Reward: ${rewardName}`, price: 0 });
-  pointsUsedThisTicket += pointCost;
-  updateCart();
-  closeModals();
-  alert(`Applied ${rewardName}! ${pointCost} points will be deducted at checkout.`);
-}
- 
-    // --- PRICING & MENU ---
-    function toggleTaxExempt() { isTaxExempt = document.getElementById("taxExemptToggle").checked; document.getElementById("dealerSelectContainer").style.display = isTaxExempt ? "block" : "none"; if (!isTaxExempt) { document.getElementById("dealerSelect").value = ""; selectedDealer = null; } cart = []; recalculatePricing(); updateCart(); }
-    function handleDealerChange() { const dealerKey = document.getElementById("dealerSelect").value; selectedDealer = (dealerKey && taxExemptDealers[dealerKey]) ? dealerKey : null; cart = []; recalculatePricing(); updateCart(); }
-    function applyPromo() { const holiday = document.getElementById("promoHoliday").value; const pct = parseFloat(document.getElementById("promoPercent").value); if (!holiday || isNaN(pct) || pct <= 0 || pct > 100) return alert("Enter valid details."); activePromo = holiday; promoDiscountPercent = pct; cart = []; recalculatePricing(); updateCart(); closeModals(); }
-    function clearPromo() { activePromo = null; promoDiscountPercent = 0; cart = []; recalculatePricing(); updateCart(); closeModals(); }
-    function resetToRetail() { selectedDealer = null; activePromo = null; promoDiscountPercent = 0; if (document.getElementById("taxExemptToggle").checked) document.getElementById("taxExemptToggle").click(); recalculatePricing(); }
-
-   function recalculatePricing() {
-      const dDiscount = (selectedDealer && taxExemptDealers[selectedDealer]) ? taxExemptDealers[selectedDealer].discountRate : 0;
-      const pDiscount = activePromo ? (promoDiscountPercent / 100) : 0;
-      
-      // Check if it's a standard discount vs a seasonal one
-      const standardDiscounts = ["Military", "First Responder", "Senior Citizen", "Employee"];
-      const isStandardDiscount = activePromo && standardDiscounts.includes(activePromo);
-
-      activeServices = standardServices.map(service => {
-        let newPrices = {}; 
-        let wasPromoApplied = false;
-        for(let type in service.prices) {
-          let price = service.prices[type];
-          if (dDiscount > 0) price = price * (1 - dDiscount);
-          
-          // Apply discount if it's standard OR if the service is $50+
-          if (pDiscount > 0 && (isStandardDiscount || service.prices[type] >= 50)) { 
-            price = price * (1 - pDiscount); 
-            wasPromoApplied = true; 
-          }
-          newPrices[type] = price;
-        }
-        let newName = service.name;
-        if (dDiscount > 0) newName += " (Dealer)";
-        if (wasPromoApplied) newName += ` (${activePromo} -${promoDiscountPercent}%)`;
-        return { ...service, prices: newPrices, name: newName };
-      });
-      document.getElementById("dealerBanner").style.display = dDiscount > 0 ? "block" : "none";
-      if(selectedDealer) document.getElementById("activeDealerName").innerText = selectedDealer;
-      document.getElementById("promoBanner").style.display = activePromo ? "block" : "none";
-      if(activePromo) document.getElementById("activePromoName").innerText = `${activePromo} (${promoDiscountPercent}% off)`;
-      renderMenu();
-    }
-
-    function selectVehicleType(type) { selectedVehicleType = type; renderMenu(); }
-    function clearVehicleType() { selectedVehicleType = null; renderMenu(); }
-
-    function addCustomItem() {
-      const name = document.getElementById("customItemName").value.trim(); const price = parseFloat(document.getElementById("customItemPrice").value);
-      if (!name || isNaN(price) || price < 0) return alert("Enter valid data.");
-      cart.push({ id: 'custom-' + Date.now(), name: "Custom - " + name, price: price });
-      document.getElementById("customItemName").value = ""; document.getElementById("customItemPrice").value = ""; updateCart();
-    }
-  // --- TICKET DISCOUNT & ADDITIONAL WORK LOGIC ---
-    function openTicketDiscountModal() {
-      if (cart.length === 0) return alert("Add a service to the ticket first before applying a discount.");
-      document.getElementById("ticketDiscReason").value = "";
-      document.getElementById("ticketDiscType").value = "dollar";
-      document.getElementById("ticketDiscValue").value = "";
-      document.getElementById("ticketDiscountModalOverlay").style.display = "flex";
-    }
-
-    function setQuickDiscount(reason, type, val) {
-      document.getElementById("ticketDiscReason").value = reason;
-      document.getElementById("ticketDiscType").value = type;
-      document.getElementById("ticketDiscValue").value = val;
-    }
-
-    function applyTicketDiscount() {
-      const reason = document.getElementById("ticketDiscReason").value.trim() || "Special";
-      const type = document.getElementById("ticketDiscType").value;
-      const val = parseFloat(document.getElementById("ticketDiscValue").value);
-
-      if (isNaN(val) || val <= 0) return alert("Please enter a valid discount amount.");
-
-      const currentSubtotal = cart.reduce((sum, item) => sum + item.price, 0);
-      if (currentSubtotal <= 0) return alert("Ticket subtotal is already $0.00.");
-
-      let discountDollars = 0;
-      let label = "";
-
-      if (type === "percent") {
-        if (val > 100) return alert("Percentage cannot exceed 100%.");
-        discountDollars = +(currentSubtotal * (val / 100)).toFixed(2);
-        label = `Discount - ${reason} (${val}% Off)`;
-      } else {
-        discountDollars = Math.min(val, currentSubtotal); // Prevent negative ticket totals
-        label = `Discount - ${reason}`;
-      }
-
-      cart.push({
-        id: 'disc-' + Date.now(),
-        name: label,
-        price: -discountDollars
-      });
-
-      updateCart();
-      closeModals();
-    }
-
-    function openExtraWorkModal() {
-      document.getElementById("extraWorkDesc").value = "";
-      document.getElementById("extraWorkPrice").value = "";
-      document.getElementById("extraWorkModalOverlay").style.display = "flex";
-    }
-
-    function fillExtraWork(desc, price) {
-      document.getElementById("extraWorkDesc").value = desc;
-      document.getElementById("extraWorkPrice").value = price;
-    }
-
-    function applyExtraWork() {
-      const desc = document.getElementById("extraWorkDesc").value.trim();
-      const price = parseFloat(document.getElementById("extraWorkPrice").value);
-
-      if (!desc || isNaN(price) || price <= 0) {
-        return alert("Please enter both a description and a valid dollar amount.");
-      }
-
-      cart.push({
-        id: 'extra-' + Date.now(),
-        name: `Add-On - ${desc}`,
-        price: price
-      });
-
-      updateCart();
-      closeModals();
-    }
-
-    function renderMenu() {
-      const grid = document.getElementById("menuGrid"); const backBtn = document.getElementById("backBtn");
-      if (!selectedVehicleType) {
-        backBtn.style.display = "none";
-        grid.innerHTML = `
-          <div class="card" style="text-align:center; padding: 40px 20px;" onclick="selectVehicleType('Car')"><div style="font-size: 50px; margin-bottom: 15px;">🚗</div><h3>Car</h3></div>
-          <div class="card" style="text-align:center; padding: 40px 20px;" onclick="selectVehicleType('SUV')"><div style="font-size: 50px; margin-bottom: 15px;">🚙</div><h3>SUV</h3></div>
-          <div class="card" style="text-align:center; padding: 40px 20px;" onclick="selectVehicleType('Van/Large SUV')"><div style="font-size: 50px; margin-bottom: 15px;">🚐</div><h3>Van / Large SUV</h3></div>
-          <div class="card" style="text-align:center; padding: 40px 20px;" onclick="selectVehicleType('Truck')"><div style="font-size: 50px; margin-bottom: 15px;">🛻</div><h3>Truck</h3></div>
-          <div class="card" style="text-align:center; padding: 40px 20px;" onclick="selectVehicleType('Custom')"><div style="font-size: 50px; margin-bottom: 15px;">✏️</div><h3>Custom Pricing</h3></div>
-          <div class="card" style="text-align:center; padding: 40px 20px; background: #fdf4ff; border: 2px dashed #f0abfc;" onclick="openPromoModal()"><div style="font-size: 50px; margin-bottom: 15px;">🎁</div><h3 style="color: #a21caf;">Discounts & Promos</h3></div>
-          <div class="card" style="text-align:center; padding: 40px 20px; background: #f0fdf4; border: 2px dashed #4ade80;" onclick="selectVehicleType('Store')"><div style="font-size: 50px; margin-bottom: 15px;">🛍️</div><h3 style="color: #166534;">Store Products</h3></div>
-          <div class="card" style="text-align:center; padding: 40px 20px; background: #fffbeb; border: 2px dashed #f59e0b;" onclick="addGiftCard()"><div style="font-size: 50px; margin-bottom: 15px;">💳</div><h3 style="color: #b45309;">Sell Gift Card</h3></div>
-        `;
-      } else if (selectedVehicleType === 'Custom') {
-        backBtn.style.display = "inline-block";
-        grid.innerHTML = `
-          <div style="grid-column: 1 / -1; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); text-align: center;">
-            <h3 style="margin-bottom: 20px; font-size: 22px;">Add Custom Item</h3>
-            <div style="max-width: 400px; margin: 0 auto;">
-              <input type="text" id="customItemName" class="input-field" placeholder="Description (e.g., Boat Wash)">
-              <input type="number" id="customItemPrice" class="input-field" placeholder="Price ($)" step="0.01">
-              <button class="submit-btn" style="padding: 16px; margin-top: 15px;" onclick="addCustomItem()">ADD TO TICKET</button>
-            </div>
-          </div>
-        `; 
-      } else if (selectedVehicleType === 'Store') {
-        backBtn.style.display = "inline-block";
-        grid.innerHTML = storeProducts.map((item, index) => `
-          <div class="card" onclick="addStoreItem(${index})">
-            <h3 style="color: #166534;">${item.name}</h3>
-            <div class="price" style="background: #dcfce7; color: #166534;">$${item.price.toFixed(2)}</div>
-          </div>
-        `).join('');
-      } else {
-        backBtn.style.display = "inline-block";
-        grid.innerHTML = activeServices.map(item => `
-          <div class="card" onclick="addToCart(${item.id})">
-            <h3>${item.name}</h3><p>${item.desc}</p><div class="price">$${item.prices[selectedVehicleType].toFixed(2)}</div>
-          </div>
-        `).join('');
-      }
-    }
-
-    function addToCart(id) { const item = activeServices.find(s => s.id === id); cart.push({ id: item.id, name: `${selectedVehicleType} - ${item.name}`, price: item.prices[selectedVehicleType] }); updateCart(); }
-    function addStoreItem(index) { 
-      const item = storeProducts[index]; 
-      cart.push({ id: 'store-' + Date.now(), name: `Retail - ${item.name}`, price: item.price }); 
-      updateCart(); 
-    }
-    function addGiftCard() {
-      // 1. Prompt for the dollar amount
-      let amountStr = prompt("Enter Gift Card Amount ($):");
-      if (!amountStr) return; // Stop if they hit cancel
-      
-      let amount = parseFloat(amountStr);
-      if (isNaN(amount) || amount <= 0) {
-        alert("Please enter a valid amount.");
-        return;
-      }
-
-      // 2. Generate a random unique code (e.g., GC-A4X9-8B2M)
-      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-      let code = 'GC-';
-      for (let i = 0; i < 4; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
-      code += '-';
-      for (let i = 0; i < 4; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
-
-      // 3. Add to cart
-      cart.push({ 
-        id: 'giftcard-' + Date.now(), 
-        name: `Gift Card (${code})`, 
-        price: amount,
-        isGiftCard: true,
-        gcCode: code
-      });
-      
-      updateCart();
-    }
-    function removeFromCart(index) { cart.splice(index, 1); updateCart(); }
-
-    function updateCart() {
-      const cartContainer = document.getElementById("cartItems"); 
-      document.getElementById("itemCount").innerText = cart.length === 1 ? "1 item" : cart.length + " items";
-      
-      if (cart.length === 0) {
-        cartContainer.innerHTML = `<div style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #9ca3af; text-align: center;"><div style="font-size: 40px; margin-bottom: 10px;">🛒</div><p>Ticket is empty</p></div>`;
-        document.getElementById("subtotalAmount").innerText = "$0.00"; 
-        document.getElementById("taxAmount").innerText = "$0.00"; 
-        document.getElementById("grandTotal").innerText = "$0.00"; 
-        return;
-      }
-      
-      cartContainer.innerHTML = cart.map((item, index) => `<div class="cart-item"><div><div class="cart-item-name">${item.name}</div><div class="cart-item-price">$${item.price.toFixed(2)}</div></div><button class="remove-btn" onclick="removeFromCart(${index})">×</button></div>`).join('');
-      
-      const subtotal = cart.reduce((sum, item) => sum + item.price, 0); 
-      const taxAmount = isTaxExempt ? 0 : (subtotal * TOTAL_TAX_RATE); 
-      const grandTotal = subtotal + taxAmount;
-      
-      document.getElementById("subtotalAmount").innerText = `$${subtotal.toFixed(2)}`; 
-      document.getElementById("taxAmount").innerText = isTaxExempt ? "$0.00 (Exempt)" : `$${taxAmount.toFixed(2)}`; 
-      document.getElementById("grandTotal").innerText = `$${grandTotal.toFixed(2)}`;
-    }
-
-    function promptPayment() {
-      appliedGcCode = null;
-      appliedGcAmount = 0;
-      remainingGcBalance = 0;
-      // 2. NEW: Reset the physical button back to orange
-      const gcBtn = document.getElementById("gcBtn");
-      if (gcBtn) {
-        gcBtn.innerText = "🎁 Redeem Gift Card";
-        gcBtn.style.background = "#f59e0b"; // Back to orange
-        gcBtn.disabled = false;
-      }
-      if (cart.length === 0) return alert("Add a service first.");
-      if (isTaxExempt && !selectedDealer) return alert("Select an Exempt Dealer.");
-      document.getElementById("paymentModalOverlay").style.display = "flex";
-    }
-
-// --- SQUARE INTEGRATION & VERIFIED LOGGING LOGIC ---
-async function processOrder(selectedPaymentType) {
-  let squareTip = 0;
-  closeModals(); 
-  const submitBtn = document.getElementById("submitBtn"); 
-  const statusMsg = document.getElementById("statusMsg");
-  
-  submitBtn.disabled = true; 
-  
-  const subtotal = cart.reduce((sum, item) => sum + item.price, 0); 
-  const taxAmount = isTaxExempt ? 0 : (subtotal * TOTAL_TAX_RATE); 
-  let grandTotal = subtotal + taxAmount;
-  if (appliedGcAmount > 0) {
-    grandTotal -= appliedGcAmount;
-    if (grandTotal < 0) grandTotal = 0;
   }
-  const make = document.getElementById("vehicleMake").value; 
-  const plate = document.getElementById("vehiclePlate").value;
-  const orderId = "ORD-" + Math.floor(100000 + Math.random() * 900000);
+  
+  function logout() {
+    activeAttendant = ""; 
+    document.getElementById("currentAttendantName").innerText = "None";
+    document.getElementById("loginOverlay").style.display = "flex"; 
+    cart = []; 
+    selectedVehicleType = null;
+    document.getElementById("locationSelect").disabled = true;
+    document.getElementById("locationSelect").style.borderColor = "#e5e7eb";
+    document.getElementById("locationSelect").style.borderWidth = "1px";
+    document.getElementById("eodBtn").style.display = "none";
+    resetToRetail(); 
+    updateCart();
+  }
 
-  // Build the full sale data upfront so the backend can auto-save it if Square completes!
-  const baseSaleData = {
-    location: document.getElementById("locationSelect").value,
-    orderId: orderId,
-    cart: cart,
-    appliedGcCode: appliedGcCode,
-    appliedGcAmount: appliedGcAmount,
-    services: cart.map(item => item.name).join(", "),
-    subtotal: subtotal,
-    taxAmount: taxAmount,
-    grandTotal: grandTotal,
-    vehicleInfo: (make || plate) ? `${make} ${plate}`.trim() : "N/A",
-    notes: document.getElementById("orderNotes").value,
-    attendant: activeAttendant,
-    exemptDealer: isTaxExempt ? `${selectedDealer} (${taxExemptDealers[selectedDealer].id})` : "N/A",
-    paymentType: selectedPaymentType,
-    customerPhone: activeCustomer ? activeCustomer.phone : null,
-    pointsUsed: pointsUsedThisTicket
-  };
+  function saveTabletLocation() { localStorage.setItem("washos_location", document.getElementById("locationSelect").value); }
+  function loadTabletLocation() { const savedLoc = localStorage.getItem("washos_location"); if(savedLoc) { document.getElementById("locationSelect").value = savedLoc; } }
+  function addColor(colorStr) { const input = document.getElementById("vehiclePlate"); input.value = input.value ? colorStr + " " + input.value : colorStr + " "; }
 
-  let alreadySavedByServer = false;
-
-  // =====================================================================
-  // 1. TRIGGER SQUARE IF CREDIT CARD IS SELECTED
-  // =====================================================================
-  if (selectedPaymentType === 'Credit Card') {
-    document.getElementById("squareModalOverlay").style.display = "flex";
+  function openTimeclock() { 
+    document.getElementById("timeclockModalOverlay").style.display = "flex"; 
+    document.getElementById("tcPin").value = "";
+    document.getElementById("tcStatus").innerText = "";
+  }
+  function openPromoModal() { document.getElementById("promoModalOverlay").style.display = "flex"; }
+  function closeModals() { 
+    const modals = [
+      "paymentModalOverlay", 
+      "timeclockModalOverlay", 
+      "promoModalOverlay", 
+      "squareModalOverlay", 
+      "searchModalOverlay", 
+      "cashModalOverlay",
+      "customerModalOverlay",
+      "eodModalOverlay",
+      "payPendingModalOverlay",
+      "squareReportModalOverlay",
+      "ticketDiscountModalOverlay",
+      "extraWorkModalOverlay"
+    ];
     
- let ccFee = Math.ceil((((grandTotal * 0.026) + 0.15) / 0.974) * 100) / 100; // Exact Square Gross-Up (rounded up)
+    modals.forEach(id => {
+      let el = document.getElementById(id);
+      if (el) el.style.display = "none"; 
+    });
 
-    const squarePayload = {
-      ...baseSaleData,
-      recordType: "square_checkout",
-      ccFee: ccFee,
-      isManualEntry: document.getElementById("manualEntryCheck").checked // 📞 Phone Order status
+    const searchInput = document.getElementById("searchInput");
+    if (searchInput) searchInput.value = "";
+    
+    const searchResults = document.getElementById("searchResults");
+    if (searchResults) searchResults.innerHTML = "";
+  }
+
+  async function logTimeclock(actionType) {
+    const pinInput = document.getElementById("tcPin").value.trim();
+    
+    if (!pinInput) { 
+      alert("Please enter your PIN to punch the clock."); 
+      return; 
+    }
+
+    const statusDiv = document.getElementById("tcStatus");
+    statusDiv.style.color = "#3b82f6"; 
+    statusDiv.innerText = "Verifying PIN...";
+
+    const payload = { 
+      recordType: "timeclock", 
+      location: document.getElementById("locationSelect").value, 
+      pin: pinInput, 
+      action: actionType 
     };
-    
+
     try {
-      let response = await fetch(GOOGLE_SCRIPT_URL, { 
-        method: "POST", 
-        headers: { "Content-Type": "text/plain" },
-        body: JSON.stringify(squarePayload)  
-      });
-      
-      let result = await response.json();
-  
-      if (result.error) {
-        console.error("Backend Error:", result.error);
-        alert("Google Error: " + result.error);
-        document.getElementById("squareModalOverlay").style.display = "none";
-        submitBtn.disabled = false; submitBtn.innerText = "RECORD SALE"; return;
-      }
-      if (result.errors) {
-        console.error("Square API Error:", result.errors);
-        alert("Square Error: " + result.errors[0].detail); 
-        document.getElementById("squareModalOverlay").style.display = "none";
-        submitBtn.disabled = false; submitBtn.innerText = "RECORD SALE"; return;
-      }
-  
-      let checkoutId = result.checkout.id;
-      let isWaiting = true;
-      
-      while (isWaiting) {
-        await new Promise(resolve => setTimeout(resolve, 3000));
-        
-        let statusResponse;
-        try {
-          statusResponse = await fetch(GOOGLE_SCRIPT_URL, {
-            method: "POST",
-            headers: { "Content-Type": "text/plain" },
-            body: JSON.stringify({ recordType: "check_square_status", checkoutId: checkoutId })
-          });
-        } catch (networkErr) {
-          console.warn("Network drop detected, retrying...", networkErr);
-          continue; 
-        }
-        
-        let rawText = await statusResponse.text();
-        let statusResult;
-        try {
-          statusResult = JSON.parse(rawText);
-        } catch (parseError) {
-          console.warn("Google returned non-JSON. Ignoring and trying again...", rawText);
-          continue; 
-        }
-        
-        let currentStatus = statusResult.checkoutStatus;
-        if (currentStatus === "COMPLETED") {
-          isWaiting = false; 
-          squareTip = statusResult.tipAmount || 0;
-          if (statusResult.autoLogged === true) {
-            alreadySavedByServer = true; // ✅ Server already wrote it to the Sheet!
-          }
-          document.getElementById("squareModalOverlay").style.display = "none";
-        } else if (currentStatus === "CANCELED") {
-          isWaiting = false; 
-          document.getElementById("squareModalOverlay").style.display = "none";
-          alert("Payment Canceled or Declined. Please select Cash or try again.");
-          submitBtn.disabled = false; submitBtn.innerText = "RECORD SALE"; return; 
-        }
-      }
-    } catch (error) {
-      console.error("Square Error:", error);
-      document.getElementById("squareModalOverlay").style.display = "none";
-      alert("CRASH LOG: " + error.message); 
-      submitBtn.disabled = false; submitBtn.innerText = "RECORD SALE"; return; 
-    }
-  }
-
-  // =====================================================================
-  // 2. LOG SALE IN SHEETS (WITH VERIFIED RESPONSE & DUPLICATE PROTECTION)
-  // =====================================================================
-  submitBtn.innerText = "SAVING TO DATABASE..."; 
-  statusMsg.style.color = "#3b82f6"; 
-  statusMsg.innerText = "Logging transaction...";
-
-  const payload = {
-    ...baseSaleData,
-    recordType: "sale",
-    tipAmount: squareTip
-  };
-
-  let saveSuccess = alreadySavedByServer;
-  let attempt = 0;
-
-  while (attempt < 5 && !saveSuccess) {
-    attempt++;
-    try {
-      const saveRes = await fetch(GOOGLE_SCRIPT_URL, { 
+      const response = await fetch(GOOGLE_SCRIPT_URL, { 
         method: "POST", 
         headers: { "Content-Type": "text/plain" }, 
         body: JSON.stringify(payload) 
       });
       
-      const saveJson = await saveRes.json();
-      if (saveJson && saveJson.status === "success") {
-        saveSuccess = true;
+      const result = await response.json();
+
+      if (result.status === "success") {
+         statusDiv.style.color = "#10b981"; 
+         statusDiv.innerText = `✅ ${result.name} successfully ${actionType}ed!`;
+         document.getElementById("tcPin").value = ""; 
+         setTimeout(() => { closeModals(); statusDiv.innerText = ""; }, 2500);
       } else {
-        throw new Error(saveJson.message || "Database did not confirm save");
+         statusDiv.style.color = "#ef4444";
+         statusDiv.innerText = "❌ " + result.message;
       }
-    } catch (err) {
-      console.warn(`Attempt ${attempt} failed. Retrying...`, err);
-      await new Promise(r => setTimeout(r, 3000)); 
+    } catch (err) { 
+      statusDiv.style.color = "#ef4444"; 
+      statusDiv.innerText = "❌ Network Error. Please try again."; 
+    }
+  }
+ 
+  async function lookupCustomer() {
+    const phone = document.getElementById("customerPhone").value.trim();
+    if (phone.length < 10) return alert("Enter a valid phone number.");
+    
+    try {
+      const response = await fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({ recordType: "lookup_customer", phone: phone })
+      });
+      const result = await response.json();
+      
+      if (result.status === "success") {
+        setActiveCustomer(result.data);
+      } else {
+        document.getElementById("customerSearchSection").style.display = "none";
+        document.getElementById("customerRegSection").style.display = "block";
+      }
+    } catch (err) { alert("Error connecting to database."); }
+  }
+
+  async function registerCustomer() {
+    const name = document.getElementById("customerName").value.trim();
+    const email = document.getElementById("customerEmail").value.trim();
+    const phone = document.getElementById("customerPhone").value.trim();
+    
+    if (!name) return alert("Name is required.");
+    
+    try {
+      const response = await fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({ recordType: "register_customer", name: name, phone: phone, email: email })
+      });
+      const result = await response.json();
+      
+      if (result.status === "success") {
+        setActiveCustomer({ name: name, phone: phone, points: 0 });
+      }
+    } catch (err) { alert("Error registering customer."); }
+  }
+
+  function setActiveCustomer(custData) {
+    activeCustomer = custData;
+    document.getElementById("customerSearchSection").style.display = "none";
+    document.getElementById("customerRegSection").style.display = "none";
+    document.getElementById("activeCustomerSection").style.display = "block";
+    
+    document.getElementById("dispCustName").innerText = custData.name;
+    document.getElementById("dispCustPoints").innerText = custData.points;
+    
+    document.getElementById("addCustomerBtn").innerText = `👤 ${custData.name} (${custData.points} pts)`;
+    document.getElementById("addCustomerBtn").style.background = "#10b981";
+    document.getElementById("addCustomerBtn").style.color = "white";
+  }
+
+  function removeCustomer() {
+    activeCustomer = null;
+    document.getElementById("addCustomerBtn").innerText = "👤 Add Customer";
+    document.getElementById("addCustomerBtn").style.background = "#fce7f3";
+    document.getElementById("addCustomerBtn").style.color = "#be185d";
+    
+    document.getElementById("customerPhone").value = "";
+    document.getElementById("customerName").value = "";
+    document.getElementById("activeCustomerSection").style.display = "none";
+    document.getElementById("customerSearchSection").style.display = "block";
+    closeModals();
+  }
+
+  function applyReward(rewardName, pointCost) {
+    if (activeCustomer.points < pointCost) return alert("Not enough points for this reward.");
+    if (cart.length === 0) return alert("Add a standard service to the ticket first.");
+    
+    cart.push({ id: 'reward-' + Date.now(), name: `🎁 Reward: ${rewardName}`, price: 0 });
+    pointsUsedThisTicket += pointCost;
+    updateCart();
+    closeModals();
+    alert(`Applied ${rewardName}! ${pointCost} points will be deducted at checkout.`);
+  }
+ 
+  function toggleTaxExempt() { isTaxExempt = document.getElementById("taxExemptToggle").checked; document.getElementById("dealerSelectContainer").style.display = isTaxExempt ? "block" : "none"; if (!isTaxExempt) { document.getElementById("dealerSelect").value = ""; selectedDealer = null; } cart = []; recalculatePricing(); updateCart(); }
+  function handleDealerChange() { const dealerKey = document.getElementById("dealerSelect").value; selectedDealer = (dealerKey && taxExemptDealers[dealerKey]) ? dealerKey : null; cart = []; recalculatePricing(); updateCart(); }
+  function applyPromo() { const holiday = document.getElementById("promoHoliday").value; const pct = parseFloat(document.getElementById("promoPercent").value); if (!holiday || isNaN(pct) || pct <= 0 || pct > 100) return alert("Enter valid details."); activePromo = holiday; promoDiscountPercent = pct; cart = []; recalculatePricing(); updateCart(); closeModals(); }
+  function clearPromo() { activePromo = null; promoDiscountPercent = 0; cart = []; recalculatePricing(); updateCart(); closeModals(); }
+  function resetToRetail() { selectedDealer = null; activePromo = null; promoDiscountPercent = 0; if (document.getElementById("taxExemptToggle").checked) document.getElementById("taxExemptToggle").click(); recalculatePricing(); }
+
+  function recalculatePricing() {
+    const dDiscount = (selectedDealer && taxExemptDealers[selectedDealer]) ? taxExemptDealers[selectedDealer].discountRate : 0;
+    const pDiscount = activePromo ? (promoDiscountPercent / 100) : 0;
+    
+    const standardDiscounts = ["Military", "First Responder", "Senior Citizen", "Employee"];
+    const isStandardDiscount = activePromo && standardDiscounts.includes(activePromo);
+
+    activeServices = standardServices.map(service => {
+      let newPrices = {}; 
+      let wasPromoApplied = false;
+      for(let type in service.prices) {
+        let price = service.prices[type];
+        if (dDiscount > 0) price = price * (1 - dDiscount);
+        if (pDiscount > 0 && (isStandardDiscount || service.prices[type] >= 50)) { 
+          price = price * (1 - pDiscount); 
+          wasPromoApplied = true; 
+        }
+        newPrices[type] = price;
+      }
+      let newName = service.name;
+      if (dDiscount > 0) newName += " (Dealer)";
+      if (wasPromoApplied) newName += ` (${activePromo} -${promoDiscountPercent}%)`;
+      return { ...service, prices: newPrices, name: newName };
+    });
+    document.getElementById("dealerBanner").style.display = dDiscount > 0 ? "block" : "none";
+    if(selectedDealer) document.getElementById("activeDealerName").innerText = selectedDealer;
+    document.getElementById("promoBanner").style.display = activePromo ? "block" : "none";
+    if(activePromo) document.getElementById("activePromoName").innerText = `${activePromo} (${promoDiscountPercent}% off)`;
+    renderMenu();
+  }
+
+  function selectVehicleType(type) { selectedVehicleType = type; renderMenu(); }
+  function clearVehicleType() { selectedVehicleType = null; renderMenu(); }
+
+  function addCustomItem() {
+    const name = document.getElementById("customItemName").value.trim(); const price = parseFloat(document.getElementById("customItemPrice").value);
+    if (!name || isNaN(price) || price < 0) return alert("Enter valid data.");
+    cart.push({ id: 'custom-' + Date.now(), name: "Custom - " + name, price: price });
+    document.getElementById("customItemName").value = ""; document.getElementById("customItemPrice").value = ""; updateCart();
+  }
+
+  // --- TICKET DISCOUNT & ADDITIONAL WORK LOGIC ---
+  function openTicketDiscountModal() {
+    if (cart.length === 0) return alert("Add a service to the ticket first before applying a discount.");
+    document.getElementById("ticketDiscReason").value = "";
+    document.getElementById("ticketDiscType").value = "dollar";
+    document.getElementById("ticketDiscValue").value = "";
+    document.getElementById("ticketDiscountModalOverlay").style.display = "flex";
+  }
+
+  function setQuickDiscount(reason, type, val) {
+    document.getElementById("ticketDiscReason").value = reason;
+    document.getElementById("ticketDiscType").value = type;
+    document.getElementById("ticketDiscValue").value = val;
+  }
+
+  function applyTicketDiscount() {
+    const reason = document.getElementById("ticketDiscReason").value.trim() || "Special";
+    const type = document.getElementById("ticketDiscType").value;
+    const val = parseFloat(document.getElementById("ticketDiscValue").value);
+
+    if (isNaN(val) || val <= 0) return alert("Please enter a valid discount amount.");
+
+    const currentSubtotal = cart.reduce((sum, item) => sum + item.price, 0);
+    if (currentSubtotal <= 0) return alert("Ticket subtotal is already $0.00.");
+
+    let discountDollars = 0;
+    let label = "";
+
+    if (type === "percent") {
+      if (val > 100) return alert("Percentage cannot exceed 100%.");
+      discountDollars = +(currentSubtotal * (val / 100)).toFixed(2);
+      label = `Discount - ${reason} (${val}% Off)`;
+    } else {
+      discountDollars = Math.min(val, currentSubtotal);
+      label = `Discount - ${reason}`;
+    }
+
+    cart.push({
+      id: 'disc-' + Date.now(),
+      name: label,
+      price: -discountDollars
+    });
+
+    updateCart();
+    closeModals();
+  }
+
+  function openExtraWorkModal() {
+    document.getElementById("extraWorkDesc").value = "";
+    document.getElementById("extraWorkPrice").value = "";
+    document.getElementById("extraWorkModalOverlay").style.display = "flex";
+  }
+
+  function fillExtraWork(desc, price) {
+    document.getElementById("extraWorkDesc").value = desc;
+    document.getElementById("extraWorkPrice").value = price;
+  }
+
+  function applyExtraWork() {
+    const desc = document.getElementById("extraWorkDesc").value.trim();
+    const price = parseFloat(document.getElementById("extraWorkPrice").value);
+
+    if (!desc || isNaN(price) || price <= 0) {
+      return alert("Please enter both a description and a valid dollar amount.");
+    }
+
+    cart.push({
+      id: 'extra-' + Date.now(),
+      name: `Add-On - ${desc}`,
+      price: price
+    });
+
+    updateCart();
+    closeModals();
+  }
+
+  function renderMenu() {
+    const grid = document.getElementById("menuGrid"); const backBtn = document.getElementById("backBtn");
+    if (!selectedVehicleType) {
+      backBtn.style.display = "none";
+      grid.innerHTML = `
+        <div class="card" style="text-align:center; padding: 40px 20px;" onclick="selectVehicleType('Car')"><div style="font-size: 50px; margin-bottom: 15px;">🚗</div><h3>Car</h3></div>
+        <div class="card" style="text-align:center; padding: 40px 20px;" onclick="selectVehicleType('SUV')"><div style="font-size: 50px; margin-bottom: 15px;">🚙</div><h3>SUV</h3></div>
+        <div class="card" style="text-align:center; padding: 40px 20px;" onclick="selectVehicleType('Van/Large SUV')"><div style="font-size: 50px; margin-bottom: 15px;">🚐</div><h3>Van / Large SUV</h3></div>
+        <div class="card" style="text-align:center; padding: 40px 20px;" onclick="selectVehicleType('Truck')"><div style="font-size: 50px; margin-bottom: 15px;">🛻</div><h3>Truck</h3></div>
+        <div class="card" style="text-align:center; padding: 40px 20px;" onclick="selectVehicleType('Custom')"><div style="font-size: 50px; margin-bottom: 15px;">✏️</div><h3>Custom Pricing</h3></div>
+        <div class="card" style="text-align:center; padding: 40px 20px; background: #fdf4ff; border: 2px dashed #f0abfc;" onclick="openPromoModal()"><div style="font-size: 50px; margin-bottom: 15px;">🎁</div><h3 style="color: #a21caf;">Discounts & Promos</h3></div>
+        <div class="card" style="text-align:center; padding: 40px 20px; background: #f0fdf4; border: 2px dashed #4ade80;" onclick="selectVehicleType('Store')"><div style="font-size: 50px; margin-bottom: 15px;">🛍️</div><h3 style="color: #166534;">Store Products</h3></div>
+        <div class="card" style="text-align:center; padding: 40px 20px; background: #fffbeb; border: 2px dashed #f59e0b;" onclick="addGiftCard()"><div style="font-size: 50px; margin-bottom: 15px;">💳</div><h3 style="color: #b45309;">Sell Gift Card</h3></div>
+      `;
+    } else if (selectedVehicleType === 'Custom') {
+      backBtn.style.display = "inline-block";
+      grid.innerHTML = `
+        <div style="grid-column: 1 / -1; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); text-align: center;">
+          <h3 style="margin-bottom: 20px; font-size: 22px;">Add Custom Item</h3>
+          <div style="max-width: 400px; margin: 0 auto;">
+            <input type="text" id="customItemName" class="input-field" placeholder="Description (e.g., Boat Wash)">
+            <input type="number" id="customItemPrice" class="input-field" placeholder="Price ($)" step="0.01">
+            <button class="submit-btn" style="padding: 16px; margin-top: 15px;" onclick="addCustomItem()">ADD TO TICKET</button>
+          </div>
+        </div>
+      `; 
+    } else if (selectedVehicleType === 'Store') {
+      backBtn.style.display = "inline-block";
+      grid.innerHTML = storeProducts.map((item, index) => `
+        <div class="card" onclick="addStoreItem(${index})">
+          <h3 style="color: #166534;">${item.name}</h3>
+          <div class="price" style="background: #dcfce7; color: #166534;">$${item.price.toFixed(2)}</div>
+        </div>
+      `).join('');
+    } else {
+      backBtn.style.display = "inline-block";
+      grid.innerHTML = activeServices.map(item => `
+        <div class="card" onclick="addToCart(${item.id})">
+          <h3>${item.name}</h3><p>${item.desc}</p><div class="price">$${item.prices[selectedVehicleType].toFixed(2)}</div>
+        </div>
+      `).join('');
     }
   }
 
-  if (!saveSuccess) {
-    statusMsg.style.color = "#ef4444";
-    statusMsg.innerText = "DATABASE SAVE FAILED.";
-    alert("⚠ WAITING FOR WI-FI ⚠️\n\nSquare captured the payment, but the iPad lost internet connection.\n\nDO NOT CHARGE THE CARD AGAIN.\n\nReconnect to Wi-Fi and tap the button to finish.");
-    
-    submitBtn.disabled = false;
-    submitBtn.innerText = "RETRY SAVE";
-    return; 
-  }
-
-  statusMsg.style.color = "#10b981"; 
-  statusMsg.innerText = "Order logged successfully!";
-  
-  const hasGiftCard = cart.some(item => item.isGiftCard);
-  let shouldPrint = false;
-  
-  if (hasGiftCard) {
-    shouldPrint = true; 
-  } else if (selectedPaymentType === 'Cash' || appliedGcCode) {
-    shouldPrint = confirm("Does the customer want a printed receipt?");
-  }
-
-  if (shouldPrint) {
-    let cashTenderedAmt = parseFloat(document.getElementById("cashReceived").value) || 0;
-    let changeAmt = cashTenderedAmt - grandTotal;
-    if (changeAmt < 0) changeAmt = 0;
-
-    const receiptData = {
-      location: document.getElementById("locationSelect").value,
-      date: new Date().toISOString(),
-      orderId: orderId,
-      vehicle: (make || plate) ? `${make} ${plate}`.trim() : "N/A",
-      services: cart.map(item => item.name).join(", "),
-      subtotal: `$${subtotal.toFixed(2)}`,
-      tax: isTaxExempt ? "$0.00" : `$${taxAmount.toFixed(2)}`,
-      total: `$${grandTotal.toFixed(2)}`,
-      exemptDealer: isTaxExempt ? selectedDealer : "",
-      cart: cart,
-      paymentMethod: selectedPaymentType,
-      appliedGcCode: appliedGcCode,
-      remainingGcBalance: remainingGcBalance,
-      cashTendered: selectedPaymentType === 'Cash' ? `$${cashTenderedAmt.toFixed(2)}` : null,
-      changeDue: selectedPaymentType === 'Cash' ? `$${changeAmt.toFixed(2)}` : null
-    };
-    printInvoice(receiptData);
-  }
-  
-  // Reset UI Elements
-  cart = []; 
-  selectedVehicleType = null; 
-  document.getElementById("vehicleMake").value = ""; 
-  document.getElementById("vehiclePlate").value = ""; 
-  document.getElementById("orderNotes").value = "";
-  document.getElementById("manualEntryCheck").checked = false; // Uncheck Phone Order box
-  if(isTaxExempt) document.getElementById("taxExemptToggle").click();
-  removeCustomer();
-  pointsUsedThisTicket = 0;
-  appliedGcCode = null;
-  appliedGcAmount = 0;
-  remainingGcBalance = 0;
-  updateCart(); 
-  renderMenu(); 
-  setTimeout(() => { statusMsg.innerText = ""; }, 3000);
-  
-  submitBtn.disabled = false; 
-  submitBtn.innerText = "RECORD SALE"; 
-}    // Initialize UI
-    loadTabletLocation();
-    renderMenu(); 
+  function addToCart(id) { const item = activeServices.find(s => s.id === id); cart.push({ id: item.id, name: `${selectedVehicleType} - ${item.name}`, price: item.prices[selectedVehicleType] }); updateCart(); }
+  function addStoreItem(index) { 
+    const item = storeProducts[index]; 
+    cart.push({ id: 'store-' + Date.now(), name: `Retail - ${item.name}`, price: item.price }); 
     updateCart(); 
-    loadAppData();
-  
-// --- CASH CALCULATOR LOGIC ---
+  }
+  function addGiftCard() {
+    let amountStr = prompt("Enter Gift Card Amount ($):");
+    if (!amountStr) return;
+    
+    let amount = parseFloat(amountStr);
+    if (isNaN(amount) || amount <= 0) {
+      alert("Please enter a valid amount.");
+      return;
+    }
+
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code = 'GC-';
+    for (let i = 0; i < 4; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+    code += '-';
+    for (let i = 0; i < 4; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+
+    cart.push({ 
+      id: 'giftcard-' + Date.now(), 
+      name: `Gift Card (${code})`, 
+      price: amount,
+      isGiftCard: true,
+      gcCode: code
+    });
+    
+    updateCart();
+  }
+  function removeFromCart(index) { cart.splice(index, 1); updateCart(); }
+
+  function updateCart() {
+    const cartContainer = document.getElementById("cartItems"); 
+    document.getElementById("itemCount").innerText = cart.length === 1 ? "1 item" : cart.length + " items";
+    
+    if (cart.length === 0) {
+      cartContainer.innerHTML = `<div style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #9ca3af; text-align: center;"><div style="font-size: 40px; margin-bottom: 10px;">🛒</div><p>Ticket is empty</p></div>`;
+      document.getElementById("subtotalAmount").innerText = "$0.00"; 
+      document.getElementById("taxAmount").innerText = "$0.00"; 
+      document.getElementById("grandTotal").innerText = "$0.00"; 
+      return;
+    }
+    
+    cartContainer.innerHTML = cart.map((item, index) => `<div class="cart-item"><div><div class="cart-item-name">${item.name}</div><div class="cart-item-price">$${item.price.toFixed(2)}</div></div><button class="remove-btn" onclick="removeFromCart(${index})">×</button></div>`).join('');
+    
+    const subtotal = cart.reduce((sum, item) => sum + item.price, 0); 
+    const taxAmount = isTaxExempt ? 0 : (subtotal * TOTAL_TAX_RATE); 
+    const grandTotal = subtotal + taxAmount;
+    
+    document.getElementById("subtotalAmount").innerText = `$${subtotal.toFixed(2)}`; 
+    document.getElementById("taxAmount").innerText = isTaxExempt ? "$0.00 (Exempt)" : `$${taxAmount.toFixed(2)}`; 
+    document.getElementById("grandTotal").innerText = `$${grandTotal.toFixed(2)}`;
+  }
+
+  function promptPayment() {
+    appliedGcCode = null;
+    appliedGcAmount = 0;
+    remainingGcBalance = 0;
+    const gcBtn = document.getElementById("gcBtn");
+    if (gcBtn) {
+      gcBtn.innerText = "🎁 Redeem Gift Card";
+      gcBtn.style.background = "#f59e0b";
+      gcBtn.disabled = false;
+    }
+    if (cart.length === 0) return alert("Add a service first.");
+    if (isTaxExempt && !selectedDealer) return alert("Select an Exempt Dealer.");
+    document.getElementById("paymentModalOverlay").style.display = "flex";
+  }
+
+  // --- SQUARE INTEGRATION & VERIFIED LOGGING LOGIC ---
+  async function processOrder(selectedPaymentType) {
+    let squareTip = 0;
+    closeModals(); 
+    const submitBtn = document.getElementById("submitBtn"); 
+    const statusMsg = document.getElementById("statusMsg");
+    
+    submitBtn.disabled = true; 
+    
+    const subtotal = cart.reduce((sum, item) => sum + item.price, 0); 
+    const taxAmount = isTaxExempt ? 0 : (subtotal * TOTAL_TAX_RATE); 
+    let grandTotal = subtotal + taxAmount;
+    if (appliedGcAmount > 0) {
+      grandTotal -= appliedGcAmount;
+      if (grandTotal < 0) grandTotal = 0;
+    }
+    const make = document.getElementById("vehicleMake").value; 
+    const plate = document.getElementById("vehiclePlate").value;
+    const orderId = "ORD-" + Math.floor(100000 + Math.random() * 900000);
+
+    const baseSaleData = {
+      location: document.getElementById("locationSelect").value,
+      orderId: orderId,
+      cart: cart,
+      appliedGcCode: appliedGcCode,
+      appliedGcAmount: appliedGcAmount,
+      services: cart.map(item => item.name).join(", "),
+      subtotal: subtotal,
+      taxAmount: taxAmount,
+      grandTotal: grandTotal,
+      vehicleInfo: (make || plate) ? `${make} ${plate}`.trim() : "N/A",
+      notes: document.getElementById("orderNotes").value,
+      attendant: activeAttendant,
+      exemptDealer: isTaxExempt ? `${selectedDealer} (${taxExemptDealers[selectedDealer].id})` : "N/A",
+      paymentType: selectedPaymentType,
+      customerPhone: activeCustomer ? activeCustomer.phone : null,
+      pointsUsed: pointsUsedThisTicket
+    };
+
+    let alreadySavedByServer = false;
+
+    // 1. TRIGGER SQUARE IF CREDIT CARD IS SELECTED
+    if (selectedPaymentType === 'Credit Card') {
+      document.getElementById("squareModalOverlay").style.display = "flex";
+      
+      // Exact Square Gross-Up Formula (covers 2.6% + $0.15 on total charged, rounded up)
+      let ccFee = Math.ceil((((grandTotal * 0.026) + 0.15) / 0.974) * 100) / 100;
+
+      const squarePayload = {
+        ...baseSaleData,
+        recordType: "square_checkout",
+        ccFee: ccFee,
+        isManualEntry: document.getElementById("manualEntryCheck").checked
+      };
+      
+      try {
+        let response = await fetch(GOOGLE_SCRIPT_URL, { 
+          method: "POST", 
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify(squarePayload)  
+        });
+        
+        let result = await response.json();
+   
+        if (result.error) {
+          console.error("Backend Error:", result.error);
+          alert("Google Error: " + result.error);
+          document.getElementById("squareModalOverlay").style.display = "none";
+          submitBtn.disabled = false; submitBtn.innerText = "RECORD SALE"; return;
+        }
+        if (result.errors) {
+          console.error("Square API Error:", result.errors);
+          alert("Square Error: " + result.errors[0].detail); 
+          document.getElementById("squareModalOverlay").style.display = "none";
+          submitBtn.disabled = false; submitBtn.innerText = "RECORD SALE"; return;
+        }
+   
+        let checkoutId = result.checkout.id;
+        let isWaiting = true;
+        
+        while (isWaiting) {
+          await new Promise(resolve => setTimeout(resolve, 3000));
+          
+          let statusResponse;
+          try {
+            statusResponse = await fetch(GOOGLE_SCRIPT_URL, {
+              method: "POST",
+              headers: { "Content-Type": "text/plain" },
+              body: JSON.stringify({ recordType: "check_square_status", checkoutId: checkoutId })
+            });
+          } catch (networkErr) {
+            console.warn("Network drop detected, retrying...", networkErr);
+            continue; 
+          }
+          
+          let rawText = await statusResponse.text();
+          let statusResult;
+          try {
+            statusResult = JSON.parse(rawText);
+          } catch (parseError) {
+            console.warn("Google returned non-JSON. Ignoring and trying again...", rawText);
+            continue; 
+          }
+          
+          let currentStatus = statusResult.checkoutStatus;
+          if (currentStatus === "COMPLETED") {
+            isWaiting = false; 
+            squareTip = statusResult.tipAmount || 0;
+            if (statusResult.autoLogged === true) {
+              alreadySavedByServer = true;
+            }
+            document.getElementById("squareModalOverlay").style.display = "none";
+          } else if (currentStatus === "CANCELED") {
+            isWaiting = false; 
+            document.getElementById("squareModalOverlay").style.display = "none";
+            alert("Payment Canceled or Declined. Please select Cash or try again.");
+            submitBtn.disabled = false; submitBtn.innerText = "RECORD SALE"; return; 
+          }
+        }
+      } catch (error) {
+        console.error("Square Error:", error);
+        document.getElementById("squareModalOverlay").style.display = "none";
+        alert("CRASH LOG: " + error.message); 
+        submitBtn.disabled = false; submitBtn.innerText = "RECORD SALE"; return; 
+      }
+    }
+
+    // 2. LOG SALE IN SHEETS (WITH VERIFIED RESPONSE & DUPLICATE PROTECTION)
+    submitBtn.innerText = "SAVING TO DATABASE..."; 
+    statusMsg.style.color = "#3b82f6"; 
+    statusMsg.innerText = "Logging transaction...";
+
+    const payload = {
+      ...baseSaleData,
+      recordType: "sale",
+      tipAmount: squareTip
+    };
+
+    let saveSuccess = alreadySavedByServer;
+    let attempt = 0;
+
+    while (attempt < 5 && !saveSuccess) {
+      attempt++;
+      try {
+        const saveRes = await fetch(GOOGLE_SCRIPT_URL, { 
+          method: "POST", 
+          headers: { "Content-Type": "text/plain" }, 
+          body: JSON.stringify(payload) 
+        });
+        
+        const saveJson = await saveRes.json();
+        if (saveJson && saveJson.status === "success") {
+          saveSuccess = true;
+        } else {
+          throw new Error(saveJson.message || "Database did not confirm save");
+        }
+      } catch (err) {
+        console.warn(`Attempt ${attempt} failed. Retrying...`, err);
+        await new Promise(r => setTimeout(r, 3000)); 
+      }
+    }
+
+    if (!saveSuccess) {
+      statusMsg.style.color = "#ef4444";
+      statusMsg.innerText = "DATABASE SAVE FAILED.";
+      alert("⚠ WAITING FOR WI-FI ⚠️\n\nSquare captured the payment, but the iPad lost internet connection.\n\nDO NOT CHARGE THE CARD AGAIN.\n\nReconnect to Wi-Fi and tap the button to finish.");
+      
+      submitBtn.disabled = false;
+      submitBtn.innerText = "RETRY SAVE";
+      return; 
+    }
+
+    statusMsg.style.color = "#10b981"; 
+    statusMsg.innerText = "Order logged successfully!";
+    
+    const hasGiftCard = cart.some(item => item.isGiftCard);
+    let shouldPrint = false;
+    
+    if (hasGiftCard) {
+      shouldPrint = true; 
+    } else if (selectedPaymentType === 'Cash' || appliedGcCode) {
+      shouldPrint = confirm("Does the customer want a printed receipt?");
+    }
+
+    if (shouldPrint) {
+      let cashTenderedAmt = parseFloat(document.getElementById("cashReceived").value) || 0;
+      let changeAmt = cashTenderedAmt - grandTotal;
+      if (changeAmt < 0) changeAmt = 0;
+
+      const receiptData = {
+        location: document.getElementById("locationSelect").value,
+        date: new Date().toISOString(),
+        orderId: orderId,
+        vehicle: (make || plate) ? `${make} ${plate}`.trim() : "N/A",
+        services: cart.map(item => item.name).join(", "),
+        subtotal: `$${subtotal.toFixed(2)}`,
+        tax: isTaxExempt ? "$0.00" : `$${taxAmount.toFixed(2)}`,
+        total: `$${grandTotal.toFixed(2)}`,
+        exemptDealer: isTaxExempt ? selectedDealer : "",
+        cart: cart,
+        paymentMethod: selectedPaymentType,
+        appliedGcCode: appliedGcCode,
+        remainingGcBalance: remainingGcBalance,
+        cashTendered: selectedPaymentType === 'Cash' ? `$${cashTenderedAmt.toFixed(2)}` : null,
+        changeDue: selectedPaymentType === 'Cash' ? `$${changeAmt.toFixed(2)}` : null
+      };
+      printInvoice(receiptData);
+    }
+    
+    cart = []; 
+    selectedVehicleType = null; 
+    document.getElementById("vehicleMake").value = ""; 
+    document.getElementById("vehiclePlate").value = ""; 
+    document.getElementById("orderNotes").value = "";
+    document.getElementById("manualEntryCheck").checked = false;
+    if(isTaxExempt) document.getElementById("taxExemptToggle").click();
+    removeCustomer();
+    pointsUsedThisTicket = 0;
+    appliedGcCode = null;
+    appliedGcAmount = 0;
+    remainingGcBalance = 0;
+    updateCart(); 
+    renderMenu(); 
+    setTimeout(() => { statusMsg.innerText = ""; }, 3000);
+    
+    submitBtn.disabled = false; 
+    submitBtn.innerText = "RECORD SALE"; 
+  }
+
+  // Initialize UI
+  loadTabletLocation();
+  renderMenu(); 
+  updateCart(); 
+  loadAppData();
+ 
+  // --- CASH CALCULATOR LOGIC ---
   function openCashCalculator() {
     document.getElementById("paymentModalOverlay").style.display = "none";
     
-    // Recalculate exact total
     const subtotal = cart.reduce((sum, item) => sum + item.price, 0); 
     const taxAmount = isTaxExempt ? 0 : (subtotal * TOTAL_TAX_RATE); 
     let grandTotal = subtotal + taxAmount;
     
-    // NEW: Deduct the Gift Card from the amount due!
     if (appliedGcAmount > 0) {
       grandTotal -= appliedGcAmount;
-      if (grandTotal < 0) grandTotal = 0; // Prevent negative totals
+      if (grandTotal < 0) grandTotal = 0;
     }
     
     document.getElementById("cashTotalDue").innerText = `$${grandTotal.toFixed(2)}`;
@@ -1710,7 +1758,6 @@ async function processOrder(selectedPaymentType) {
     const taxAmount = isTaxExempt ? 0 : (subtotal * TOTAL_TAX_RATE); 
     let grandTotal = subtotal + taxAmount;
     
-    // NEW: Deduct the Gift Card here too!
     if (appliedGcAmount > 0) {
       grandTotal -= appliedGcAmount;
       if (grandTotal < 0) grandTotal = 0;
@@ -1721,9 +1768,9 @@ async function processOrder(selectedPaymentType) {
     
     document.getElementById("cashChangeDue").innerText = change >= 0 ? `$${change.toFixed(2)}` : "$0.00";
   }
+
   function addCash(val) {
     const input = document.getElementById("cashReceived");
-    // Prevent them from typing two decimal points
     if (val === '.' && input.value.includes('.')) return; 
     input.value += val;
     calculateChange();
@@ -1733,20 +1780,20 @@ async function processOrder(selectedPaymentType) {
     document.getElementById("cashReceived").value = "";
     calculateChange();
   }
- // --- EOD REPORT LOGIC ---
-function openEODModal() {
+
+  // --- EOD REPORT LOGIC ---
+  function openEODModal() {
     document.getElementById("eodModalLocDisplay").innerText = document.getElementById("locationSelect").value;
     document.getElementById("eodModalOverlay").style.display = "flex";
   }
 
- async function executeEOD(action) {
+  async function executeEOD(action) {
     closeModals();
     const location = document.getElementById("locationSelect").value;
     const btn = document.getElementById("eodBtn");
     const originalText = btn.innerText;
 
     try {
-      // 1. If they want to email, ping the backend and check for errors
       if (action === 'email' || action === 'both') {
         btn.innerText = "✉️ Sending...";
         const response = await fetch(GOOGLE_SCRIPT_URL, {
@@ -1769,7 +1816,7 @@ function openEODModal() {
           return;
         }
       }
-      // 2. If they want to print, run the existing print logic
+
       if (action === 'print' || action === 'both') {
         btn.innerText = "🖨️ Loading...";
         
@@ -1797,7 +1844,7 @@ function openEODModal() {
           document.getElementById("eodWashRev").innerText = `$${result.data.washRevenue.toFixed(2)}`;
           document.getElementById("eodRetailRev").innerText = `$${result.data.retailRevenue.toFixed(2)}`;
 
-// 2. Sort and Group the Services (Wash Services strictly counts ONLY cars!)
+          // 2. Sort and Group the Services (Wash Services strictly counts ONLY cars!)
           const servicesObj = result.data.services || {};
           let grouped = { wash: {}, addons: {}, discounts: {}, retail: {}, custom: {}, gift: {} };
           let counts = { wash: 0, addons: 0, discounts: 0, retail: 0, custom: 0, gift: 0 };
@@ -1861,6 +1908,26 @@ function openEODModal() {
                     </tr>`;
           }
 
+          // Add Paid Pending Invoices Summary Section if any were collected today
+          const paidPending = result.data.paidPendingInvoices || [];
+          if (paidPending.length > 0) {
+            html += `<tr><th colspan="2" style="background: #e5e7eb; padding: 6px 8px; font-size: 13px; border-top: 2px solid #111827; border-bottom: 1px solid #9ca3af; margin-top: 10px;">📥 Pending Invoices Collected Today <span style="float:right;">Qty: ${paidPending.length}</span></th></tr>`;
+            paidPending.forEach(p => {
+              let who = p.dealer ? `${p.dealer} (${p.vehicle})` : p.vehicle;
+              html += `<tr>
+                        <td style="padding: 5px 8px; border-bottom: 1px solid #f3f4f6; font-size: 11px; line-height: 1.3;">
+                          <strong>${p.orderId}</strong> • Paid via <strong>${p.method}</strong> (Wash Date: ${p.origDate})<br>
+                          <span>${who} — ${p.services}</span>
+                        </td>
+                        <td style="padding: 5px 8px; border-bottom: 1px solid #f3f4f6; text-align: right; font-weight: 700; vertical-align: top;">$${p.amount.toFixed(2)}</td>
+                      </tr>`;
+            });
+            html += `<tr>
+                      <th style="padding: 6px 8px; text-align: right; font-size: 13px;">Total Pending Collected:</th>
+                      <th style="padding: 6px 8px; text-align: right; font-size: 14px; font-weight: 900;">$${(result.data.paidPendingTotal || 0).toFixed(2)}</th>
+                    </tr>`;
+          }
+
           document.getElementById("eodCategorizedTable").innerHTML = html;
 
           // 4. Set Employees
@@ -1881,14 +1948,16 @@ function openEODModal() {
       alert("Network error. Try again.");
       btn.innerText = originalText;
     }
-  }  async function openSquareReport() {
+  }
+
+  async function openSquareReport() {
     document.getElementById("eodModalOverlay").style.display = "none";
     document.getElementById("squareReportModalOverlay").style.display = "flex";
     
     const content = document.getElementById("squareReportContent");
     const printBtn = document.getElementById("printAuditBtn");
     
-    printBtn.style.display = "none"; // Hide print button while loading
+    printBtn.style.display = "none";
     content.innerHTML = `<div class="spinner"></div><p style="text-align:center;">Fetching live data from Square...</p>`;
     
     const location = document.getElementById("locationSelect").value;
@@ -1933,15 +2002,12 @@ function openEODModal() {
         
         html += `</table><h3 style="text-align: right; margin-top: 15px; color: #111827;">Captured: $${total.toFixed(2)} <span style="color: #10b981;">(Tips: $${totalTips.toFixed(2)})</span></h3>`;
         
-        // Set the on-screen modal content
         content.innerHTML = html;
         
-        // Setup the hidden printable version
         document.getElementById("sqAuditLocationDisplay").innerText = location;
         document.getElementById("sqAuditDateDisplay").innerText = new Date().toLocaleDateString();
         document.getElementById("sqAuditPrintContent").innerHTML = html;
         
-        // Show the print button now that data is loaded
         printBtn.style.display = "block";
         
       } else {
@@ -1953,68 +2019,64 @@ function openEODModal() {
   }
 
   function printSquareAudit() {
-    // Clear any existing print classes first
     document.querySelectorAll('.print-section').forEach(el => el.classList.remove('active-print'));
-    
-    // Target the specific Square Audit layout
     const auditDiv = document.getElementById("printableSquareAudit");
     auditDiv.classList.add("active-print");
     
-    // Print! (Our CSS will automatically force it to Composite Black for the HP printer)
     setTimeout(() => {
       window.print(); 
       closeModals();
     }, 300);
   }
+
   async function redeemGiftCard() {
-      const code = prompt("Enter Gift Card Code (e.g., GC-XXXX-XXXX):");
-      if (!code) return; 
+    const code = prompt("Enter Gift Card Code (e.g., GC-XXXX-XXXX):");
+    if (!code) return; 
 
-      const btn = document.getElementById("gcBtn");
-      const originalText = btn.innerText;
-      btn.innerText = "⏳ Checking Balance...";
-      btn.disabled = true;
+    const btn = document.getElementById("gcBtn");
+    const originalText = btn.innerText;
+    btn.innerText = "⏳ Checking Balance...";
+    btn.disabled = true;
 
-      try {
-        const response = await fetch(GOOGLE_SCRIPT_URL, {
-          method: "POST",
-          body: JSON.stringify({
-            recordType: "check_giftcard",
-            location: document.getElementById("locationSelect").value,
-            code: code.trim().toUpperCase()
-          })
-        });
-        const result = await response.json();
+    try {
+      const response = await fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          recordType: "check_giftcard",
+          location: document.getElementById("locationSelect").value,
+          code: code.trim().toUpperCase()
+        })
+      });
+      const result = await response.json();
 
-        if (result.status === "success") {
-          let balance = result.balance;
-          if (balance <= 0) {
-            alert("This gift card has a zero balance.");
-          } else {
-            // Apply it! Calculate how much we actually need to cover the grandTotal
-            let cartTotal = cart.reduce((sum, item) => sum + item.price, 0); 
-            let taxAmt = isTaxExempt ? 0 : (cartTotal * TOTAL_TAX_RATE); 
-            let actualGrandTotal = cartTotal + taxAmt;
-            
-            appliedGcCode = code.trim().toUpperCase();
-            appliedGcAmount = Math.min(balance, actualGrandTotal);
-            remainingGcBalance = balance - appliedGcAmount;
-            
-            alert(`Gift Card Found! \nBalance: $${balance.toFixed(2)}\nApplied: $${appliedGcAmount.toFixed(2)}`);
-            btn.innerText = `✅ Applied ($${appliedGcAmount.toFixed(2)})`;
-            btn.style.background = "#10b981"; 
-            return; 
-          }
+      if (result.status === "success") {
+        let balance = result.balance;
+        if (balance <= 0) {
+          alert("This gift card has a zero balance.");
         } else {
-          alert("Error: " + result.message);
+          let cartTotal = cart.reduce((sum, item) => sum + item.price, 0); 
+          let taxAmt = isTaxExempt ? 0 : (cartTotal * TOTAL_TAX_RATE); 
+          let actualGrandTotal = cartTotal + taxAmt;
+          
+          appliedGcCode = code.trim().toUpperCase();
+          appliedGcAmount = Math.min(balance, actualGrandTotal);
+          remainingGcBalance = balance - appliedGcAmount;
+          
+          alert(`Gift Card Found! \nBalance: $${balance.toFixed(2)}\nApplied: $${appliedGcAmount.toFixed(2)}`);
+          btn.innerText = `✅ Applied ($${appliedGcAmount.toFixed(2)})`;
+          btn.style.background = "#10b981"; 
+          return; 
         }
-      } catch (err) {
-        alert("Network error while checking card. Try again.");
+      } else {
+        alert("Error: " + result.message);
       }
-      
-      btn.innerText = originalText;
-      btn.disabled = false;
+    } catch (err) {
+      alert("Network error while checking card. Try again.");
     }
-  </script>
+    
+    btn.innerText = originalText;
+    btn.disabled = false;
+  }
+</script>
 </body>
 </html>
