@@ -49,10 +49,20 @@
     
     .badge { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; margin-right: 5px; display: inline-block; margin-bottom: 5px;}
     .list-item { font-size: 14px; color: #4b5563; border-bottom: 1px solid #f3f4f6; padding: 6px 0; display: flex; justify-content: space-between; }
+
+    /* Modal Styles for Dashboard Pay Bill & Square Terminal */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17,24,39,0.7); backdrop-filter: blur(5px); z-index: 9998; display: none; align-items: center; justify-content: center; }
+    .modal-box { background: white; width: 90%; max-width: 400px; border-radius: 24px; padding: 30px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); text-align: center; }
+    .modal-box h2 { margin-bottom: 20px; font-size: 24px; color: #111827; font-weight: 800; }
+    .modal-btn { width: 100%; padding: 15px; margin-bottom: 12px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; border: 2px solid #e5e7eb; background: white; color: #374151; transition: 0.2s; }
+    .modal-btn:hover { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; }
+    .btn-cancel { background: #fee2e2; color: #b91c1c; border: none; margin-top: 8px; }
+    .spinner { border: 4px solid #e5e7eb; border-top: 4px solid #3b82f6; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 20px auto; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     
     @media print {
       body { background: white; }
-      .controls-bar, #pinOverlay, .btn-print, .btn-tax { display: none !important; }
+      .controls-bar, #pinOverlay, .btn-print, .btn-tax, .modal-overlay { display: none !important; }
       
       body.print-financial #dashboardContent { display: none !important; }
       body.print-financial #taxReportView { display: none !important; }
@@ -77,6 +87,39 @@
     <button onclick="fetchData()">Unlock Dashboard</button>
   </div>
 
+  <!-- DASHBOARD PAY PENDING INVOICE MODAL -->
+  <div id="dashPayPendingModal" class="modal-overlay">
+    <div class="modal-box">
+      <h2>Receive Payment</h2>
+      <p style="margin-bottom: 18px; color: #4b5563; font-size: 14px;">
+        Location: <strong id="dashPendingLocDisplay" style="color: #111827;"></strong><br>
+        Order: <strong id="dashPendingOrderIdDisplay" style="color: #111827;"></strong><br>
+        Amount Due: <strong id="dashPendingTotalDisplay" style="color: #ef4444; font-size: 18px;"></strong>
+      </p>
+      
+      <button class="modal-btn" onclick="submitDashPendingPayment('Cash')">💵 Pay with Cash</button>
+
+      <div style="margin: 10px 0 12px 0; padding: 10px; background: #f9fafb; border-radius: 10px; border: 1px solid #e5e7eb;">
+        <input type="checkbox" id="dashPendingManualCheck" style="transform: scale(1.4); margin-right: 8px; cursor: pointer;">
+        <label for="dashPendingManualCheck" style="font-size: 15px; font-weight: 700; color: #374151; cursor: pointer;">📞 Phone Order (Manual Key-In)</label>
+      </div>
+
+      <button class="modal-btn" onclick="submitDashPendingPayment('Credit Card')">💳 Pay with Credit Card</button>
+      <button class="modal-btn" onclick="submitDashPendingPayment('Check')">📝 Pay with Check</button>
+      
+      <button class="modal-btn btn-cancel" onclick="closeDashModals()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- DASHBOARD SQUARE TERMINAL WAITING MODAL -->
+  <div id="dashSquareModal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="spinner"></div>
+      <h2>Sending to Terminal...</h2>
+      <p style="color: #4b5563; font-size: 14px; margin-bottom: 20px;">Waiting for card payment or manual key-in on the Square Terminal.</p>
+    </div>
+  </div>
+
   <div id="dashboardContent">
     <div class="header">
       <h1 style="font-weight: 800; font-size: 32px;" id="reportTitle">📊 Owner Command Center</h1>
@@ -89,7 +132,7 @@
       <button class="tab-btn" id="tab-invoices" onclick="switchTab('invoices')">🔍 Invoice Search</button>
     </div>
 
-    <!-- DATE & FILTER CONTROLS (Shared across Overview & Dealer Tabs) -->
+    <!-- DATE & FILTER CONTROLS -->
     <div class="controls-bar">
       <div>
         <label style="font-size: 13px; font-weight: bold; color: #6b7280; display: block;">Start Date</label>
@@ -119,7 +162,6 @@
 
     <!-- VIEW 1: MAIN OVERVIEW -->
     <div id="view-overview" class="dash-view">
-      <!-- HIGH-LEVEL KPIs -->
       <div class="kpi-grid">
         <div class="kpi-card">
           <div class="kpi-label">TOTAL GROSS REVENUE</div>
@@ -150,7 +192,7 @@
 
       <h2 style="margin-bottom: 15px; font-size: 24px;">📍 Location Breakdown</h2>
       <div class="loc-grid" id="locationCards"></div>
-    </div> <!-- End View 1 -->
+    </div>
 
     <!-- VIEW 2: DEALER REPORT -->
     <div id="view-dealers" class="dash-view" style="display: none;">
@@ -174,7 +216,7 @@
       </div>
     </div>
 
-  </div> <!-- End #dashboardContent -->
+  </div>
 
   <div id="financialReportView"></div>
   <div id="taxReportView"></div>
@@ -209,6 +251,7 @@
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxJX6GJEcl5OvCZ7Z7JAD72jSK8d7g7EJeK9Ud4dAiDb8-gPidrYvIOGpVAKw8h3Q2VFQ/exec";
     
     let currentDashboardData = null; 
+    let activeDashPendingTxn = null;
 
     const corpEntities = {
       "Location 1 - Tampa Bay": { name: "A Plus Car Wash & Detailing Tampa Bay Inc.", cert: "39-8020182731-8" },
@@ -306,7 +349,6 @@
           let exemptTotal = lData.tax > 0 ? (lData.net - (lData.tax / 0.075)) : lData.net;
           if (exemptTotal < 0.01) exemptTotal = 0;
 
-          // Build Paid Pending Invoices section if any were collected
           let paidPendingHTML = "";
           if (lData.paidPending && lData.paidPending.length > 0) {
             let pRows = lData.paidPending.map(p => {
@@ -598,7 +640,8 @@
           
           let html = `<table class="data-table"><tr><th>Date</th><th>Location</th><th>Order ID</th><th>Vehicle</th><th>Total</th><th>Status</th><th>Action</th></tr>`;
           result.data.forEach((t, index) => {
-            let statusColor = t.paymentType === 'Pending' ? '#ef4444' : '#10b981';
+            const isPending = t.paymentType === 'Pending';
+            const statusColor = isPending ? '#ef4444' : '#10b981';
             html += `<tr>
               <td>${new Date(t.date).toLocaleDateString()}</td>
               <td>${t.location}</td>
@@ -606,7 +649,10 @@
               <td>${t.vehicle} <br><small style="color: #6b7280;">${t.services}</small></td>
               <td style="font-weight: bold;">${t.total}</td>
               <td style="color: ${statusColor}; font-weight: bold;">${t.paymentType}</td>
-              <td><button class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;" onclick="printSearchedInvoice(${index})">🖨️ Print</button></td>
+              <td style="display: flex; gap: 8px; align-items: center;">
+                ${isPending ? `<button class="btn" style="padding: 6px 12px; font-size: 12px; background: #f59e0b; color: white;" onclick="openDashPayPending(${index})">💳 Pay Bill</button>` : ''}
+                <button class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;" onclick="printSearchedInvoice(${index})">🖨️ Print</button>
+              </td>
             </tr>`;
           });
           content.innerHTML = html + "</table>";
@@ -615,6 +661,142 @@
         }
       } catch (err) { content.innerHTML = "<p style='color: #ef4444;'>Network Error.</p>"; }
       btn.innerText = "Search All Locations"; btn.disabled = false;
+    }
+
+    function openDashPayPending(index) {
+      const txn = window.currentSearchResults[index];
+      if (!txn) return;
+      activeDashPendingTxn = txn;
+      document.getElementById("dashPendingLocDisplay").innerText = txn.location;
+      document.getElementById("dashPendingOrderIdDisplay").innerText = txn.orderId;
+      document.getElementById("dashPendingTotalDisplay").innerText = txn.total;
+      document.getElementById("dashPendingManualCheck").checked = false;
+      document.getElementById("dashPayPendingModal").style.display = "flex";
+    }
+
+    function closeDashModals() {
+      document.getElementById("dashPayPendingModal").style.display = "none";
+      document.getElementById("dashSquareModal").style.display = "none";
+    }
+
+    async function submitDashPendingPayment(method) {
+      if (!activeDashPendingTxn) return;
+      const btn = event.target;
+      const originalText = btn.innerText;
+      btn.innerText = "⏳ Processing...";
+      btn.disabled = true;
+
+      let squareTip = 0;
+
+      // 1. If Credit Card is selected, wake up that location's Square Terminal
+      if (method === "Credit Card") {
+        const cleanTotal = parseFloat(String(activeDashPendingTxn.total).replace(/[^0-9.-]+/g, "")) || 0;
+        const cleanSub = parseFloat(String(activeDashPendingTxn.subtotal).replace(/[^0-9.-]+/g, "")) || cleanTotal;
+        const cleanTax = parseFloat(String(activeDashPendingTxn.tax).replace(/[^0-9.-]+/g, "")) || 0;
+
+        if (cleanTotal <= 0) {
+          alert("Invalid invoice total for Square checkout.");
+          btn.innerText = originalText;
+          btn.disabled = false;
+          return;
+        }
+
+        let ccFee = Math.ceil((((cleanTotal * 0.026) + 0.15) / 0.974) * 100) / 100;
+
+        document.getElementById("dashPayPendingModal").style.display = "none";
+        document.getElementById("dashSquareModal").style.display = "flex";
+
+        try {
+          let sqRes = await fetch(GOOGLE_SCRIPT_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain" },
+            body: JSON.stringify({
+              recordType: "square_checkout",
+              location: activeDashPendingTxn.location,
+              subtotal: cleanSub,
+              taxAmount: cleanTax,
+              ccFee: ccFee,
+              isManualEntry: document.getElementById("dashPendingManualCheck").checked
+            })
+          });
+
+          let sqResult = await sqRes.json();
+          if (sqResult.error || sqResult.errors) {
+            let errMsg = sqResult.error || sqResult.errors[0].detail;
+            alert("Square Error: " + errMsg);
+            closeDashModals();
+            btn.innerText = originalText;
+            btn.disabled = false;
+            return;
+          }
+
+          let checkoutId = sqResult.checkout.id;
+          let isWaiting = true;
+
+          while (isWaiting) {
+            await new Promise(r => setTimeout(r, 3000));
+            let statusRes;
+            try {
+              statusRes = await fetch(GOOGLE_SCRIPT_URL, {
+                method: "POST",
+                headers: { "Content-Type": "text/plain" },
+                body: JSON.stringify({ recordType: "check_square_status", checkoutId: checkoutId })
+              });
+            } catch (netErr) { continue; }
+
+            let statusJson;
+            try { statusJson = await statusRes.json(); } catch (e) { continue; }
+
+            if (statusJson.checkoutStatus === "COMPLETED") {
+              isWaiting = false;
+              squareTip = statusJson.tipAmount || 0;
+              closeDashModals();
+            } else if (statusJson.checkoutStatus === "CANCELED") {
+              isWaiting = false;
+              closeDashModals();
+              alert("Payment Canceled or Declined on Terminal.");
+              btn.innerText = originalText;
+              btn.disabled = false;
+              return;
+            }
+          }
+        } catch (err) {
+          closeDashModals();
+          alert("Terminal Connection Error: " + err.message);
+          btn.innerText = originalText;
+          btn.disabled = false;
+          return;
+        }
+      }
+
+      // 2. Mark the Pending Invoice as Paid in Google Sheets
+      try {
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({
+            recordType: "pay_pending_invoice",
+            location: activeDashPendingTxn.location,
+            orderId: activeDashPendingTxn.orderId,
+            newPaymentType: method,
+            tipAmount: squareTip
+          })
+        });
+        const result = await response.json();
+
+        if (result.status === "success") {
+          alert(`Invoice ${activeDashPendingTxn.orderId} successfully paid with ${method}!`);
+          closeDashModals();
+          searchGlobalInvoices();
+          fetchData();
+        } else {
+          alert("Error: " + result.message);
+        }
+      } catch (err) {
+        alert("Network Error while updating invoice status.");
+      }
+      btn.innerText = originalText;
+      btn.disabled = false;
     }
 
     async function generateDealerReport() {
