@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -195,6 +198,7 @@
       <button class="num-btn" style="background: rgba(16,185,129,0.2); color: #6ee7b7; border-color: rgba(16,185,129,0.4);" onclick="submitPin()">OK</button>
     </div>
     <div id="systemStatus">🟢 System Initializing...</div>
+    <button onclick="forceAppUpdate()" style="margin-top: 15px; background: rgba(255,255,255,0.08); color: #9ca3af; border: 1px solid rgba(255,255,255,0.15); padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;">🔄 Update App</button>
   </div>
 
   <!-- PAYMENT MODAL -->
@@ -522,6 +526,7 @@
             <button class="header-btn timeclock-btn" onclick="openTimeclock()">🕒 Timeclock</button>
             <button class="header-btn" style="background: #4b5563; color: white;" onclick="document.getElementById('searchModalOverlay').style.display='flex'">🖨️ Invoices</button>
             <button class="header-btn logout-btn" onclick="logout()">Log Out</button>
+            <button class="header-btn" style="background: #f3f4f6; color: #374151;" onclick="forceAppUpdate()">🔄</button>
           </div>
         </div>
       </div>
@@ -2189,6 +2194,64 @@ function promptPayPending(orderId, totalAmount) {
     btn.innerText = originalText;
     btn.disabled = false;
   }
+  // --- ZERO-TOUCH PWA AUTO-UPDATER & CACHE BUSTER ---
+  let currentAppSignature = null;
+
+  // 1. Manual button to force-fetch latest code & reload inside Guided Access
+  async function forceAppUpdate() {
+    const statusDiv = document.getElementById("systemStatus");
+    if (statusDiv) statusDiv.innerText = "🔄 Fetching latest update...";
+    
+    try {
+      // Unregister any service workers if present
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (let reg of registrations) { await reg.unregister(); }
+      }
+      // Clear browser Cache Storage
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        for (let key of keys) { await caches.delete(key); }
+      }
+      // Fetch fresh HTML from server bypassing cache
+      const cleanUrl = window.location.origin + window.location.pathname;
+      await fetch(cleanUrl + "?t=" + Date.now(), { cache: "reload" });
+      
+      // Navigate with cache-busting query string so iOS WebApp reloads fresh
+      window.location.replace(cleanUrl + "?v=" + Date.now());
+    } catch (err) {
+      window.location.reload();
+    }
+  }
+
+  // 2. Silent background checker: auto-reloads when you push a new GitHub commit!
+  async function checkForSilentUpdate() {
+    try {
+      const cleanUrl = window.location.origin + window.location.pathname;
+      const res = await fetch(cleanUrl + "?check=" + Date.now(), { cache: "no-store" });
+      if (!res.ok) return;
+      const latestHtml = await res.text();
+      
+      // Save the signature on initial load
+      if (!currentAppSignature) {
+        currentAppSignature = latestHtml.length + "_" + latestHtml.slice(-200);
+        return;
+      }
+
+      const newSignature = latestHtml.length + "_" + latestHtml.slice(-200);
+      // Only auto-reload if the code changed AND the cart is currently empty (safe to reload)
+      if (newSignature !== currentAppSignature && cart.length === 0) {
+        console.log("New update detected! Auto-reloading POS...");
+        forceAppUpdate();
+      }
+    } catch (e) {
+      // Ignore offline hiccups
+    }
+  }
+
+  // Check on startup, every 15 minutes when idle, and whenever an attendant logs out
+  checkForSilentUpdate();
+  setInterval(checkForSilentUpdate, 15 * 60 * 1000);
 </script>
 </body>
 </html>
