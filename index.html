@@ -775,7 +775,7 @@ function promptPayPending(orderId, totalAmount) {
 
       try {
         // Omit 'orderId' here so check_square_status doesn't create a duplicate new row
-        let sqRes = await fetch(GOOGLE_SCRIPT_URL, {
+      let sqRes = await fetch(GOOGLE_SCRIPT_URL, {
           method: "POST",
           headers: { "Content-Type": "text/plain" },
           body: JSON.stringify({
@@ -784,7 +784,7 @@ function promptPayPending(orderId, totalAmount) {
             subtotal: cleanSub,
             taxAmount: cleanTax,
             ccFee: ccFee,
-            isManualisManualEntry: document.getElementById("pendingManualEntryCheck").checkedEntry: false
+            isManualEntry: document.getElementById("pendingManualEntryCheck").checked
           })
         });
 
