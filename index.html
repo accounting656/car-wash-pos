@@ -1411,12 +1411,18 @@
       `; 
     } else if (selectedVehicleType === 'Store') {
       backBtn.style.display = "inline-block";
-      grid.innerHTML = storeProducts.map((item, index) => `
-        <div class="card" onclick="addStoreItem(${index})">
-          <h3 style="color: #166534;">${item.name}</h3>
-          <div class="price" style="background: #dcfce7; color: #166534;">$${item.price.toFixed(2)}</div>
+      grid.innerHTML = `
+        <div style="grid-column: 1 / -1; background: white; padding: 18px 22px; border-radius: 18px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+            <input type="text" id="storeSearchInput" class="input-field" placeholder="🔍 Search chemicals, sizes, brushes, Tornador parts..." oninput="renderStoreItems()" style="flex: 1; margin: 0; min-width: 220px; font-size: 15px; background: #f9fafb;">
+            <button onclick="setStoreTab('Chemicals')" id="tabChem" style="padding: 12px 18px; border-radius: 10px; border: none; font-weight: 700; cursor: pointer; background: #0891b2; color: white;">🧪 Chemicals</button>
+            <button onclick="setStoreTab('Equipment & Supplies')" id="tabEquip" style="padding: 12px 18px; border-radius: 10px; border: none; font-weight: 700; cursor: pointer; background: #e5e7eb; color: #374151;">🛠️ Equipment & Supplies</button>
+            <button onclick="setStoreTab('All')" id="tabAllStore" style="padding: 12px 18px; border-radius: 10px; border: none; font-weight: 700; cursor: pointer; background: #e5e7eb; color: #374151;">All</button>
+          </div>
         </div>
-      `).join('');
+        <div id="storeSubGrid" style="grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 18px;"></div>
+      `;
+      renderStoreItems();
     } else {
       backBtn.style.display = "inline-block";
       grid.innerHTML = activeServices.map(item => `
@@ -1428,6 +1434,96 @@
   }
 
   function addToCart(id) { const item = activeServices.find(s => s.id === id); cart.push({ id: item.id, name: `${selectedVehicleType} - ${item.name}`, price: item.prices[selectedVehicleType] }); updateCart(); }
+let activeStoreTab = 'Chemicals';
+
+  function setStoreTab(tab) {
+    activeStoreTab = tab;
+    const btnChem = document.getElementById("tabChem");
+    const btnEquip = document.getElementById("tabEquip");
+    const btnAll = document.getElementById("tabAllStore");
+    if (btnChem) {
+      btnChem.style.background = tab === 'Chemicals' ? '#0891b2' : '#e5e7eb';
+      btnChem.style.color = tab === 'Chemicals' ? 'white' : '#374151';
+      btnEquip.style.background = tab === 'Equipment & Supplies' ? '#166534' : '#e5e7eb';
+      btnEquip.style.color = tab === 'Equipment & Supplies' ? 'white' : '#374151';
+      btnAll.style.background = tab === 'All' ? '#2563eb' : '#e5e7eb';
+      btnAll.style.color = tab === 'All' ? 'white' : '#374151';
+    }
+    renderStoreItems();
+  }
+
+  function renderStoreItems() {
+    const subGrid = document.getElementById("storeSubGrid");
+    if (!subGrid) return;
+    const term = (document.getElementById("storeSearchInput")?.value || "").toLowerCase().trim();
+
+    const validSizes = ["32 OZ", "1 GAL", "5 GAL", "15 GAL", "30 GAL", "55 GAL", "55 GAL RTU"];
+    const sizeOrder = { "32 OZ": 1, "1 GAL": 2, "5 GAL": 3, "15 GAL": 4, "30 GAL": 5, "55 GAL": 6, "55 GAL RTU": 7 };
+
+    const groupedMap = {};
+    storeProducts.forEach((item, idx) => {
+      const cat = item.category || "Chemicals";
+      if (activeStoreTab !== 'All' && cat !== activeStoreTab) return;
+      if (term && !item.name.toLowerCase().includes(term)) return;
+
+      // Pipe-free size extractor (immune to copy-paste formatting!)
+      let baseName = item.name;
+      let sizeLabel = "Standard";
+      const openParen = item.name.lastIndexOf("(");
+      if (openParen > 0 && item.name.endsWith(")")) {
+        const candidateSize = item.name.slice(openParen + 1, -1).trim().toUpperCase().replace(/\s+/g, " ");
+        if (validSizes.includes(candidateSize)) {
+          baseName = item.name.slice(0, openParen).trim();
+          sizeLabel = candidateSize;
+        }
+      }
+
+      if (!groupedMap[baseName]) {
+        groupedMap[baseName] = { baseName, category: cat, variants: [] };
+      }
+      groupedMap[baseName].variants.push({ idx, sizeLabel, price: Number(item.price) });
+    });
+
+    const families = Object.values(groupedMap);
+    if (families.length === 0) {
+      subGrid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #6b7280; font-weight: 600;">No matching products found. (Make sure you ran loadShopifyProductsToSheet in Code.gs and Deployed New Version!)</div>`;
+      return;
+    }
+
+    subGrid.innerHTML = families.map(fam => {
+      fam.variants.sort((a, b) => (sizeOrder[a.sizeLabel] || 99) - (sizeOrder[b.sizeLabel] || 99));
+      const isChem = fam.category === "Chemicals";
+      const accentColor = isChem ? "#0e7490" : "#166534";
+      const badgeBg = isChem ? "#ecfeff" : "#dcfce7";
+      const badgeBorder = isChem ? "#67e8f9" : "#86efac";
+
+      if (fam.variants.length === 1 && fam.variants[0].sizeLabel === "Standard") {
+        const v = fam.variants[0];
+        return `
+          <div class="card" onclick="addStoreItem(${v.idx})" style="padding: 18px;">
+            <h3 style="font-size: 16px; color: #111827; margin-bottom: 12px;">${fam.baseName}</h3>
+            <div class="price" style="background: ${badgeBg}; color: ${accentColor}; font-size: 16px;">$${v.price.toFixed(2)}</div>
+          </div>
+        `;
+      }
+
+      const buttonsHTML = fam.variants.map(v => `
+        <button onclick="addStoreItem(${v.idx})" style="padding: 8px 10px; border-radius: 10px; border: 1px solid ${badgeBorder}; background: ${badgeBg}; color: ${accentColor}; font-weight: 700; font-size: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 6px;">
+          <span>${v.sizeLabel}</span>
+          <span style="background: white; padding: 2px 6px; border-radius: 6px;">$${v.price.toFixed(2)}</span>
+        </button>
+      `).join('');
+
+      return `
+        <div class="card" style="padding: 18px; cursor: default;">
+          <h3 style="font-size: 16px; color: #111827; margin-bottom: 12px;">🧪 ${fam.baseName}</h3>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+            ${buttonsHTML}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
   function addStoreItem(index) { 
     const item = storeProducts[index]; 
     cart.push({ id: 'store-' + Date.now(), name: `Retail - ${item.name}`, price: item.price }); 
