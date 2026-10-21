@@ -181,7 +181,7 @@
 
   <!-- THE HIDDEN PRINTABLE INVOICE -->
   <div id="printableInvoice">
-    <h2 style="margin-bottom: 5px;">A Plus Car Wash & Detailing Inc.[cite: 2]</h2>
+    <h2 style="margin-bottom: 5px;">A Plus Car Wash & Detailing Inc.</h2>
     <p id="invLocationAddress" style="margin-top: 0; color: #555;"></p>
     <hr style="border: 1px solid #ccc; margin: 20px 0;">
     <p><strong>Date:</strong> <span id="invDate"></span></p>
@@ -202,19 +202,19 @@
       <tr><th>Total Paid:</th><td id="invTotal" style="font-weight: bold;"></td></tr>
       <tr><th>Payment Method:</th><td id="invPaymentMethod" style="font-style: italic;"></td></tr>
     </table>
-    <p style="margin-top: 40px; text-align: center; font-style: italic;">Thank you for your business![cite: 2]</p>
+    <p style="margin-top: 40px; text-align: center; font-style: italic;">Thank you for your business!</p>
   </div>
 
   <script>
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxJX6GJEcl5OvCZ7Z7JAD72jSK8d7g7EJeK9Ud4dAiDb8-gPidrYvIOGpVAKw8h3Q2VFQ/exec"; //[cite: 2]
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxJX6GJEcl5OvCZ7Z7JAD72jSK8d7g7EJeK9Ud4dAiDb8-gPidrYvIOGpVAKw8h3Q2VFQ/exec";
     
     let currentDashboardData = null; 
 
     const corpEntities = {
-      "Location 1 - Tampa Bay": { name: "A Plus Car Wash & Detailing Tampa Bay Inc.", cert: "39-8020182731-8" }, //[cite: 2]
-      "Location 2 - Columbus": { name: "A Plus Car Wash & Detailing West Tampa Inc.", cert: "39-8020182759-2" }, //[cite: 2]
-      "Location 3 - South": { name: "A Plus Car Wash & Detailing II Inc.", cert: "39-8020182804-5" }, //[cite: 2]
-      "Location 4 - Armenia": { name: "A+ Car Wash & Detailing, Inc.", cert: "39-8018000918-3" } //[cite: 2]
+      "Location 1 - Tampa Bay": { name: "A Plus Car Wash & Detailing Tampa Bay Inc.", cert: "39-8020182731-8" },
+      "Location 2 - Columbus": { name: "A Plus Car Wash & Detailing West Tampa Inc.", cert: "39-8020182759-2" },
+      "Location 3 - South": { name: "A Plus Car Wash & Detailing II Inc.", cert: "39-8020182804-5" },
+      "Location 4 - Armenia": { name: "A+ Car Wash & Detailing, Inc.", cert: "39-8018000918-3" }
     };
 
     document.addEventListener("DOMContentLoaded", () => {
@@ -306,6 +306,32 @@
           let exemptTotal = lData.tax > 0 ? (lData.net - (lData.tax / 0.075)) : lData.net;
           if (exemptTotal < 0.01) exemptTotal = 0;
 
+          // Build Paid Pending Invoices section if any were collected
+          let paidPendingHTML = "";
+          if (lData.paidPending && lData.paidPending.length > 0) {
+            let pRows = lData.paidPending.map(p => {
+              let who = p.dealer ? `${p.dealer} (${p.vehicle})` : p.vehicle;
+              return `<div class="list-item" style="align-items: flex-start;">
+                        <div style="font-size: 12px; line-height: 1.4;">
+                          <strong>${p.orderId}</strong> • Paid via <strong>${p.method}</strong> (Wash: ${p.origDate})<br>
+                          <span style="color: #6b7280;">${who} — ${p.services}</span>
+                        </div>
+                        <strong style="color: #10b981;">$${p.amount.toFixed(2)}</strong>
+                      </div>`;
+            }).join('');
+
+            paidPendingHTML = `
+              <p style="font-size: 12px; font-weight: bold; color: #b45309; margin-top: 20px; margin-bottom: 8px;">📥 PENDING INVOICES COLLECTED (${lData.paidPending.length}):</p>
+              <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 10px;">
+                ${pRows}
+                <div class="fin-row" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #fde68a; font-weight: 800; color: #92400e;">
+                  <span>Total Pending Collected:</span>
+                  <span>$${(lData.paidPendingTotal || 0).toFixed(2)}</span>
+                </div>
+              </div>
+            `;
+          }
+
           locHTML += `
             <div class="loc-card">
               <div class="loc-title">${loc}</div>
@@ -335,6 +361,7 @@
               
               <p style="font-size: 12px; font-weight: bold; color: #6b7280; margin-bottom: 8px;">ITEMIZED BREAKDOWN:</p>
               <div>${services || "<span style='color:#9ca3af; font-size: 13px;'>No services recorded</span>"}</div>
+              ${paidPendingHTML}
             </div>`;
         });
         document.getElementById("locationCards").innerHTML = locHTML;
@@ -391,6 +418,24 @@
         
         let services = Object.entries(lData.services).sort((a,b) => b[1]-a[1]).map(s => `<tr><td style="padding: 6px 0; border-bottom: 1px solid #f3f4f6;">${s[0]}</td><td style="padding: 6px 0; border-bottom: 1px solid #f3f4f6; text-align: right; font-weight: bold;">${s[1]}</td></tr>`).join('');
         if (!services) services = `<tr><td colspan="2" style="padding: 6px 0; color: #9ca3af;">No services recorded</td></tr>`;
+
+        if (lData.paidPending && lData.paidPending.length > 0) {
+          services += `<tr><th colspan="2" style="background: #f3f4f6; padding: 8px 6px; font-size: 13px; text-align: left; border-top: 2px solid #111827; border-bottom: 1px solid #9ca3af;">📥 Pending Invoices Collected (${lData.paidPending.length})</th></tr>`;
+          lData.paidPending.forEach(p => {
+            let who = p.dealer ? `${p.dealer} (${p.vehicle})` : p.vehicle;
+            services += `<tr>
+              <td style="padding: 6px 0; border-bottom: 1px solid #f3f4f6; font-size: 12px;">
+                <strong>${p.orderId}</strong> • Paid via <strong>${p.method}</strong> (Wash: ${p.origDate})<br>
+                <span style="color: #555;">${who} — ${p.services}</span>
+              </td>
+              <td style="padding: 6px 0; border-bottom: 1px solid #f3f4f6; text-align: right; font-weight: bold; vertical-align: top;">$${p.amount.toFixed(2)}</td>
+            </tr>`;
+          });
+          services += `<tr>
+            <td style="padding: 8px 0; text-align: right; font-weight: bold;">Total Pending Collected:</td>
+            <td style="padding: 8px 0; text-align: right; font-weight: bold;">$${(lData.paidPendingTotal || 0).toFixed(2)}</td>
+          </tr>`;
+        }
 
         let exemptTotal = lData.tax > 0 ? (lData.net - (lData.tax / 0.075)) : lData.net;
         if (exemptTotal < 0.01) exemptTotal = 0;
@@ -524,7 +569,6 @@
       setTimeout(() => { document.body.classList.remove("print-tax"); }, 500);
     }
 
-    // --- NEW DASHBOARD INTERACTIVITY LOGIC ---
     function switchTab(tabName) {
       document.querySelectorAll('.dash-view').forEach(el => el.style.display = 'none');
       document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
@@ -550,11 +594,11 @@
         const result = await response.json();
 
         if (result.status === "success" && result.data.length > 0) {
-          window.currentSearchResults = result.data; // 💾 Saves the data for the print function[cite: 1]
+          window.currentSearchResults = result.data;
           
-          let html = `<table class="data-table"><tr><th>Date</th><th>Location</th><th>Order ID</th><th>Vehicle</th><th>Total</th><th>Status</th><th>Action</th></tr>`; //[cite: 1]
+          let html = `<table class="data-table"><tr><th>Date</th><th>Location</th><th>Order ID</th><th>Vehicle</th><th>Total</th><th>Status</th><th>Action</th></tr>`;
           result.data.forEach((t, index) => {
-            let statusColor = t.paymentType === 'Pending' ? '#ef4444' : '#10b981'; //[cite: 1]
+            let statusColor = t.paymentType === 'Pending' ? '#ef4444' : '#10b981';
             html += `<tr>
               <td>${new Date(t.date).toLocaleDateString()}</td>
               <td>${t.location}</td>
@@ -563,7 +607,7 @@
               <td style="font-weight: bold;">${t.total}</td>
               <td style="color: ${statusColor}; font-weight: bold;">${t.paymentType}</td>
               <td><button class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;" onclick="printSearchedInvoice(${index})">🖨️ Print</button></td>
-            </tr>`; //[cite: 1]
+            </tr>`;
           });
           content.innerHTML = html + "</table>";
         } else {
@@ -626,34 +670,34 @@
       "Location 4 - Armenia": "6410 N Armenia Ave, Tampa FL 33604"
     };
 
-    function printSearchedInvoice(index) { //[cite: 3]
-      const transaction = window.currentSearchResults[index]; //[cite: 3]
-      if (!transaction) return; //[cite: 3]
+    function printSearchedInvoice(index) {
+      const transaction = window.currentSearchResults[index];
+      if (!transaction) return;
 
-      document.getElementById("invLocationAddress").innerText = locationAddresses[transaction.location] || "Address Not Found"; //[cite: 3]
-      document.getElementById("invDate").innerText = new Date(transaction.date).toLocaleString(); //[cite: 3]
-      document.getElementById("invOrder").innerText = transaction.orderId; //[cite: 3]
-      document.getElementById("invVehicle").innerText = transaction.vehicle; //[cite: 3]
-      document.getElementById("invServices").innerText = transaction.services; //[cite: 3]
-      document.getElementById("invSubtotal").innerText = transaction.subtotal; //[cite: 3]
-      document.getElementById("invTax").innerText = transaction.tax; //[cite: 3]
-      document.getElementById("invTotal").innerText = transaction.total; //[cite: 3]
-      document.getElementById("invPaymentMethod").innerText = transaction.paymentType || "N/A"; //[cite: 3]
+      document.getElementById("invLocationAddress").innerText = locationAddresses[transaction.location] || "Address Not Found";
+      document.getElementById("invDate").innerText = new Date(transaction.date).toLocaleString();
+      document.getElementById("invOrder").innerText = transaction.orderId;
+      document.getElementById("invVehicle").innerText = transaction.vehicle;
+      document.getElementById("invServices").innerText = transaction.services;
+      document.getElementById("invSubtotal").innerText = transaction.subtotal;
+      document.getElementById("invTax").innerText = transaction.tax;
+      document.getElementById("invTotal").innerText = transaction.total;
+      document.getElementById("invPaymentMethod").innerText = transaction.paymentType || "N/A";
 
-      const dealerContainer = document.getElementById("invDealerContainer"); //[cite: 3]
-      if (transaction.exemptDealer && transaction.exemptDealer.trim() !== "" && transaction.exemptDealer !== "N/A") { //[cite: 3]
-        let rawDealerName = transaction.exemptDealer.split(" (")[0].trim(); //[cite: 3]
-        document.getElementById("invDealerName").innerText = rawDealerName; //[cite: 3]
-        document.getElementById("invDealerCert").innerText = transaction.exemptDealer; //[cite: 3]
-        dealerContainer.style.display = "block"; //[cite: 3]
-      } else { //[cite: 3]
-        dealerContainer.style.display = "none"; //[cite: 3]
-      } //[cite: 3]
+      const dealerContainer = document.getElementById("invDealerContainer");
+      if (transaction.exemptDealer && transaction.exemptDealer.trim() !== "" && transaction.exemptDealer !== "N/A") {
+        let rawDealerName = transaction.exemptDealer.split(" (")[0].trim();
+        document.getElementById("invDealerName").innerText = rawDealerName;
+        document.getElementById("invDealerCert").innerText = transaction.exemptDealer;
+        dealerContainer.style.display = "block";
+      } else {
+        dealerContainer.style.display = "none";
+      }
 
-      document.body.classList.add("print-invoice"); //[cite: 3]
-      window.print(); //[cite: 3]
-      setTimeout(() => { document.body.classList.remove("print-invoice"); }, 500); //[cite: 3]
-    } //[cite: 3]
+      document.body.classList.add("print-invoice");
+      window.print();
+      setTimeout(() => { document.body.classList.remove("print-invoice"); }, 500);
+    }
 
     async function reconcileSquare() {
       const pinInput = document.getElementById('adminPin').value;
@@ -679,7 +723,7 @@
         if (result.status === "success") {
           alert(`✅ Square Audit Complete!\n\n• Square Payments Checked: ${result.checked}\n• Missing Sales Restored: ${result.restored}\n• Missing Tips Backfilled: ${result.tipsUpdated}`);
           if (result.restored > 0 || result.tipsUpdated > 0) {
-            fetchData(); // Automatically refresh the dashboard numbers!
+            fetchData();
           }
         } else {
           alert("Error: " + result.message);
