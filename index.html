@@ -478,13 +478,19 @@
     </div>
   </div>
 
-  <!-- PAY PENDING INVOICE MODAL -->
+<!-- PAY PENDING INVOICE MODAL -->
   <div id="payPendingModalOverlay" class="modal-overlay">
     <div class="modal-box">
       <h2>Receive Payment</h2>
       <p style="margin-bottom: 20px; color: #4b5563;">Order: <strong id="pendingOrderIdDisplay" style="color: #111827;"></strong><br>Amount Due: <strong id="pendingTotalDisplay" style="color: #ef4444; font-size: 18px;"></strong></p>
       
       <button class="modal-btn" onclick="submitPendingPayment('Cash')">💵 Pay with Cash</button>
+
+      <div style="margin: 10px 0 12px 0; padding: 10px; background: #f9fafb; border-radius: 10px; border: 1px solid #e5e7eb;">
+        <input type="checkbox" id="pendingManualEntryCheck" style="transform: scale(1.4); margin-right: 8px; cursor: pointer;">
+        <label for="pendingManualEntryCheck" style="font-size: 15px; font-weight: 700; color: #374151; cursor: pointer;">📞 Phone Order (Manual Key-In)</label>
+      </div>
+
       <button class="modal-btn" onclick="submitPendingPayment('Credit Card')">💳 Pay with Credit Card</button>
       <button class="modal-btn" onclick="submitPendingPayment('Check')">📝 Pay with Check</button>
       
@@ -723,11 +729,13 @@
     }
   }
 
-  function promptPayPending(orderId, totalAmount) {
+function promptPayPending(orderId, totalAmount) {
     pendingPayOrderId = orderId;
     pendingPayTransaction = currentSearchResults.find(t => t.orderId === orderId) || null;
     document.getElementById("pendingOrderIdDisplay").innerText = orderId;
     document.getElementById("pendingTotalDisplay").innerText = totalAmount;
+    const manualCheck = document.getElementById("pendingManualEntryCheck");
+    if (manualCheck) manualCheck.checked = false;
     document.getElementById("searchModalOverlay").style.display = "none"; 
     document.getElementById("payPendingModalOverlay").style.display = "flex";
   }
@@ -776,7 +784,7 @@
             subtotal: cleanSub,
             taxAmount: cleanTax,
             ccFee: ccFee,
-            isManualEntry: false
+            isManualisManualEntry: document.getElementById("pendingManualEntryCheck").checkedEntry: false
           })
         });
 
