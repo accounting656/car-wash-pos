@@ -773,7 +773,7 @@ function promptPayPending(orderId, totalAmount) {
         return;
       }
 
-      let ccFee = Math.ceil((((cleanTotal * 0.026) + 0.15) / 0.974) * 100) / 100;
+      let ccFee = Math.ceil((((cleanTotal * 0.0275) + 0.15) / 0.9725) * 100) / 100;
 
       document.getElementById("payPendingModalOverlay").style.display = "none";
       document.getElementById("squareModalOverlay").style.display = "flex";
@@ -1664,7 +1664,7 @@ function promptPayPending(orderId, totalAmount) {
       document.getElementById("squareModalOverlay").style.display = "flex";
       
       // Exact Square Gross-Up Formula (covers 2.6% + $0.15 on total charged, rounded up)
-      let ccFee = Math.ceil((((grandTotal * 0.026) + 0.15) / 0.974) * 100) / 100;
+      let ccFee = Math.ceil((((grandTotal * 0.0275) + 0.15) / 0.9725) * 100) / 100;
 
       const squarePayload = {
         ...baseSaleData,
