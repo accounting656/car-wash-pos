@@ -269,6 +269,15 @@
 
     let salesChart, carsChart;
 
+    // Helper to calculate exact Tax-Exempt Sales (uses row-by-row lData.exempt if available, with 50-cent rounding guard)
+    function getExactExemptSales(lData) {
+      if (lData.exempt !== undefined) {
+        return Number(lData.exempt) || 0;
+      }
+      let est = lData.tax > 0 ? (lData.net - (lData.tax / 0.075)) : lData.net;
+      return est < 0.50 ? 0 : est;
+    }
+
     // Helper to group services into Wash, Add-Ons, Discounts, Retail, Chemicals, Equipment, Custom, and Gift Cards
     function groupLocationServices(servicesObj) {
       let grouped = { wash: {}, addons: {}, discounts: {}, retail: {}, chemicals: {}, equipment: {}, custom: {}, gift: {} };
@@ -443,8 +452,7 @@
           let staff = lData.employees.length > 0 ? lData.employees.map(e => `<span class="badge">👤 ${e}</span>`).join('') : "<span style='color:#9ca3af; font-size: 13px;'>No staff recorded</span>";
           let categorizedServicesHTML = buildScreenCategorizedHTML(lData.services);
           
-        let exemptTotal = (lData.exempt !== undefined) ? lData.exempt : (lData.tax > 0 ? (lData.net - (lData.tax / 0.075)) : lData.net);
-        if (exemptTotal < 0.50) exemptTotal = 0;
+          let exemptTotal = getExactExemptSales(lData);
 
           let payoutTotal = lData.payoutTotal || 0;
           let cashPayoutTenderHTML = "";
@@ -636,8 +644,7 @@
           </tr>`;
         }
 
-        let exemptTotal = lData.tax > 0 ? (lData.net - (lData.tax / 0.075)) : lData.net;
-        if (exemptTotal < 0.50) exemptTotal = 0;
+        let exemptTotal = getExactExemptSales(lData);
 
         html += `
           <div style="margin-bottom: 50px;">
@@ -720,17 +727,8 @@
         let drGrossSales = lData.net; 
         let totalTaxCollected = lData.tax;
         
-        let taxableSales = 0;
-        let exemptSales = 0;
-
-        if (totalTaxCollected > 0) {
-          taxableSales = totalTaxCollected / 0.075;
-          exemptSales = drGrossSales - taxableSales;
-        } else {
-          exemptSales = drGrossSales; 
-        }
-
-        if (exemptSales < 0.01) exemptSales = 0;
+        let exemptSales = getExactExemptSales(lData);
+        let taxableSales = Math.max(0, drGrossSales - exemptSales);
 
         html += `
         <div style="margin-bottom: 40px; page-break-inside: avoid; font-family: Arial, sans-serif;">
