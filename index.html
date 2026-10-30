@@ -281,7 +281,9 @@
           </table>
           <h3 style="font-size: 16px; border-bottom: 1px solid #111827; padding-bottom: 4px; margin-bottom: 8px;">Tender Breakdown</h3>
           <table style="width: 100%; text-align: left; font-size: 14px; margin-bottom: 30px;">
-            <tr><th style="padding: 3px 0; color: #4b5563;">Cash:</th><td id="eodCash" style="text-align: right; font-weight: 600;"></td></tr>
+            <tr><th style="padding: 3px 0; color: #4b5563;">Cash (Sales):</th><td id="eodCash" style="text-align: right; font-weight: 600;"></td></tr>
+            <tr id="eodPayoutRow" style="display: none;"><th style="padding: 3px 0; color: #dc2626;">Less Cash Payouts:</th><td id="eodPayouts" style="text-align: right; font-weight: 700; color: #dc2626;"></td></tr>
+            <tr id="eodNetCashRow" style="display: none;"><th style="padding: 4px 0; color: #111827; border-top: 1px dashed #9ca3af;">Net Cash in Drawer:</th><td id="eodNetCash" style="text-align: right; font-weight: 900; border-top: 1px dashed #9ca3af;"></td></tr>
             <tr><th style="padding: 3px 0; color: #4b5563;">Credit Card:</th><td id="eodCredit" style="text-align: right; font-weight: 600;"></td></tr>
             <tr><th style="padding: 3px 0; color: #4b5563;">Check:</th><td id="eodCheck" style="text-align: right; font-weight: 600;"></td></tr>
             <tr><th style="padding: 3px 0; color: #4b5563;">Pending:</th><td id="eodPending" style="text-align: right; font-weight: 600;"></td></tr>
@@ -464,7 +466,25 @@
       <button class="modal-btn clock-in-btn" style="background: #3b82f6; border-color: #2563eb;" onclick="executeEOD('email')">✉️ Email Owner Only</button>
       <button class="modal-btn clock-in-btn" style="background: #8b5cf6; border-color: #7c3aed;" onclick="executeEOD('both')">🖨️ & ✉️ Print & Email</button>
       <button class="modal-btn clock-in-btn" style="background: #0f766e; border-color: #0d9488;" onclick="openSquareReport()">💳 Run Square Audit</button>
+      <button class="modal-btn" style="background: #fef2f2; color: #dc2626; border-color: #fca5a5;" onclick="openPayoutModal()">💸 Record Cash Payout / Accidental</button>
       
+      <button class="modal-btn btn-cancel" onclick="closeModals()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- CASH PAYOUT / ACCIDENTAL DAMAGE MODAL -->
+  <div id="payoutModalOverlay" class="modal-overlay">
+    <div class="modal-box">
+      <h2 style="color: #dc2626;">💸 Cash Payout / Accidental</h2>
+      <p style="margin-bottom: 15px; color: #4b5563; font-size: 13px;">Deducts cash from the register drawer without altering Net Sales or Taxes.</p>
+      
+      <input type="number" id="payoutAmount" class="input-field" placeholder="Cash Amount Removed (e.g. 130.00)" step="0.01">
+      <input type="text" id="payoutEmployee" class="input-field" placeholder="👤 Employee Responsible (if applicable)">
+      <input type="text" id="payoutVehicle" class="input-field" placeholder="🚗 Customer Vehicle / Plate">
+      <input type="text" id="payoutReason" class="input-field" placeholder="📝 Reason (e.g., Accidental mirror damage)">
+      <input type="password" id="payoutPin" class="input-field" placeholder="🔒 Manager / Admin PIN to Authorize" inputmode="numeric" style="text-align: center; font-weight: bold; letter-spacing: 3px; margin-bottom: 18px;">
+
+      <button class="modal-btn" style="background: #dc2626; color: white; border: none;" onclick="submitCashPayout()" id="submitPayoutBtn">Record Cash Deduction</button>
       <button class="modal-btn btn-cancel" onclick="closeModals()">Cancel</button>
     </div>
   </div>
@@ -482,7 +502,7 @@
     </div>
   </div>
 
-<!-- PAY PENDING INVOICE MODAL -->
+  <!-- PAY PENDING INVOICE MODAL -->
   <div id="payPendingModalOverlay" class="modal-overlay">
     <div class="modal-box">
       <h2>Receive Payment</h2>
@@ -734,7 +754,7 @@
     }
   }
 
-function promptPayPending(orderId, totalAmount) {
+  function promptPayPending(orderId, totalAmount) {
     pendingPayOrderId = orderId;
     pendingPayTransaction = currentSearchResults.find(t => t.orderId === orderId) || null;
     document.getElementById("pendingOrderIdDisplay").innerText = orderId;
@@ -780,7 +800,7 @@ function promptPayPending(orderId, totalAmount) {
 
       try {
         // Omit 'orderId' here so check_square_status doesn't create a duplicate new row
-      let sqRes = await fetch(GOOGLE_SCRIPT_URL, {
+        let sqRes = await fetch(GOOGLE_SCRIPT_URL, {
           method: "POST",
           headers: { "Content-Type": "text/plain" },
           body: JSON.stringify({
@@ -1110,8 +1130,8 @@ function promptPayPending(orderId, totalAmount) {
     document.getElementById("eodBtn").style.display = "none";
     resetToRetail(); 
     updateCart();
-    loadAppData(); // Pulls latest Store Products, Dealers & PINs from Google Sheets
-    checkForSilentUpdate(); // Auto-reloads if you pushed a new GitHub commit
+    loadAppData();
+    checkForSilentUpdate();
   }
 
   function saveTabletLocation() { localStorage.setItem("washos_location", document.getElementById("locationSelect").value); }
@@ -1134,6 +1154,7 @@ function promptPayPending(orderId, totalAmount) {
       "cashModalOverlay",
       "customerModalOverlay",
       "eodModalOverlay",
+      "payoutModalOverlay",
       "payPendingModalOverlay",
       "squareReportModalOverlay",
       "ticketDiscountModalOverlay",
@@ -1548,7 +1569,12 @@ function promptPayPending(orderId, totalAmount) {
 
   function addStoreItem(index) { 
     const item = storeProducts[index]; 
-    cart.push({ id: 'store-' + Date.now(), name: `Retail - ${item.name}`, price: item.price }); 
+    const cat = item.category || "Store";
+    let prefix = "Retail - ";
+    if (cat === "Chemicals") prefix = "Chemical - ";
+    else if (cat === "Equipment & Supplies") prefix = "Equipment - ";
+    
+    cart.push({ id: 'store-' + Date.now(), name: `${prefix}${item.name}`, price: item.price, category: cat }); 
     updateCart(); 
   }
 
@@ -1663,7 +1689,7 @@ function promptPayPending(orderId, totalAmount) {
     if (selectedPaymentType === 'Credit Card') {
       document.getElementById("squareModalOverlay").style.display = "flex";
       
-      // Exact Square Gross-Up Formula (covers 2.6% + $0.15 on total charged, rounded up)
+      // Exact Square Gross-Up Formula (2.75% + $0.15 on total charged, rounded up to cover tip fees)
       let ccFee = Math.ceil((((grandTotal * 0.0275) + 0.15) / 0.9725) * 100) / 100;
 
       const squarePayload = {
@@ -1900,6 +1926,62 @@ function promptPayPending(orderId, totalAmount) {
     calculateChange();
   }
 
+  // --- CASH PAYOUT / ACCIDENTAL DAMAGE LOGIC ---
+  function openPayoutModal() {
+    closeModals();
+    document.getElementById("payoutAmount").value = "";
+    document.getElementById("payoutEmployee").value = "";
+    document.getElementById("payoutVehicle").value = "";
+    document.getElementById("payoutReason").value = "";
+    document.getElementById("payoutPin").value = "";
+    document.getElementById("payoutModalOverlay").style.display = "flex";
+  }
+
+  async function submitCashPayout() {
+    const amount = parseFloat(document.getElementById("payoutAmount").value);
+    const emp = document.getElementById("payoutEmployee").value.trim() || "Unspecified";
+    const vehicle = document.getElementById("payoutVehicle").value.trim() || "N/A";
+    const reason = document.getElementById("payoutReason").value.trim();
+    const pin = document.getElementById("payoutPin").value.trim();
+    const location = document.getElementById("locationSelect").value;
+
+    if (isNaN(amount) || amount <= 0) return alert("Please enter a valid dollar amount.");
+    if (!reason) return alert("Please enter a reason or damage description.");
+    if (!pin) return alert("Manager or Admin PIN is required to authorize a cash payout.");
+
+    const btn = document.getElementById("submitPayoutBtn");
+    btn.innerText = "⏳ Recording...";
+    btn.disabled = true;
+
+    try {
+      const response = await fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({
+          recordType: "cash_payout",
+          location: location,
+          amount: amount,
+          employeeResponsible: emp,
+          vehicle: vehicle,
+          reason: reason,
+          attendant: activeAttendant,
+          pin: pin
+        })
+      });
+      const result = await response.json();
+      if (result.status === "success") {
+        alert(`✅ Recorded $${amount.toFixed(2)} Cash Deduction!\n\nAuthorized by: ${result.authorizedBy}\nEmployee: ${emp}\nReason: ${reason}`);
+        closeModals();
+      } else {
+        alert("❌ Error: " + result.message);
+      }
+    } catch (err) {
+      alert("Network Error. Please try again.");
+    }
+    btn.innerText = "Record Cash Deduction";
+    btn.disabled = false;
+  }
+
   // --- EOD REPORT LOGIC ---
   function openEODModal() {
     document.getElementById("eodModalLocDisplay").innerText = document.getElementById("locationSelect").value;
@@ -1955,6 +2037,18 @@ function promptPayPending(orderId, totalAmount) {
           document.getElementById("eodCcFees").innerText = `$${(result.data.ccFees || 0).toFixed(2)}`;
           document.getElementById("eodTotal").innerText = `$${result.data.total.toFixed(2)}`;
           document.getElementById("eodCash").innerText = `$${result.data.cash.toFixed(2)}`;
+
+          const payoutTotal = result.data.payoutTotal || 0;
+          if (payoutTotal > 0) {
+            document.getElementById("eodPayoutRow").style.display = "table-row";
+            document.getElementById("eodNetCashRow").style.display = "table-row";
+            document.getElementById("eodPayouts").innerText = `-$${payoutTotal.toFixed(2)}`;
+            document.getElementById("eodNetCash").innerText = `$${(result.data.cash - payoutTotal).toFixed(2)}`;
+          } else {
+            document.getElementById("eodPayoutRow").style.display = "none";
+            document.getElementById("eodNetCashRow").style.display = "none";
+          }
+
           document.getElementById("eodCredit").innerText = `$${result.data.credit.toFixed(2)}`;
           document.getElementById("eodCheck").innerText = `$${result.data.check.toFixed(2)}`;
           document.getElementById("eodPending").innerText = `$${result.data.pending.toFixed(2)}`;
@@ -1965,12 +2059,20 @@ function promptPayPending(orderId, totalAmount) {
 
           // 2. Sort and Group the Services (Wash Services strictly counts ONLY cars!)
           const servicesObj = result.data.services || {};
-          let grouped = { wash: {}, addons: {}, discounts: {}, retail: {}, custom: {}, gift: {} };
-          let counts = { wash: 0, addons: 0, discounts: 0, retail: 0, custom: 0, gift: 0 };
+          let grouped = { wash: {}, addons: {}, discounts: {}, retail: {}, chemicals: {}, equipment: {}, custom: {}, gift: {} };
+          let counts = { wash: 0, addons: 0, discounts: 0, retail: 0, chemicals: 0, equipment: 0, custom: 0, gift: 0 };
           let totalItemsSold = 0;
 
           for (const [name, count] of Object.entries(servicesObj)) {
-            if (name.startsWith("Retail -")) {
+            if (name.startsWith("Chemical -")) {
+              grouped.chemicals[name.replace("Chemical - ", "")] = count;
+              counts.chemicals += count;
+              totalItemsSold += count;
+            } else if (name.startsWith("Equipment -")) {
+              grouped.equipment[name.replace("Equipment - ", "")] = count;
+              counts.equipment += count;
+              totalItemsSold += count;
+            } else if (name.startsWith("Retail -")) {
               grouped.retail[name.replace("Retail - ", "")] = count;
               counts.retail += count;
               totalItemsSold += count;
@@ -2015,6 +2117,8 @@ function promptPayPending(orderId, totalAmount) {
           html += buildSection("Additional Work & Add-Ons", "➕", grouped.addons, counts.addons);
           html += buildSection("Discounts Applied", "🏷️", grouped.discounts, counts.discounts);
           html += buildSection("Retail / Store", "🛍️", grouped.retail, counts.retail);
+          html += buildSection("Chemicals", "🧪", grouped.chemicals, counts.chemicals);
+          html += buildSection("Equipment & Supplies", "🛠️", grouped.equipment, counts.equipment);
           html += buildSection("Custom Pricing", "✏️", grouped.custom, counts.custom);
           html += buildSection("Gift Cards Sold", "💳", grouped.gift, counts.gift);
 
@@ -2044,6 +2148,25 @@ function promptPayPending(orderId, totalAmount) {
             html += `<tr>
                       <th style="padding: 6px 8px; text-align: right; font-size: 13px;">Total Pending Collected:</th>
                       <th style="padding: 6px 8px; text-align: right; font-size: 14px; font-weight: 900;">$${(result.data.paidPendingTotal || 0).toFixed(2)}</th>
+                    </tr>`;
+          }
+
+          // Add Cash Payouts / Accidentals Summary Section if any occurred today
+          const payouts = result.data.payoutsList || [];
+          if (payouts.length > 0) {
+            html += `<tr><th colspan="2" style="background: #fee2e2; padding: 6px 8px; font-size: 13px; border-top: 2px solid #111827; border-bottom: 1px solid #f87171; margin-top: 10px;">💸 Cash Payouts / Accidentals <span style="float:right;">Qty: ${payouts.length}</span></th></tr>`;
+            payouts.forEach(po => {
+              html += `<tr>
+                        <td style="padding: 5px 8px; border-bottom: 1px solid #f3f4f6; font-size: 11px; line-height: 1.3;">
+                          <strong>${po.orderId}</strong> • Employee: <strong>${po.employee}</strong> (${po.vehicle})<br>
+                          <span>Reason: ${po.reason}</span>
+                        </td>
+                        <td style="padding: 5px 8px; border-bottom: 1px solid #f3f4f6; text-align: right; font-weight: 700; vertical-align: top;">-$${po.amount.toFixed(2)}</td>
+                      </tr>`;
+            });
+            html += `<tr>
+                      <th style="padding: 6px 8px; text-align: right; font-size: 13px;">Total Cash Removed:</th>
+                      <th style="padding: 6px 8px; text-align: right; font-size: 14px; font-weight: 900;">-$${payoutTotal.toFixed(2)}</th>
                     </tr>`;
           }
 
@@ -2196,6 +2319,7 @@ function promptPayPending(orderId, totalAmount) {
     btn.innerText = originalText;
     btn.disabled = false;
   }
+
   // --- ZERO-TOUCH PWA AUTO-UPDATER & CACHE BUSTER ---
   let currentAppSignature = null;
 
@@ -2205,21 +2329,16 @@ function promptPayPending(orderId, totalAmount) {
     if (statusDiv) statusDiv.innerText = "🔄 Fetching latest update...";
     
     try {
-      // Unregister any service workers if present
       if ('serviceWorker' in navigator) {
         const registrations = await navigator.serviceWorker.getRegistrations();
         for (let reg of registrations) { await reg.unregister(); }
       }
-      // Clear browser Cache Storage
       if ('caches' in window) {
         const keys = await caches.keys();
         for (let key of keys) { await caches.delete(key); }
       }
-      // Fetch fresh HTML from server bypassing cache
       const cleanUrl = window.location.origin + window.location.pathname;
       await fetch(cleanUrl + "?t=" + Date.now(), { cache: "reload" });
-      
-      // Navigate with cache-busting query string so iOS WebApp reloads fresh
       window.location.replace(cleanUrl + "?v=" + Date.now());
     } catch (err) {
       window.location.reload();
@@ -2234,24 +2353,19 @@ function promptPayPending(orderId, totalAmount) {
       if (!res.ok) return;
       const latestHtml = await res.text();
       
-      // Save the signature on initial load
       if (!currentAppSignature) {
         currentAppSignature = latestHtml.length + "_" + latestHtml.slice(-200);
         return;
       }
 
       const newSignature = latestHtml.length + "_" + latestHtml.slice(-200);
-      // Only auto-reload if the code changed AND the cart is currently empty (safe to reload)
       if (newSignature !== currentAppSignature && cart.length === 0) {
         console.log("New update detected! Auto-reloading POS...");
         forceAppUpdate();
       }
-    } catch (e) {
-      // Ignore offline hiccups
-    }
+    } catch (e) {}
   }
 
-  // Check on startup, every 15 minutes when idle, and whenever an attendant logs out
   checkForSilentUpdate();
   setInterval(checkForSilentUpdate, 15 * 60 * 1000);
 </script>
