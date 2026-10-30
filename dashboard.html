@@ -51,10 +51,11 @@
     .list-item { font-size: 14px; color: #4b5563; border-bottom: 1px solid #f3f4f6; padding: 6px 0; display: flex; justify-content: space-between; }
     .cat-header { background: #e5e7eb; color: #111827; padding: 6px 10px; border-radius: 6px; font-size: 13px; font-weight: 800; margin-top: 10px; margin-bottom: 4px; display: flex; justify-content: space-between; }
 
-    /* Modal Styles for Dashboard Pay Bill & Square Terminal */
+    /* Modal Styles for Dashboard Pay Bill, Cash Payout & Square Terminal */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17,24,39,0.7); backdrop-filter: blur(5px); z-index: 9998; display: none; align-items: center; justify-content: center; }
-    .modal-box { background: white; width: 90%; max-width: 400px; border-radius: 24px; padding: 30px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); text-align: center; }
-    .modal-box h2 { margin-bottom: 20px; font-size: 24px; color: #111827; font-weight: 800; }
+    .modal-box { background: white; width: 90%; max-width: 420px; border-radius: 24px; padding: 30px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); text-align: center; }
+    .modal-box h2 { margin-bottom: 16px; font-size: 24px; color: #111827; font-weight: 800; }
+    .modal-input { width: 100%; padding: 12px 15px; margin-bottom: 10px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px; background: #f9fafb; outline: none; }
     .modal-btn { width: 100%; padding: 15px; margin-bottom: 12px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; border: 2px solid #e5e7eb; background: white; color: #374151; transition: 0.2s; }
     .modal-btn:hover { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; }
     .btn-cancel { background: #fee2e2; color: #b91c1c; border: none; margin-top: 8px; }
@@ -86,6 +87,7 @@
     <p style="margin-bottom: 20px; color: #9ca3af;">Enter Admin PIN to view financials.</p>
     <input type="password" id="adminPin" placeholder="****">
     <button onclick="fetchData()">Unlock Dashboard</button>
+    <div style="margin-top: 15px; font-size: 12px; color: #6b7280; font-weight: 600;">Command Center v9.3</div>
   </div>
 
   <!-- DASHBOARD PAY PENDING INVOICE MODAL -->
@@ -112,6 +114,28 @@
     </div>
   </div>
 
+  <!-- DASHBOARD CASH PAYOUT / ACCIDENTAL MODAL -->
+  <div id="dashPayoutModal" class="modal-overlay">
+    <div class="modal-box">
+      <h2 style="color: #dc2626;">💸 Record Cash Payout</h2>
+      <p style="margin-bottom: 15px; color: #4b5563; font-size: 13px;">Deducts cash from the selected location's register drawer without altering Net Sales or Taxes.</p>
+      
+      <select id="dashPayoutLocation" class="modal-input" style="font-weight: 700; cursor: pointer;">
+        <option value="Location 1 - Tampa Bay">📍 Location 1 - Tampa Bay</option>
+        <option value="Location 2 - Columbus">📍 Location 2 - Columbus</option>
+        <option value="Location 3 - South">📍 Location 3 - South</option>
+        <option value="Location 4 - Armenia">📍 Location 4 - Armenia</option>
+      </select>
+      <input type="number" id="dashPayoutAmount" class="modal-input" placeholder="Cash Amount Removed (e.g. 130.00)" step="0.01">
+      <input type="text" id="dashPayoutEmployee" class="modal-input" placeholder="👤 Employee Responsible (if applicable)">
+      <input type="text" id="dashPayoutVehicle" class="modal-input" placeholder="🚗 Customer Vehicle / Property Info">
+      <input type="text" id="dashPayoutReason" class="modal-input" placeholder="📝 Reason (e.g., Accidental damage)" style="margin-bottom: 18px;">
+
+      <button class="modal-btn" style="background: #dc2626; color: white; border: none;" onclick="submitDashCashPayout()" id="dashSubmitPayoutBtn">Record Cash Deduction</button>
+      <button class="modal-btn btn-cancel" onclick="closeDashModals()">Cancel</button>
+    </div>
+  </div>
+
   <!-- DASHBOARD SQUARE TERMINAL WAITING MODAL -->
   <div id="dashSquareModal" class="modal-overlay">
     <div class="modal-box">
@@ -124,6 +148,7 @@
   <div id="dashboardContent">
     <div class="header">
       <h1 style="font-weight: 800; font-size: 32px;" id="reportTitle">📊 Owner Command Center</h1>
+      <span style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 800;">v9.3</span>
     </div>
     
     <!-- TAB NAVIGATION -->
@@ -155,6 +180,7 @@
       </div>
       <div style="margin-top: 18px; display: flex; gap: 10px; flex-wrap: wrap;">
         <button class="btn btn-primary" onclick="fetchData()" id="generateBtn">Generate Report</button>
+        <button class="btn" style="background: #dc2626; color: white;" onclick="openDashPayoutModal()">💸 Record Cash Payout</button>
         <button class="btn" style="background: #8b5cf6; color: white;" onclick="reconcileSquare()" id="reconcileBtn">🔄 Reconcile Square</button>
         <button class="btn btn-print" onclick="printFinancial()">🖨️ Print Financial Report</button>
         <button class="btn btn-tax" onclick="printTax()">📄 Print DR-15 Tax Report</button>
@@ -830,9 +856,63 @@
       document.getElementById("dashPayPendingModal").style.display = "flex";
     }
 
+    function openDashPayoutModal() {
+      document.getElementById("dashPayoutAmount").value = "";
+      document.getElementById("dashPayoutEmployee").value = "";
+      document.getElementById("dashPayoutVehicle").value = "";
+      document.getElementById("dashPayoutReason").value = "";
+      document.getElementById("dashPayoutModal").style.display = "flex";
+    }
+
     function closeDashModals() {
       document.getElementById("dashPayPendingModal").style.display = "none";
+      document.getElementById("dashPayoutModal").style.display = "none";
       document.getElementById("dashSquareModal").style.display = "none";
+    }
+
+    async function submitDashCashPayout() {
+      const location = document.getElementById("dashPayoutLocation").value;
+      const amount = parseFloat(document.getElementById("dashPayoutAmount").value);
+      const emp = document.getElementById("dashPayoutEmployee").value.trim() || "Unspecified";
+      const vehicle = document.getElementById("dashPayoutVehicle").value.trim() || "N/A";
+      const reason = document.getElementById("dashPayoutReason").value.trim();
+      const pin = document.getElementById("adminPin").value.trim();
+
+      if (isNaN(amount) || amount <= 0) return alert("Please enter a valid dollar amount.");
+      if (!reason) return alert("Please enter a reason or damage description.");
+
+      const btn = document.getElementById("dashSubmitPayoutBtn");
+      btn.innerText = "⏳ Recording...";
+      btn.disabled = true;
+
+      try {
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({
+            recordType: "cash_payout",
+            location: location,
+            amount: amount,
+            employeeResponsible: emp,
+            vehicle: vehicle,
+            reason: reason,
+            attendant: "Owner Dashboard",
+            pin: pin
+          })
+        });
+        const result = await response.json();
+        if (result.status === "success") {
+          alert(`✅ Recorded $${amount.toFixed(2)} Cash Deduction for ${location}!\n\nEmployee: ${emp}\nReason: ${reason}`);
+          closeDashModals();
+          fetchData();
+        } else {
+          alert("❌ Error: " + result.message);
+        }
+      } catch (err) {
+        alert("Network Error. Please try again.");
+      }
+      btn.innerText = "Record Cash Deduction";
+      btn.disabled = false;
     }
 
     async function submitDashPendingPayment(method) {
