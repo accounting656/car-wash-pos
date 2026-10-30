@@ -443,8 +443,8 @@
           let staff = lData.employees.length > 0 ? lData.employees.map(e => `<span class="badge">👤 ${e}</span>`).join('') : "<span style='color:#9ca3af; font-size: 13px;'>No staff recorded</span>";
           let categorizedServicesHTML = buildScreenCategorizedHTML(lData.services);
           
-          let exemptTotal = lData.tax > 0 ? (lData.net - (lData.tax / 0.075)) : lData.net;
-          if (exemptTotal < 0.01) exemptTotal = 0;
+        let exemptTotal = (lData.exempt !== undefined) ? lData.exempt : (lData.tax > 0 ? (lData.net - (lData.tax / 0.075)) : lData.net);
+        if (exemptTotal < 0.50) exemptTotal = 0;
 
           let payoutTotal = lData.payoutTotal || 0;
           let cashPayoutTenderHTML = "";
@@ -637,7 +637,7 @@
         }
 
         let exemptTotal = lData.tax > 0 ? (lData.net - (lData.tax / 0.075)) : lData.net;
-        if (exemptTotal < 0.01) exemptTotal = 0;
+        if (exemptTotal < 0.50) exemptTotal = 0;
 
         html += `
           <div style="margin-bottom: 50px;">
