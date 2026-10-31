@@ -87,7 +87,7 @@
     <p style="margin-bottom: 20px; color: #9ca3af;">Enter Admin PIN to view financials.</p>
     <input type="password" id="adminPin" placeholder="****">
     <button onclick="fetchData()">Unlock Dashboard</button>
-    <div style="margin-top: 15px; font-size: 12px; color: #6b7280; font-weight: 600;">Command Center v9.3</div>
+    <div style="margin-top: 15px; font-size: 12px; color: #6b7280; font-weight: 600;">Command Center v9.4</div>
   </div>
 
   <!-- DASHBOARD PAY PENDING INVOICE MODAL -->
@@ -148,7 +148,7 @@
   <div id="dashboardContent">
     <div class="header">
       <h1 style="font-weight: 800; font-size: 32px;" id="reportTitle">📊 Owner Command Center</h1>
-      <span style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 800;">v9.3</span>
+      <span style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 800;">v9.4</span>
     </div>
     
     <!-- TAB NAVIGATION -->
@@ -265,6 +265,7 @@
 
     <hr style="border: 1px solid #ccc; margin: 20px 0;">
     <p><strong>Services Rendered:</strong> <span id="invServices"></span></p>
+    <p id="invNotesRow" style="display: none; margin-top: 8px; padding: 8px 12px; background: #fef3c7; border-left: 4px solid #f59e0b;"><strong>Notes / Customer Info:</strong> <span id="invNotes"></span></p>
     <table style="width: 100%; margin-top: 20px; text-align: left;">
       <tr><th>Subtotal:</th><td id="invSubtotal"></td></tr>
       <tr><th>Tax:</th><td id="invTax"></td></tr>
@@ -489,14 +490,41 @@
             `;
           }
 
+          let openPendingHTML = "";
+          if (lData.openPending && lData.openPending.length > 0) {
+            let opRows = lData.openPending.map(op => {
+              let who = op.dealer ? `<strong>${op.dealer}</strong> (${op.vehicle})` : `<strong>${op.vehicle}</strong>`;
+              let noteStr = op.notes ? `<br><span style="color: #b45309; font-weight: 600;">📝 Notes: ${op.notes}</span>` : "";
+              return `<div class="list-item" style="align-items: flex-start;">
+                        <div style="font-size: 12px; line-height: 1.4;">
+                          <strong>${op.orderId}</strong> • ${who}<br>
+                          <span style="color: #6b7280;">${op.services}</span>${noteStr}
+                        </div>
+                        <strong style="color: #ef4444;">$${op.amount.toFixed(2)}</strong>
+                      </div>`;
+            }).join('');
+
+            openPendingHTML = `
+              <p style="font-size: 12px; font-weight: bold; color: #ef4444; margin-top: 20px; margin-bottom: 8px;">⏳ UNPAID PENDING INVOICES (${lData.openPending.length}):</p>
+              <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 10px;">
+                ${opRows}
+                <div class="fin-row" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #fecaca; font-weight: 800; color: #991b1b;">
+                  <span>Total Unpaid Pending:</span>
+                  <span>$${lData.tenders.pending.toFixed(2)}</span>
+                </div>
+              </div>
+            `;
+          }
+
           let paidPendingHTML = "";
           if (lData.paidPending && lData.paidPending.length > 0) {
             let pRows = lData.paidPending.map(p => {
               let who = p.dealer ? `${p.dealer} (${p.vehicle})` : p.vehicle;
+              let noteStr = p.notes ? `<br><span style="color: #b45309;">📝 Notes: ${p.notes}</span>` : "";
               return `<div class="list-item" style="align-items: flex-start;">
                         <div style="font-size: 12px; line-height: 1.4;">
                           <strong>${p.orderId}</strong> • Paid via <strong>${p.method}</strong> (Wash: ${p.origDate})<br>
-                          <span style="color: #6b7280;">${who} — ${p.services}</span>
+                          <span style="color: #6b7280;">${who} — ${p.services}</span>${noteStr}
                         </div>
                         <strong style="color: #10b981;">$${p.amount.toFixed(2)}</strong>
                       </div>`;
@@ -568,6 +596,7 @@
               
               <p style="font-size: 12px; font-weight: bold; color: #6b7280; margin-bottom: 8px;">ITEMIZED BREAKDOWN:</p>
               <div>${categorizedServicesHTML}</div>
+              ${openPendingHTML}
               ${paidPendingHTML}
               ${payoutsBoxHTML}
             </div>`;
@@ -625,6 +654,25 @@
         let staff = lData.employees.length > 0 ? lData.employees.join(', ') : "No staff recorded.";
         
         let services = buildPrintCategorizedRows(lData.services);
+
+        if (lData.openPending && lData.openPending.length > 0) {
+          services += `<tr><th colspan="2" style="background: #fef3c7; padding: 8px 6px; font-size: 13px; text-align: left; border-top: 2px solid #111827; border-bottom: 1px solid #f59e0b;">⏳ Unpaid Pending Invoices (${lData.openPending.length})</th></tr>`;
+          lData.openPending.forEach(op => {
+            let who = op.dealer ? `<strong>${op.dealer}</strong> (${op.vehicle})` : `<strong>${op.vehicle}</strong>`;
+            let noteStr = op.notes ? `<br><span style="color: #b45309;">📝 Notes: <strong>${op.notes}</strong></span>` : "";
+            services += `<tr>
+              <td style="padding: 6px 0; border-bottom: 1px solid #f3f4f6; font-size: 12px;">
+                <strong>${op.orderId}</strong> • ${who}<br>
+                <span style="color: #555;">${op.services}</span>${noteStr}
+              </td>
+              <td style="padding: 6px 0; border-bottom: 1px solid #f3f4f6; text-align: right; font-weight: bold; color: #ef4444; vertical-align: top;">$${op.amount.toFixed(2)}</td>
+            </tr>`;
+          });
+          services += `<tr>
+            <td style="padding: 8px 0; text-align: right; font-weight: bold;">Total Unpaid Pending:</td>
+            <td style="padding: 8px 0; text-align: right; font-weight: bold; color: #ef4444;">$${lData.tenders.pending.toFixed(2)}</td>
+          </tr>`;
+        }
 
         if (lData.paidPending && lData.paidPending.length > 0) {
           services += `<tr><th colspan="2" style="background: #f3f4f6; padding: 8px 6px; font-size: 13px; text-align: left; border-top: 2px solid #111827; border-bottom: 1px solid #9ca3af;">📥 Pending Invoices Collected (${lData.paidPending.length})</th></tr>`;
@@ -824,11 +872,12 @@
           result.data.forEach((t, index) => {
             const isPending = t.paymentType === 'Pending';
             const statusColor = isPending ? '#ef4444' : '#10b981';
+            let noteSub = t.notes ? `<br><small style="color: #b45309; font-weight: bold;">📝 Notes: ${t.notes}</small>` : '';
             html += `<tr>
               <td>${new Date(t.date).toLocaleDateString()}</td>
               <td>${t.location}</td>
               <td style="font-weight: bold;">${t.orderId}</td>
-              <td>${t.vehicle} <br><small style="color: #6b7280;">${t.services}</small></td>
+              <td>${t.vehicle} <br><small style="color: #6b7280;">${t.services}</small>${noteSub}</td>
               <td style="font-weight: bold;">${t.total}</td>
               <td style="color: ${statusColor}; font-weight: bold;">${t.paymentType}</td>
               <td style="display: flex; gap: 8px; align-items: center;">
@@ -1101,6 +1150,14 @@
       document.getElementById("invTax").innerText = transaction.tax;
       document.getElementById("invTotal").innerText = transaction.total;
       document.getElementById("invPaymentMethod").innerText = transaction.paymentType || "N/A";
+
+      const notesRow = document.getElementById("invNotesRow");
+      if (transaction.notes && transaction.notes.trim() !== "") {
+        document.getElementById("invNotes").innerText = transaction.notes;
+        notesRow.style.display = "block";
+      } else {
+        notesRow.style.display = "none";
+      }
 
       const dealerContainer = document.getElementById("invDealerContainer");
       if (transaction.exemptDealer && transaction.exemptDealer.trim() !== "" && transaction.exemptDealer !== "N/A") {
