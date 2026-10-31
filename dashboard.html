@@ -492,15 +492,18 @@
 
           let openPendingHTML = "";
           if (lData.openPending && lData.openPending.length > 0) {
-            let opRows = lData.openPending.map(op => {
+            let opRows = lData.openPending.map((op, opIdx) => {
               let who = op.dealer ? `<strong>${op.dealer}</strong> (${op.vehicle})` : `<strong>${op.vehicle}</strong>`;
               let noteStr = op.notes ? `<br><span style="color: #b45309; font-weight: 600;">📝 Notes: ${op.notes}</span>` : "";
-              return `<div class="list-item" style="align-items: flex-start;">
-                        <div style="font-size: 12px; line-height: 1.4;">
+              return `<div class="list-item" style="align-items: center; gap: 10px;">
+                        <div style="font-size: 12px; line-height: 1.4; flex: 1;">
                           <strong>${op.orderId}</strong> • ${who}<br>
                           <span style="color: #6b7280;">${op.services}</span>${noteStr}
                         </div>
-                        <strong style="color: #ef4444;">$${op.amount.toFixed(2)}</strong>
+                        <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+                          <strong style="color: #ef4444; font-size: 14px;">$${op.amount.toFixed(2)}</strong>
+                          <button class="btn" style="padding: 4px 10px; font-size: 11px; background: #f59e0b; color: white; border-radius: 6px;" onclick="openDashPayFromOverview('${loc}', ${opIdx})">💳 Pay Bill</button>
+                        </div>
                       </div>`;
             }).join('');
 
@@ -905,6 +908,30 @@
       document.getElementById("dashPayPendingModal").style.display = "flex";
     }
 
+    function openDashPayFromOverview(locName, opIdx) {
+      if (!currentDashboardData || !currentDashboardData.locations[locName]) return;
+      const op = currentDashboardData.locations[locName].openPending[opIdx];
+      if (!op) return;
+
+      const amt = Number(op.amount) || 0;
+      const estSub = op.subtotal !== undefined ? Number(op.subtotal) : (op.dealer ? amt : +(amt / 1.075).toFixed(2));
+      const estTax = op.tax !== undefined ? Number(op.tax) : +(amt - estSub).toFixed(2);
+
+      activeDashPendingTxn = {
+        location: locName,
+        orderId: op.orderId,
+        total: `$${amt.toFixed(2)}`,
+        subtotal: `$${estSub.toFixed(2)}`,
+        tax: `$${estTax.toFixed(2)}`
+      };
+
+      document.getElementById("dashPendingLocDisplay").innerText = locName;
+      document.getElementById("dashPendingOrderIdDisplay").innerText = op.orderId;
+      document.getElementById("dashPendingTotalDisplay").innerText = `$${amt.toFixed(2)}`;
+      document.getElementById("dashPendingManualCheck").checked = false;
+      document.getElementById("dashPayPendingModal").style.display = "flex";
+    }
+
     function openDashPayoutModal() {
       document.getElementById("dashPayoutAmount").value = "";
       document.getElementById("dashPayoutEmployee").value = "";
@@ -1072,7 +1099,9 @@
         if (result.status === "success") {
           alert(`Invoice ${activeDashPendingTxn.orderId} successfully paid with ${method}!`);
           closeDashModals();
-          searchGlobalInvoices();
+          if (document.getElementById("globalSearchTerm").value.trim()) {
+            searchGlobalInvoices();
+          }
           fetchData();
         } else {
           alert("Error: " + result.message);
