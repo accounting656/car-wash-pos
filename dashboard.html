@@ -56,7 +56,7 @@
     .list-item { font-size: 14px; color: #4b5563; border-bottom: 1px solid #f3f4f6; padding: 6px 0; display: flex; justify-content: space-between; }
     .cat-header { background: #e5e7eb; color: #111827; padding: 6px 10px; border-radius: 6px; font-size: 13px; font-weight: 800; margin-top: 10px; margin-bottom: 4px; display: flex; justify-content: space-between; }
 
-    /* Modal Styles for Dashboard Pay Bill, Cash Payout & Square Terminal */
+    /* Modal Styles for Dashboard Pay Bill, Cash Payout, Manual Timeclock & Square Terminal */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17,24,39,0.7); backdrop-filter: blur(5px); z-index: 9998; display: none; align-items: center; justify-content: center; }
     .modal-box { background: white; width: 90%; max-width: 420px; border-radius: 24px; padding: 30px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); text-align: center; }
     .modal-box h2 { margin-bottom: 16px; font-size: 24px; color: #111827; font-weight: 800; }
@@ -137,6 +137,43 @@
       <input type="text" id="dashPayoutReason" class="modal-input" placeholder="📝 Reason (e.g., Accidental damage)" style="margin-bottom: 18px;">
 
       <button class="modal-btn" style="background: #dc2626; color: white; border: none;" onclick="submitDashCashPayout()" id="dashSubmitPayoutBtn">Record Cash Deduction</button>
+      <button class="modal-btn btn-cancel" onclick="closeDashModals()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- DASHBOARD MANUAL TIMECLOCK PUNCH MODAL -->
+  <div id="dashTimeclockModal" class="modal-overlay">
+    <div class="modal-box">
+      <h2 style="color: #4f46e5;">🕒 Manual Timeclock Punch</h2>
+      <p style="margin-bottom: 15px; color: #4b5563; font-size: 13px;">Add a Clock-In or Clock-Out punch for any employee on any date.</p>
+
+      <select id="dashTcLocation" class="modal-input" style="font-weight: 700; cursor: pointer;">
+        <option value="Location 1 - Tampa Bay">📍 Location 1 - Tampa Bay</option>
+        <option value="Location 2 - Columbus">📍 Location 2 - Columbus</option>
+        <option value="Location 3 - South">📍 Location 3 - South</option>
+        <option value="Location 4 - Armenia">📍 Location 4 - Armenia</option>
+      </select>
+
+      <input type="text" id="dashTcEmployee" list="dashRosterList" class="modal-input" placeholder="👤 Select or Type Employee Name" style="font-weight: 600;">
+      <datalist id="dashRosterList"></datalist>
+
+      <select id="dashTcAction" class="modal-input" style="font-weight: 700; cursor: pointer;">
+        <option value="Clock In">🟢 Clock In</option>
+        <option value="Clock Out">🔴 Clock Out</option>
+      </select>
+
+      <div style="display: flex; gap: 10px; margin-bottom: 18px;">
+        <div style="flex: 1; text-align: left;">
+          <label style="font-size: 11px; font-weight: 700; color: #6b7280; display: block; margin-bottom: 3px;">Date</label>
+          <input type="date" id="dashTcDate" class="modal-input" style="margin-bottom: 0;">
+        </div>
+        <div style="flex: 1; text-align: left;">
+          <label style="font-size: 11px; font-weight: 700; color: #6b7280; display: block; margin-bottom: 3px;">Time</label>
+          <input type="time" id="dashTcTime" class="modal-input" style="margin-bottom: 0;">
+        </div>
+      </div>
+
+      <button class="modal-btn" style="background: #4f46e5; color: white; border: none;" onclick="submitDashManualPunch()" id="dashSubmitTcBtn">Save Timeclock Punch</button>
       <button class="modal-btn btn-cancel" onclick="closeDashModals()">Cancel</button>
     </div>
   </div>
@@ -275,7 +312,8 @@
             <h2 style="font-size: 22px; color: #111827;">🕒 Employee Timeclock & Payroll Hours</h2>
             <p style="color: #6b7280; font-size: 13px; margin-top: 4px;">Calculates shifts and total hours worked between Clock-In and Clock-Out punches for the selected date range and Location Filter above.</p>
           </div>
-          <div style="display: flex; gap: 10px;">
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn" style="background: #4f46e5; color: white;" onclick="openDashTimeclockModal()">➕ Add Manual Punch</button>
             <button class="btn btn-primary" onclick="loadPayrollReport()" id="btnLoadPayroll">🔄 Calculate Hours</button>
             <button class="btn btn-csv" onclick="exportPayrollCSV()">📥 Export Payroll CSV</button>
           </div>
@@ -375,6 +413,7 @@
       const today = new Date().toLocaleDateString('en-CA'); 
       document.getElementById('startDate').value = today;
       document.getElementById('endDate').value = today;
+      document.getElementById('dashTcDate').value = today;
     });
 
     let salesChart, carsChart;
@@ -1140,8 +1179,15 @@
           const empTotals = result.empTotals || {};
           const empNames = Object.keys(empTotals).sort();
 
+          // Populate Employee Roster datalist for the Manual Timeclock modal
+          const rosterArr = (result.roster && result.roster.length > 0) ? result.roster : empNames;
+          const dl = document.getElementById("dashRosterList");
+          if (dl && rosterArr.length > 0) {
+            dl.innerHTML = rosterArr.map(n => `<option value="${n}"></option>`).join('');
+          }
+
           if (empNames.length === 0) {
-            content.innerHTML = "<p style='color: #ef4444; font-weight: bold;'>No timeclock punches found for this date range and location.</p>";
+            content.innerHTML = "<p style='color: #ef4444; font-weight: bold;'>No timeclock punches found for this date range and location. Click '➕ Add Manual Punch' above to log a shift.</p>";
           } else {
             let cardsHtml = `<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 14px; margin-bottom: 25px;">`;
             empNames.forEach(name => {
@@ -1155,9 +1201,16 @@
             });
             cardsHtml += `</div>`;
 
-            let tableHtml = `<table class="data-table"><tr><th>Date</th><th>Location</th><th>Employee</th><th>Clock In</th><th>Clock Out</th><th>Hours Worked</th><th>Punch Status</th></tr>`;
+            let tableHtml = `<table class="data-table"><tr><th>Date</th><th>Location</th><th>Employee</th><th>Clock In</th><th>Clock Out</th><th>Hours Worked</th><th>Punch Status / Quick Fix</th></tr>`;
             lastPayrollShifts.forEach(s => {
               let stColor = s.status === "Complete" ? "#10b981" : "#f59e0b";
+              let fixBtn = "";
+              if (s.status === "Missing Clock Out") {
+                fixBtn = `<button class="btn" style="padding: 4px 10px; font-size: 11px; background: #f59e0b; color: white; margin-left: 8px;" onclick="openDashTimeclockModal('${s.location}', '${s.name.replace(/'/g, "\\'")}', '${s.date}', 'Clock Out')">➕ Fix Out</button>`;
+              } else if (s.status === "Missing Clock In") {
+                fixBtn = `<button class="btn" style="padding: 4px 10px; font-size: 11px; background: #10b981; color: white; margin-left: 8px;" onclick="openDashTimeclockModal('${s.location}', '${s.name.replace(/'/g, "\\'")}', '${s.date}', 'Clock In')">➕ Fix In</button>`;
+              }
+
               tableHtml += `<tr>
                 <td>${s.date}</td>
                 <td>${s.location.replace("Location ", "Loc ")}</td>
@@ -1165,7 +1218,7 @@
                 <td style="color: #059669; font-weight: 700;">${s.clockIn}</td>
                 <td style="color: #d97706; font-weight: 700;">${s.clockOut}</td>
                 <td style="font-weight: 900; font-size: 15px;">${s.hours > 0 ? s.hours.toFixed(2) + ' hrs' : '—'}</td>
-                <td style="color: ${stColor}; font-weight: 700;">${s.status}</td>
+                <td style="color: ${stColor}; font-weight: 700;">${s.status} ${fixBtn}</td>
               </tr>`;
             });
             content.innerHTML = cardsHtml + tableHtml + "</table>";
@@ -1177,6 +1230,61 @@
         content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v9.5 is deployed.</p>";
       }
       btn.innerText = "🔄 Calculate Hours"; btn.disabled = false;
+    }
+
+    function openDashTimeclockModal(prefillLoc, prefillName, prefillDate, prefillAction) {
+      const locFilter = document.getElementById("locationFilter").value;
+      document.getElementById("dashTcLocation").value = prefillLoc || (locFilter !== "All" ? locFilter : "Location 1 - Tampa Bay");
+      document.getElementById("dashTcEmployee").value = prefillName || "";
+      document.getElementById("dashTcAction").value = prefillAction || "Clock Out";
+      document.getElementById("dashTcDate").value = prefillDate || document.getElementById("endDate").value || new Date().toLocaleDateString('en-CA');
+      document.getElementById("dashTcTime").value = (prefillAction === "Clock In") ? "08:00" : "17:30";
+      document.getElementById("dashTimeclockModal").style.display = "flex";
+    }
+
+    async function submitDashManualPunch() {
+      const location = document.getElementById("dashTcLocation").value;
+      const empName = document.getElementById("dashTcEmployee").value.trim();
+      const action = document.getElementById("dashTcAction").value;
+      const dateStr = document.getElementById("dashTcDate").value;
+      const timeStr = document.getElementById("dashTcTime").value;
+      const pin = document.getElementById("adminPin").value.trim();
+
+      if (!empName) return alert("Please select or enter an Employee Name.");
+      if (!dateStr || !timeStr) return alert("Please select both a Date and Time.");
+
+      const btn = document.getElementById("dashSubmitTcBtn");
+      btn.innerText = "⏳ Saving Punch...";
+      btn.disabled = true;
+
+      try {
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({
+            recordType: "admin_add_timeclock",
+            location: location,
+            employeeName: empName,
+            action: action,
+            dateStr: dateStr,
+            timeStr: timeStr,
+            pin: pin
+          })
+        });
+        const result = await response.json();
+        if (result.status === "success") {
+          alert(`✅ Recorded ${action} for ${empName} on ${dateStr} at ${timeStr}!`);
+          closeDashModals();
+          loadPayrollReport();
+          fetchData();
+        } else {
+          alert("❌ Error: " + result.message);
+        }
+      } catch (err) {
+        alert("Network Error while saving timeclock punch.");
+      }
+      btn.innerText = "Save Timeclock Punch";
+      btn.disabled = false;
     }
 
     // --- TAB 5: GLOBAL INVOICE SEARCH & FILTER ---
@@ -1320,6 +1428,7 @@
     function closeDashModals() {
       document.getElementById("dashPayPendingModal").style.display = "none";
       document.getElementById("dashPayoutModal").style.display = "none";
+      document.getElementById("dashTimeclockModal").style.display = "none";
       document.getElementById("dashSquareModal").style.display = "none";
     }
 
