@@ -672,7 +672,10 @@
                       </div>
                       <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
                         <strong style="color: #ef4444; font-size: 14px;">$${op.amount.toFixed(2)}</strong>
-                        <button class="btn" style="padding: 4px 10px; font-size: 11px; background: #f59e0b; color: white; border-radius: 6px;" onclick="openDashPayFromOverview('${loc}', ${opIdx})">💳 Pay Bill</button>
+                        <div style="display: flex; gap: 4px;">
+                          <button class="btn" style="padding: 4px 10px; font-size: 11px; background: #f59e0b; color: white; border-radius: 6px;" onclick="openDashPayFromOverview('${loc}', ${opIdx})">💳 Pay Bill</button>
+                          <button class="btn" style="padding: 4px 8px; font-size: 11px; background: #fee2e2; color: #b91c1c; border-radius: 6px;" onclick="voidDashInvoice('${loc}', '${op.orderId}', '$${op.amount.toFixed(2)}')">🗑️ Void</button>
+                        </div>
                       </div>
                     </div>`;
           }).join('');
@@ -1097,6 +1100,7 @@
                 <td style="display: flex; gap: 6px; align-items: center;">
                   <button class="btn" style="padding: 6px 10px; font-size: 12px; background: #f59e0b; color: white;" onclick="openDashPayPending(${idx})">💳 Pay Bill</button>
                   <button class="btn btn-primary" style="padding: 6px 10px; font-size: 12px;" onclick="printSearchedInvoice(${idx})">🖨️ Print</button>
+                  <button class="btn" style="padding: 6px 10px; font-size: 12px; background: #fee2e2; color: #b91c1c;" onclick="voidDashInvoice('${inv.location}', '${inv.orderId}', '${inv.total}')">🗑️ Void</button>
                 </td>
               </tr>`;
             });
@@ -1218,9 +1222,10 @@
               <td><strong>${t.vehicle}</strong> <br><small style="color: #6b7280;">${t.services}</small>${noteSub}</td>
               <td style="font-weight: bold;">${t.total}</td>
               <td style="color: ${statusColor}; font-weight: bold;">${t.paymentType}</td>
-              <td style="display: flex; gap: 8px; align-items: center;">
-                ${isPending ? `<button class="btn" style="padding: 6px 12px; font-size: 12px; background: #f59e0b; color: white;" onclick="openDashPayPending(${index})">💳 Pay Bill</button>` : ''}
-                <button class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;" onclick="printSearchedInvoice(${index})">🖨️ Print</button>
+              <td style="display: flex; gap: 6px; align-items: center;">
+                ${isPending ? `<button class="btn" style="padding: 6px 10px; font-size: 12px; background: #f59e0b; color: white;" onclick="openDashPayPending(${index})">💳 Pay Bill</button>` : ''}
+                <button class="btn btn-primary" style="padding: 6px 10px; font-size: 12px;" onclick="printSearchedInvoice(${index})">🖨️ Print</button>
+                <button class="btn" style="padding: 6px 10px; font-size: 12px; background: #fee2e2; color: #b91c1c;" onclick="voidDashInvoice('${t.location}', '${t.orderId}', '${t.total}')">🗑️ Void</button>
               </td>
             </tr>`;
           });
@@ -1230,6 +1235,39 @@
         }
       } catch (err) { content.innerHTML = "<p style='color: #ef4444;'>Network Error.</p>"; }
       btn.innerText = "🔍 Search Invoices"; btn.disabled = false;
+    }
+
+    async function voidDashInvoice(location, orderId, totalStr) {
+      const reason = prompt(`🗑️ VOID / DELETE INVOICE\n\nLocation: ${location}\nOrder ID: ${orderId}\nAmount: ${totalStr}\n\nPlease enter a brief reason for voiding this invoice (e.g., Test ticket, Duplicate entry):`);
+      if (reason === null) return;
+      if (!reason.trim()) return alert("A reason is required to void an invoice.");
+
+      if (!confirm(`Are you sure you want to permanently void and remove ${orderId} (${totalStr}) from ${location}?`)) return;
+
+      try {
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({
+            recordType: "void_invoice",
+            location: location,
+            orderId: orderId,
+            reason: reason.trim(),
+            pin: document.getElementById("adminPin").value.trim()
+          })
+        });
+        const result = await response.json();
+        if (result.status === "success") {
+          alert(`✅ Invoice ${orderId} voided and logged in the "Voided Invoices" audit tab.`);
+          if (activeTabName === 'ar') loadARReport();
+          else if (activeTabName === 'invoices') searchGlobalInvoices();
+          fetchData();
+        } else {
+          alert("❌ Error: " + result.message);
+        }
+      } catch (err) {
+        alert("Network Error while voiding invoice.");
+      }
     }
 
     function openDashPayPending(index) {
