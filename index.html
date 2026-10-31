@@ -199,7 +199,7 @@
     </div>
     <div id="systemStatus">🟢 System Initializing...</div>
     <button onclick="forceAppUpdate()" style="margin-top: 15px; background: rgba(255,255,255,0.08); color: #9ca3af; border: 1px solid rgba(255,255,255,0.15); padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;">🔄 Update App</button>
-    <div id="appVersionBadge" style="margin-top: 12px; font-size: 12px; font-weight: 700; color: #60a5fa; background: rgba(37,99,235,0.15); border: 1px solid rgba(96,165,250,0.3); padding: 4px 12px; border-radius: 20px; letter-spacing: 0.5px;">WashOS v9.3 • Oct 29</div>
+    <div id="appVersionBadge" style="margin-top: 12px; font-size: 12px; font-weight: 700; color: #60a5fa; background: rgba(37,99,235,0.15); border: 1px solid rgba(96,165,250,0.3); padding: 4px 12px; border-radius: 20px; letter-spacing: 0.5px;">WashOS v9.4</div>
   </div>
 
   <!-- PAYMENT MODAL -->
@@ -216,7 +216,7 @@
 
       <button class="modal-btn" onclick="processOrder('Credit Card')">💳 Credit Card</button>
       <button class="modal-btn" onclick="processOrder('Check')">📝 Check</button>
-      <button class="modal-btn" onclick="processOrder('Pending')">⏳ Pending / Bill Later</button>
+      <button class="modal-btn" onclick="processOrder('Pending')">⏳ Pending / Bill Later (Prints Invoice)</button>
       <button class="modal-btn btn-cancel" onclick="closeModals()">Cancel</button>
     </div>
   </div>
@@ -446,7 +446,7 @@
   <div id="searchModalOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
     <div style="background: white; padding: 20px; border-radius: 8px; width: 600px; max-width: 90%; max-height: 80vh; overflow-y: auto; color: black;">
       <h3 style="margin-top: 0;">Find Invoice</h3>
-      <input type="text" id="searchInput" placeholder="Search by name, order ID, or vehicle..." style="width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px;">
+      <input type="text" id="searchInput" placeholder="Search by name, order ID, vehicle, or notes..." style="width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px;">
       
       <div style="display: flex; gap: 10px; margin-bottom: 20px;">
         <button onclick="executeSearch()" style="padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 5px; cursor: pointer; flex: 1;">Search</button>
@@ -528,6 +528,7 @@
       <div style="display: flex; gap: 15px; align-items: center;">
         <img src="logo.png" alt="A+ Logo" style="height: 100px; border-radius: 8px; object-fit: contain;">
         <h2 class="header-title">A+ WashOS</h2>
+        <span style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 4px 10px; border-radius: 14px; font-size: 11px; font-weight: 800;">v9.4</span>
         <button id="backBtn" style="display:none; background: #e5e7eb; color: #374151; border: none; padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;" onclick="clearVehicleType()">⬅ Back</button>
       </div>
       <div class="controls">
@@ -624,7 +625,7 @@
         <option value="Other">Other...</option>
       </select>
       <input type="text" id="vehiclePlate" class="input-field" placeholder="🚗 License Plate (e.g. ABC-123)">
-      <input type="text" id="orderNotes" class="input-field" placeholder="📝 Additional Notes (Optional)">
+      <input type="text" id="orderNotes" class="input-field" placeholder="📝 Customer Name / Additional Notes">
       
       <div class="tax-exempt-bar">
         <span>Tax Exempt (FL Resale)</span>
@@ -682,6 +683,7 @@
     <hr style="border: 1px solid #ccc; margin: 20px 0;">
     
     <p><strong>Services Rendered:</strong> <span id="invServices"></span></p>
+    <p id="invNotesRow" style="display: none; margin-top: 10px; padding: 10px 12px; background: #fef3c7; border-left: 4px solid #f59e0b;"><strong>Notes / Customer Info:</strong> <span id="invNotes"></span></p>
     
     <table style="width: 100%; margin-top: 20px; text-align: left;">
       <tr><th>Subtotal:</th><td id="invSubtotal"></td></tr>
@@ -731,12 +733,14 @@
           const isPending = t.paymentType === 'Pending';
           const statusColor = isPending ? '#ef4444' : '#6b7280';
           const fw = isPending ? 'bold' : 'normal';
+          const noteLine = t.notes ? `<small style="color: #b45309; font-weight: 700;">📝 Notes: ${t.notes}</small><br>` : '';
 
           return `
           <div style="padding: 15px; border: 1px solid #e5e7eb; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; background: #f9fafb;">
             <div>
               <strong style="font-size: 16px;">${t.vehicle}</strong><br>
               <small style="color: #6b7280;">${new Date(t.date).toLocaleDateString()} | ${t.services}</small><br>
+              ${noteLine}
               <small style="color: ${statusColor}; font-weight: ${fw};">Total: ${t.total} (${t.paymentType})</small>
             </div>
             <div style="display: flex; gap: 8px;">
@@ -910,6 +914,14 @@
     document.getElementById("invTax").innerText = transaction.tax;
     document.getElementById("invTotal").innerText = transaction.total;
 
+    const notesRow = document.getElementById("invNotesRow");
+    if (transaction.notes && transaction.notes.trim() !== "") {
+      document.getElementById("invNotes").innerText = transaction.notes;
+      notesRow.style.display = "block";
+    } else {
+      notesRow.style.display = "none";
+    }
+
     let pMethod = (transaction.paymentMethod || transaction.paymentType || "Credit / Square").toString().trim(); 
 
     if (transaction.appliedGcCode) {
@@ -922,7 +934,7 @@
       document.getElementById("invGcBalance").innerText = `$${transaction.remainingGcBalance.toFixed(2)}`;
     } else {
       if (pMethod === 'Pending') {
-        document.getElementById("invPaymentMethod").innerText = 'Pending (Bill Later)';
+        document.getElementById("invPaymentMethod").innerText = 'Pending (Bill Later — UNPAID)';
       } else {
         document.getElementById("invPaymentMethod").innerText = pMethod;
       }
@@ -1647,6 +1659,19 @@
 
   // --- SQUARE INTEGRATION & VERIFIED LOGGING LOGIC ---
   async function processOrder(selectedPaymentType) {
+    // Require a Customer Name, Note, or Dealer when selecting Pending / Bill Later
+    if (selectedPaymentType === 'Pending') {
+      let currentNotes = document.getElementById("orderNotes").value.trim();
+      if (!currentNotes && !selectedDealer && !activeCustomer) {
+        let enteredNote = prompt("📋 PENDING INVOICE REQUIRED INFO:\nPlease enter the Customer Name, Phone, or Note for this 'Bill Later' ticket:");
+        if (!enteredNote || !enteredNote.trim()) {
+          alert("⚠️ A Customer Name or Note is required before recording a Pending / Bill Later invoice.");
+          return;
+        }
+        document.getElementById("orderNotes").value = enteredNote.trim();
+      }
+    }
+
     let squareTip = 0;
     closeModals(); 
     const submitBtn = document.getElementById("submitBtn"); 
@@ -1676,7 +1701,7 @@
       taxAmount: taxAmount,
       grandTotal: grandTotal,
       vehicleInfo: (make || plate) ? `${make} ${plate}`.trim() : "N/A",
-      notes: document.getElementById("orderNotes").value,
+      notes: document.getElementById("orderNotes").value.trim(),
       attendant: activeAttendant,
       exemptDealer: isTaxExempt ? `${selectedDealer} (${taxExemptDealers[selectedDealer].id})` : "N/A",
       paymentType: selectedPaymentType,
@@ -1823,8 +1848,8 @@
     const hasGiftCard = cart.some(item => item.isGiftCard);
     let shouldPrint = false;
     
-    if (hasGiftCard) {
-      shouldPrint = true; 
+    if (hasGiftCard || selectedPaymentType === 'Pending') {
+      shouldPrint = true; // Automatically pop up printer for Gift Cards AND Pending / Bill Later!
     } else if (selectedPaymentType === 'Cash' || appliedGcCode) {
       shouldPrint = confirm("Does the customer want a printed receipt?");
     }
@@ -1840,10 +1865,11 @@
         orderId: orderId,
         vehicle: (make || plate) ? `${make} ${plate}`.trim() : "N/A",
         services: cart.map(item => item.name).join(", "),
+        notes: baseSaleData.notes,
         subtotal: `$${subtotal.toFixed(2)}`,
         tax: isTaxExempt ? "$0.00" : `$${taxAmount.toFixed(2)}`,
         total: `$${grandTotal.toFixed(2)}`,
-        exemptDealer: isTaxExempt ? selectedDealer : "",
+        exemptDealer: isTaxExempt ? `${selectedDealer} (${taxExemptDealers[selectedDealer].id})` : "",
         cart: cart,
         paymentMethod: selectedPaymentType,
         appliedGcCode: appliedGcCode,
@@ -2132,16 +2158,38 @@
                     </tr>`;
           }
 
+          // Add Unpaid Pending Invoices Opened Today Summary Section
+          const openPending = result.data.openPendingInvoices || [];
+          if (openPending.length > 0) {
+            html += `<tr><th colspan="2" style="background: #fef3c7; padding: 6px 8px; font-size: 13px; border-top: 2px solid #111827; border-bottom: 1px solid #f59e0b; margin-top: 10px;">⏳ Pending Invoices — Unpaid Today <span style="float:right;">Qty: ${openPending.length}</span></th></tr>`;
+            openPending.forEach(op => {
+              let who = op.dealer ? `<strong>${op.dealer}</strong> (${op.vehicle})` : `<strong>${op.vehicle}</strong>`;
+              let noteLine = op.notes ? `<br><span>📝 Notes: <strong>${op.notes}</strong></span>` : "";
+              html += `<tr>
+                        <td style="padding: 5px 8px; border-bottom: 1px solid #f3f4f6; font-size: 11px; line-height: 1.3;">
+                          <strong>${op.orderId}</strong> • ${who}<br>
+                          <span>${op.services}</span>${noteLine}
+                        </td>
+                        <td style="padding: 5px 8px; border-bottom: 1px solid #f3f4f6; text-align: right; font-weight: 700; vertical-align: top;">$${op.amount.toFixed(2)}</td>
+                      </tr>`;
+            });
+            html += `<tr>
+                      <th style="padding: 6px 8px; text-align: right; font-size: 13px;">Total Unpaid Pending Today:</th>
+                      <th style="padding: 6px 8px; text-align: right; font-size: 14px; font-weight: 900;">$${result.data.pending.toFixed(2)}</th>
+                    </tr>`;
+          }
+
           // Add Paid Pending Invoices Summary Section if any were collected today
           const paidPending = result.data.paidPendingInvoices || [];
           if (paidPending.length > 0) {
             html += `<tr><th colspan="2" style="background: #e5e7eb; padding: 6px 8px; font-size: 13px; border-top: 2px solid #111827; border-bottom: 1px solid #9ca3af; margin-top: 10px;">📥 Pending Invoices Collected Today <span style="float:right;">Qty: ${paidPending.length}</span></th></tr>`;
             paidPending.forEach(p => {
               let who = p.dealer ? `${p.dealer} (${p.vehicle})` : p.vehicle;
+              let noteLine = p.notes ? `<br><span>📝 Notes: ${p.notes}</span>` : "";
               html += `<tr>
                         <td style="padding: 5px 8px; border-bottom: 1px solid #f3f4f6; font-size: 11px; line-height: 1.3;">
                           <strong>${p.orderId}</strong> • Paid via <strong>${p.method}</strong> (Wash Date: ${p.origDate})<br>
-                          <span>${who} — ${p.services}</span>
+                          <span>${who} — ${p.services}</span>${noteLine}
                         </td>
                         <td style="padding: 5px 8px; border-bottom: 1px solid #f3f4f6; text-align: right; font-weight: 700; vertical-align: top;">$${p.amount.toFixed(2)}</td>
                       </tr>`;
