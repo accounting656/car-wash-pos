@@ -199,7 +199,7 @@
     </div>
     <div id="systemStatus">🟢 System Initializing...</div>
     <button onclick="forceAppUpdate()" style="margin-top: 15px; background: rgba(255,255,255,0.08); color: #9ca3af; border: 1px solid rgba(255,255,255,0.15); padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;">🔄 Update App</button>
-    <div id="appVersionBadge" style="margin-top: 12px; font-size: 12px; font-weight: 700; color: #60a5fa; background: rgba(37,99,235,0.15); border: 1px solid rgba(96,165,250,0.3); padding: 4px 12px; border-radius: 20px; letter-spacing: 0.5px;">WashOS v9.4</div>
+    <div id="appVersionBadge" style="margin-top: 12px; font-size: 12px; font-weight: 700; color: #60a5fa; background: rgba(37,99,235,0.15); border: 1px solid rgba(96,165,250,0.3); padding: 4px 12px; border-radius: 20px; letter-spacing: 0.5px;">WashOS v9.6</div>
   </div>
 
   <!-- PAYMENT MODAL -->
@@ -466,10 +466,31 @@
       <button class="modal-btn clock-in-btn" onclick="executeEOD('print')">🖨️ Print Receipt Only</button>
       <button class="modal-btn clock-in-btn" style="background: #3b82f6; border-color: #2563eb;" onclick="executeEOD('email')">✉️ Email Owner Only</button>
       <button class="modal-btn clock-in-btn" style="background: #8b5cf6; border-color: #7c3aed;" onclick="executeEOD('both')">🖨️ & ✉️ Print & Email</button>
+      <button class="modal-btn clock-in-btn" style="background: #2563eb; border-color: #1d4ed8;" onclick="openPosTxnLogModal()">📋 View Transaction Log</button>
       <button class="modal-btn clock-in-btn" style="background: #0f766e; border-color: #0d9488;" onclick="openSquareReport()">💳 Run Square Audit</button>
       <button class="modal-btn" style="background: #fef2f2; color: #dc2626; border-color: #fca5a5;" onclick="openPayoutModal()">💸 Record Cash Payout / Accidental</button>
       
       <button class="modal-btn btn-cancel" onclick="closeModals()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- POS TRANSACTION LOG MODAL (FOR PAPER CLIPBOARD COMPARISON) -->
+  <div id="posTxnLogModalOverlay" class="modal-overlay">
+    <div class="modal-box" style="max-width: 920px; width: 95%; max-height: 88vh; overflow-y: auto;">
+      <h2>📋 Daily Transaction Log</h2>
+      <p style="margin-bottom: 12px; color: #4b5563; font-size: 14px;">Compare every logged ticket in chronological order (#1, #2, #3...) against your written clipboard log.</p>
+
+      <div style="display: flex; gap: 10px; justify-content: center; align-items: center; margin-bottom: 15px; flex-wrap: wrap; background: #f3f4f6; padding: 12px; border-radius: 12px;">
+        <label style="font-weight: 700; font-size: 14px; color: #111827;">📅 Select Date:</label>
+        <input type="date" id="posTxnLogDate" class="input-field" style="width: auto; margin: 0; font-weight: 700; background: white;" onchange="loadPosTxnLog()">
+        <button class="header-btn" style="background: #2563eb; color: white; padding: 10px 16px;" onclick="loadPosTxnLog()">🔄 Load Date</button>
+        <button class="header-btn" style="background: #10b981; color: white; padding: 10px 16px;" onclick="printPosTxnLog()">🖨️ Print Log</button>
+      </div>
+
+      <div id="posTxnLogSummary" style="display: flex; gap: 15px; justify-content: space-around; background: #eff6ff; border: 1px solid #bfdbfe; padding: 10px 15px; border-radius: 10px; margin-bottom: 15px; font-weight: 700; font-size: 14px; flex-wrap: wrap;"></div>
+      <div id="posTxnLogContent" style="text-align: left; overflow-x: auto; margin-bottom: 15px;"></div>
+
+      <button class="modal-btn btn-cancel" onclick="closeModals()">Close</button>
     </div>
   </div>
 
@@ -528,7 +549,7 @@
       <div style="display: flex; gap: 15px; align-items: center;">
         <img src="logo.png" alt="A+ Logo" style="height: 100px; border-radius: 8px; object-fit: contain;">
         <h2 class="header-title">A+ WashOS</h2>
-        <span style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 4px 10px; border-radius: 14px; font-size: 11px; font-weight: 800;">v9.4</span>
+        <span style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 4px 10px; border-radius: 14px; font-size: 11px; font-weight: 800;">v9.6</span>
         <button id="backBtn" style="display:none; background: #e5e7eb; color: #374151; border: none; padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;" onclick="clearVehicleType()">⬅ Back</button>
       </div>
       <div class="controls">
@@ -649,6 +670,13 @@
       <button id="submitBtn" class="submit-btn" onclick="promptPayment()">RECORD SALE</button>
       <div id="statusMsg" class="status-msg"></div>
     </div>
+  </div>
+
+  <!-- HIDDEN PRINTABLE POS TRANSACTION LOG -->
+  <div id="printablePosTxnLog" class="print-section">
+    <h2 style="text-align: center; margin-bottom: 4px;">Daily Transaction Log</h2>
+    <p style="text-align: center; color: #555; margin-top: 0; margin-bottom: 15px;" id="printTxnLogSubtitle"></p>
+    <div id="printTxnLogBody"></div>
   </div>
 
   <!-- THE HIDDEN PRINTABLE SQUARE AUDIT -->
@@ -1167,6 +1195,7 @@
       "cashModalOverlay",
       "customerModalOverlay",
       "eodModalOverlay",
+      "posTxnLogModalOverlay",
       "payoutModalOverlay",
       "payPendingModalOverlay",
       "squareReportModalOverlay",
@@ -1521,7 +1550,6 @@
       if (activeStoreTab !== 'All' && cat !== activeStoreTab) return;
       if (term && !item.name.toLowerCase().includes(term)) return;
 
-      // Pipe-free size extractor
       let baseName = item.name;
       let sizeLabel = "Standard";
       const openParen = item.name.lastIndexOf("(");
@@ -2239,6 +2267,102 @@
       alert("Network error. Try again.");
       btn.innerText = originalText;
     }
+  }
+
+  // --- POS DAILY TRANSACTION LOG LOGIC ---
+  function openPosTxnLogModal() {
+    closeModals();
+    const todayISO = new Date().toLocaleDateString('en-CA');
+    const dateInput = document.getElementById("posTxnLogDate");
+    if (!dateInput.value) dateInput.value = todayISO;
+    document.getElementById("posTxnLogModalOverlay").style.display = "flex";
+    loadPosTxnLog();
+  }
+
+  async function loadPosTxnLog() {
+    const location = document.getElementById("locationSelect").value;
+    const dateStr = document.getElementById("posTxnLogDate").value || new Date().toLocaleDateString('en-CA');
+    const content = document.getElementById("posTxnLogContent");
+    const summaryDiv = document.getElementById("posTxnLogSummary");
+
+    content.innerHTML = `<div class="spinner"></div><p style="text-align:center;">Loading transaction log for ${dateStr}...</p>`;
+    summaryDiv.innerHTML = "";
+
+    try {
+      const response = await fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({ recordType: "pos_transaction_log", location: location, dateStr: dateStr })
+      });
+      const result = await response.json();
+
+      if (result.status === "success") {
+        summaryDiv.innerHTML = `
+          <span>📍 ${location.replace("Location ", "Loc ")}</span>
+          <span>🚗 Total Tickets: <strong>${result.carCount}</strong></span>
+          <span>💵 Net Sales: <strong>$${result.totalNet.toFixed(2)}</strong></span>
+          <span style="color:#059669;">💰 Total Gross: <strong>$${result.totalGross.toFixed(2)}</strong></span>
+        `;
+
+        if (result.rows.length === 0) {
+          content.innerHTML = `<p style="text-align:center; padding: 20px; font-weight: bold; color: #6b7280;">No transactions recorded on ${dateStr}.</p>`;
+          return;
+        }
+
+        let tableHTML = `
+          <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+            <thead>
+              <tr style="background: #1f2937; color: white; text-align: left;">
+                <th style="padding: 8px 6px; width: 38px;">#</th>
+                <th style="padding: 8px 6px; width: 78px;">Time</th>
+                <th style="padding: 8px 6px;">Vehicle / Plate</th>
+                <th style="padding: 8px 6px;">Services & Notes</th>
+                <th style="padding: 8px 6px;">Payment</th>
+                <th style="padding: 8px 6px; text-align: right;">Net</th>
+                <th style="padding: 8px 6px; text-align: right;">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+
+        result.rows.forEach(r => {
+          let payColor = r.paymentType === "Pending" ? "#ef4444" : (r.paymentType === "Cash" ? "#059669" : "#2563eb");
+          let extraInfo = [];
+          if (r.dealer) extraInfo.push(`🏢 ${r.dealer}`);
+          if (r.notes) extraInfo.push(`📝 ${r.notes}`);
+          let subLine = extraInfo.length > 0 ? `<br><small style="color:#b45309; font-weight:600;">${extraInfo.join(" - ")}</small>` : "";
+
+          tableHTML += `
+            <tr style="border-bottom: 1px solid #e5e7eb;">
+              <td style="padding: 8px 6px; font-weight: 800; color: #6b7280;">${r.num}</td>
+              <td style="padding: 8px 6px; font-weight: 600;">${r.time}</td>
+              <td style="padding: 8px 6px; font-weight: 700;">${r.vehicle}<br><small style="color:#6b7280;">${r.orderId}</small></td>
+              <td style="padding: 8px 6px;">${r.services}${subLine}</td>
+              <td style="padding: 8px 6px; font-weight: 700; color: ${payColor};">${r.paymentType}</td>
+              <td style="padding: 8px 6px; text-align: right;">$${r.subtotal.toFixed(2)}</td>
+              <td style="padding: 8px 6px; text-align: right; font-weight: 800;">$${r.total.toFixed(2)}</td>
+            </tr>
+          `;
+        });
+
+        tableHTML += `</tbody></table>`;
+        content.innerHTML = tableHTML;
+
+        document.getElementById("printTxnLogSubtitle").innerText = `${location} — Date: ${dateStr} (Total Tickets: ${result.carCount} | Gross: $${result.totalGross.toFixed(2)})`;
+        document.getElementById("printTxnLogBody").innerHTML = tableHTML;
+      } else {
+        content.innerHTML = `<p style="color:#ef4444; text-align:center;">Error: ${result.message}</p>`;
+      }
+    } catch (err) {
+      content.innerHTML = `<p style="color:#ef4444; text-align:center;">Network Error loading Transaction Log.</p>`;
+    }
+  }
+
+  function printPosTxnLog() {
+    document.querySelectorAll('.print-section').forEach(el => el.classList.remove('active-print'));
+    const printDiv = document.getElementById("printablePosTxnLog");
+    printDiv.classList.add("active-print");
+    setTimeout(() => { window.print(); }, 300);
   }
 
   async function openSquareReport() {
