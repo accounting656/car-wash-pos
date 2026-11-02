@@ -56,7 +56,7 @@
     .list-item { font-size: 14px; color: #4b5563; border-bottom: 1px solid #f3f4f6; padding: 6px 0; display: flex; justify-content: space-between; }
     .cat-header { background: #e5e7eb; color: #111827; padding: 6px 10px; border-radius: 6px; font-size: 13px; font-weight: 800; margin-top: 10px; margin-bottom: 4px; display: flex; justify-content: space-between; }
 
-    /* Modal Styles for Dashboard Pay Bill, Cash Payout, Manual Timeclock & Square Terminal */
+    /* Modal Styles for Dashboard Pay Bill, Cash Payout, Cash Tips, Manual Timeclock & Square Terminal */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17,24,39,0.7); backdrop-filter: blur(5px); z-index: 9998; display: none; align-items: center; justify-content: center; }
     .modal-box { background: white; width: 90%; max-width: 420px; border-radius: 24px; padding: 30px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); text-align: center; }
     .modal-box h2 { margin-bottom: 16px; font-size: 24px; color: #111827; font-weight: 800; }
@@ -137,6 +137,34 @@
       <input type="text" id="dashPayoutReason" class="modal-input" placeholder="📝 Reason (e.g., Accidental damage)" style="margin-bottom: 18px;">
 
       <button class="modal-btn" style="background: #dc2626; color: white; border: none;" onclick="submitDashCashPayout()" id="dashSubmitPayoutBtn">Record Cash Deduction</button>
+      <button class="modal-btn btn-cancel" onclick="closeDashModals()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- DASHBOARD ENTER / EDIT CASH TIPS MODAL -->
+  <div id="dashCashTipsModal" class="modal-overlay">
+    <div class="modal-box">
+      <h2 style="color: #059669;">💵 Enter / Edit Cash Tips</h2>
+      <p style="margin-bottom: 15px; color: #4b5563; font-size: 13px;">Logs or updates the daily Cash Tips pool for the selected location and date (shown below CC Tips on all reports).</p>
+
+      <select id="dashCashTipsLocation" class="modal-input" style="font-weight: 700; cursor: pointer;">
+        <option value="Location 1 - Tampa Bay">📍 Location 1 - Tampa Bay</option>
+        <option value="Location 2 - Columbus">📍 Location 2 - Columbus</option>
+        <option value="Location 3 - South">📍 Location 3 - South</option>
+        <option value="Location 4 - Armenia">📍 Location 4 - Armenia</option>
+      </select>
+
+      <div style="text-align: left; margin-bottom: 10px;">
+        <label style="font-size: 11px; font-weight: 700; color: #6b7280; display: block; margin-bottom: 3px;">Date for Cash Tips</label>
+        <input type="date" id="dashCashTipsDate" class="modal-input" style="margin-bottom: 0; font-weight: 700;">
+      </div>
+
+      <div style="text-align: left; margin-bottom: 18px;">
+        <label style="font-size: 11px; font-weight: 700; color: #6b7280; display: block; margin-bottom: 3px;">Total Cash Tips ($)</label>
+        <input type="number" id="dashCashTipsAmount" class="modal-input" placeholder="e.g. 45.00" step="0.01" style="margin-bottom: 0; font-size: 18px; font-weight: 800;">
+      </div>
+
+      <button class="modal-btn" style="background: #10b981; color: white; border: none;" onclick="submitDashCashTips()" id="dashSubmitCashTipsBtn">Save Cash Tips</button>
       <button class="modal-btn btn-cancel" onclick="closeDashModals()">Cancel</button>
     </div>
   </div>
@@ -246,6 +274,7 @@
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
           <button class="btn btn-primary" onclick="fetchData()" id="generateBtn">🔄 Load Report</button>
           <button class="btn btn-csv" onclick="exportOverviewCSV()">📥 Export CSV</button>
+          <button class="btn" style="background: #059669; color: white;" onclick="openDashCashTipsModal()">💵 Cash Tips</button>
           <button class="btn" style="background: #dc2626; color: white;" onclick="openDashPayoutModal()">💸 Cash Payout</button>
           <button class="btn" style="background: #8b5cf6; color: white;" onclick="reconcileSquare()" id="reconcileBtn">🔄 Reconcile Square</button>
           <button class="btn btn-print" onclick="printFinancial()">🖨️ Print Financial</button>
@@ -434,6 +463,7 @@
       document.getElementById('startDate').value = today;
       document.getElementById('endDate').value = today;
       document.getElementById('dashTcDate').value = today;
+      document.getElementById('dashCashTipsDate').value = today;
     });
 
     let salesChart, carsChart;
@@ -827,7 +857,13 @@
               <div class="fin-row"><span>Check:</span> <strong>$${lData.tenders.check.toFixed(2)}</strong></div>
               <div class="fin-row"><span>Pending:</span> <strong style="color: #ef4444;">$${lData.tenders.pending.toFixed(2)}</strong></div>
               <div class="fin-row"><span style="color: #10b981; font-weight: bold;">CC Tips:</span> <strong style="color: #10b981;">$${lData.tips.toFixed(2)}</strong></div>
-              <div class="fin-row"><span style="color: #10b981; font-weight: bold;">Cash Tips:</span> <strong style="color: #10b981;">$${(lData.cashTips || 0).toFixed(2)}</strong></div>
+              <div class="fin-row" style="align-items: center;">
+                <span style="color: #10b981; font-weight: bold;">Cash Tips:</span>
+                <span>
+                  <strong style="color: #10b981;">$${(lData.cashTips || 0).toFixed(2)}</strong>
+                  <button onclick="openDashCashTipsModal('${loc}', ${(lData.cashTips || 0).toFixed(2)})" style="margin-left: 6px; padding: 2px 7px; font-size: 11px; border: 1px solid #a7f3d0; background: #ecfdf5; color: #059669; border-radius: 6px; cursor: pointer; font-weight: 700;" title="Enter or Edit Cash Tips">✏️ Edit</button>
+                </span>
+              </div>
               <div class="fin-row" style="margin-top: 5px; padding-top: 5px; border-top: 1px dashed #d1d5db;"><span>Tax Exempt Sales:</span> <strong style="color: #8b5cf6;">$${exemptTotal.toFixed(2)}</strong></div>
             </div>
 
@@ -1575,9 +1611,58 @@
       document.getElementById("dashPayoutModal").style.display = "flex";
     }
 
+    function openDashCashTipsModal(prefillLoc, prefillAmt) {
+      const locFilter = document.getElementById("locationFilter").value;
+      document.getElementById("dashCashTipsLocation").value = prefillLoc || (locFilter !== "All" ? locFilter : "Location 1 - Tampa Bay");
+      document.getElementById("dashCashTipsDate").value = document.getElementById("endDate").value || new Date().toLocaleDateString('en-CA');
+      document.getElementById("dashCashTipsAmount").value = (prefillAmt !== undefined && prefillAmt > 0) ? prefillAmt : "";
+      document.getElementById("dashCashTipsModal").style.display = "flex";
+    }
+
+    async function submitDashCashTips() {
+      const location = document.getElementById("dashCashTipsLocation").value;
+      const dateStr = document.getElementById("dashCashTipsDate").value;
+      const amtStr = document.getElementById("dashCashTipsAmount").value;
+      const amt = parseFloat(amtStr);
+
+      if (!dateStr) return alert("Please select a date.");
+      if (isNaN(amt) || amt < 0) return alert("Please enter a valid Cash Tips dollar amount (0 or higher).");
+
+      const btn = document.getElementById("dashSubmitCashTipsBtn");
+      btn.innerText = "⏳ Saving...";
+      btn.disabled = true;
+
+      try {
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({
+            recordType: "record_cash_tips",
+            location: location,
+            dateStr: dateStr,
+            amount: amt,
+            attendant: "Owner Dashboard"
+          })
+        });
+        const result = await response.json();
+        if (result.status === "success") {
+          alert(`✅ Saved $${amt.toFixed(2)} Cash Tips for ${location} on ${dateStr}!`);
+          closeDashModals();
+          fetchData();
+        } else {
+          alert("❌ Error: " + result.message);
+        }
+      } catch (err) {
+        alert("Network Error saving Cash Tips.");
+      }
+      btn.innerText = "Save Cash Tips";
+      btn.disabled = false;
+    }
+
     function closeDashModals() {
       document.getElementById("dashPayPendingModal").style.display = "none";
       document.getElementById("dashPayoutModal").style.display = "none";
+      document.getElementById("dashCashTipsModal").style.display = "none";
       document.getElementById("dashTimeclockModal").style.display = "none";
       document.getElementById("dashSquareModal").style.display = "none";
     }
