@@ -92,7 +92,7 @@
     <p style="margin-bottom: 20px; color: #9ca3af;">Enter Admin PIN to view financials.</p>
     <input type="password" id="adminPin" placeholder="****">
     <button onclick="fetchData()">Unlock Dashboard</button>
-    <div style="margin-top: 15px; font-size: 12px; color: #6b7280; font-weight: 600;">Command Center v9.5</div>
+    <div style="margin-top: 15px; font-size: 12px; color: #6b7280; font-weight: 600;">Command Center v9.6</div>
   </div>
 
   <!-- DASHBOARD PAY PENDING INVOICE MODAL -->
@@ -190,12 +190,13 @@
   <div id="dashboardContent">
     <div class="header">
       <h1 style="font-weight: 800; font-size: 30px;" id="reportTitle">📊 Owner Command Center</h1>
-      <span style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 800;">v9.5</span>
+      <span style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 800;">v9.6</span>
     </div>
     
     <!-- TAB NAVIGATION -->
     <div class="dash-tabs">
       <button class="tab-btn active" id="tab-overview" onclick="switchTab('overview')">📊 Financial Overview</button>
+      <button class="tab-btn" id="tab-txnlog" onclick="switchTab('txnlog')">📋 Transaction Log</button>
       <button class="tab-btn" id="tab-ar" onclick="switchTab('ar')">⏳ Unpaid Bills (A/R)</button>
       <button class="tab-btn" id="tab-payroll" onclick="switchTab('payroll')">🕒 Payroll & Hours</button>
       <button class="tab-btn" id="tab-dealers" onclick="switchTab('dealers')">🏢 Tax Exempt Dealers</button>
@@ -285,6 +286,24 @@
 
       <h2 style="margin-bottom: 15px; font-size: 24px;" id="locSectionHeader">📍 Location Breakdown</h2>
       <div class="loc-grid" id="locationCards"></div>
+    </div>
+
+    <!-- VIEW: COMPLETE CHRONOLOGICAL TRANSACTION LOG -->
+    <div id="view-txnlog" class="dash-view" style="display: none;">
+      <div style="background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 15px;">
+          <div>
+            <h2 style="font-size: 22px; color: #111827;">📋 Complete Transaction Log (Clipboard Cross-Check)</h2>
+            <p style="color: #6b7280; font-size: 13px; margin-top: 4px;">Chronological #1, #2, #3... list of every transaction for the selected Start/End Date, Location Filter, and Payment Type above.</p>
+          </div>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn btn-primary" onclick="loadDashTxnLog()" id="btnLoadTxnLog">🔄 Load Transaction Log</button>
+            <button class="btn btn-csv" onclick="exportTxnLogCSV()">📥 Export Log CSV</button>
+            <button class="btn btn-print" onclick="window.print()">🖨️ Print Log</button>
+          </div>
+        </div>
+        <div id="dashTxnLogContent"></div>
+      </div>
     </div>
 
     <!-- VIEW 2: UNPAID BILLS / ACCOUNTS RECEIVABLE (ALL DATES) -->
@@ -401,6 +420,7 @@
     let lastARData = [];
     let lastPayrollShifts = [];
     let lastDealerTxns = [];
+    let lastTxnLogRows = [];
 
     const corpEntities = {
       "Location 1 - Tampa Bay": { name: "A Plus Car Wash & Detailing Tampa Bay Inc.", cert: "39-8020182731-8" },
@@ -444,6 +464,7 @@
       document.getElementById('endDate').value = end.toLocaleDateString('en-CA');
 
       if (activeTabName === 'overview') fetchData();
+      else if (activeTabName === 'txnlog') loadDashTxnLog();
       else if (activeTabName === 'payroll') loadPayrollReport();
       else if (activeTabName === 'dealers') generateDealerReport();
     }
@@ -462,6 +483,8 @@
     function handleLocationFilterChange() {
       if (activeTabName === 'overview' && currentDashboardData) {
         renderOverviewFromMemory();
+      } else if (activeTabName === 'txnlog') {
+        loadDashTxnLog();
       } else if (activeTabName === 'ar') {
         loadARReport();
       } else if (activeTabName === 'payroll') {
@@ -485,7 +508,8 @@
     // Helper to group services into Wash, Add-Ons, Discounts, Retail, Chemicals, Equipment, Custom, and Gift Cards
     function groupLocationServices(servicesObj) {
       let grouped = { wash: {}, addons: {}, discounts: {}, retail: {}, chemicals: {}, equipment: {}, custom: {}, gift: {} };
-      let counts = { wash: 0, addons: 0, discounts: 0, retail: 0, chemicals: 0, equipment: 0, custom: 0, gift: 0 };
+      let counts = { wash: 0, addons: 0, discounts: 0, retail: 0, chemicals: 0, equipment: 0, custom: 0, gift: {} };
+      counts.gift = 0;
       let totalItemsSold = 0;
 
       for (const [name, count] of Object.entries(servicesObj || {})) {
@@ -620,6 +644,7 @@
         document.getElementById('dashboardContent').style.display = 'block';
         currentDashboardData = result.data; 
         renderOverviewFromMemory();
+        if (activeTabName === 'txnlog') loadDashTxnLog();
 
       } catch (err) { 
         console.error(err); 
@@ -1073,13 +1098,136 @@
       document.getElementById('tab-' + tabName).classList.add('active');
 
       // Auto-load tab data if empty
-      if (tabName === 'ar' && !document.getElementById('arReportContent').innerHTML.trim()) {
+      if (tabName === 'txnlog' && !document.getElementById('dashTxnLogContent').innerHTML.trim()) {
+        loadDashTxnLog();
+      } else if (tabName === 'ar' && !document.getElementById('arReportContent').innerHTML.trim()) {
         loadARReport();
       } else if (tabName === 'payroll' && !document.getElementById('payrollReportContent').innerHTML.trim()) {
         loadPayrollReport();
       } else if (tabName === 'dealers' && !document.getElementById('dealerReportContent').innerHTML.trim()) {
         generateDealerReport();
       }
+    }
+
+    // --- TAB: COMPLETE CHRONOLOGICAL TRANSACTION LOG ---
+    async function loadDashTxnLog() {
+      const btn = document.getElementById("btnLoadTxnLog");
+      if (btn) { btn.innerText = "⏳ Loading Log..."; btn.disabled = true; }
+      const content = document.getElementById("dashTxnLogContent");
+      content.innerHTML = "<p style='color: #6b7280;'>Loading complete chronological transaction log...</p>";
+
+      try {
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({
+            recordType: "dashboard_transaction_log",
+            startDate: document.getElementById("startDate").value,
+            endDate: document.getElementById("endDate").value,
+            locationFilter: document.getElementById("locationFilter").value,
+            paymentFilter: document.getElementById("paymentFilter").value,
+            pin: document.getElementById("adminPin").value
+          })
+        });
+        const result = await response.json();
+
+        if (result.status === "success") {
+          lastTxnLogRows = result.rows || [];
+          window.currentSearchResults = lastTxnLogRows.map(r => ({
+            date: `${r.date} ${r.time}`,
+            location: r.location,
+            orderId: r.orderId,
+            vehicle: r.vehicle,
+            services: r.services,
+            subtotal: `$${r.subtotal.toFixed(2)}`,
+            tax: `$${r.tax.toFixed(2)}`,
+            total: `$${r.total.toFixed(2)}`,
+            notes: r.notes,
+            exemptDealer: r.dealer,
+            paymentType: r.paymentType
+          }));
+
+          const t = result.totals || { count: 0, net: 0, tax: 0, ccFee: 0, gross: 0, tips: 0 };
+          let summaryBar = `
+            <div style="display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 20px;">
+              <div style="background: #f9fafb; border: 1px solid #e5e7eb; padding: 12px 18px; border-radius: 10px;">
+                <div style="font-size: 11px; color: #6b7280; font-weight: 800;">TOTAL TICKETS</div>
+                <div style="font-size: 22px; font-weight: 900; color: #111827;">${t.count}</div>
+              </div>
+              <div style="background: #f9fafb; border: 1px solid #e5e7eb; padding: 12px 18px; border-radius: 10px;">
+                <div style="font-size: 11px; color: #6b7280; font-weight: 800;">NET SALES</div>
+                <div style="font-size: 22px; font-weight: 900; color: #111827;">$${t.net.toFixed(2)}</div>
+              </div>
+              <div style="background: #f9fafb; border: 1px solid #e5e7eb; padding: 12px 18px; border-radius: 10px;">
+                <div style="font-size: 11px; color: #6b7280; font-weight: 800;">TAX + CC FEES</div>
+                <div style="font-size: 22px; font-weight: 900; color: #111827;">$${(t.tax + t.ccFee).toFixed(2)}</div>
+              </div>
+              <div style="background: #ecfdf5; border: 1px solid #a7f3d0; padding: 12px 18px; border-radius: 10px;">
+                <div style="font-size: 11px; color: #065f46; font-weight: 800;">TOTAL GROSS</div>
+                <div style="font-size: 22px; font-weight: 900; color: #059669;">$${t.gross.toFixed(2)}</div>
+              </div>
+              <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px 18px; border-radius: 10px;">
+                <div style="font-size: 11px; color: #166534; font-weight: 800;">CC TIPS</div>
+                <div style="font-size: 22px; font-weight: 900; color: #16a34a;">$${t.tips.toFixed(2)}</div>
+              </div>
+            </div>
+          `;
+
+          if (lastTxnLogRows.length === 0) {
+            content.innerHTML = summaryBar + "<p style='color: #ef4444; font-weight: bold;'>No transactions found for the selected date range and filters.</p>";
+          } else {
+            let tableHtml = `<table class="data-table">
+              <tr>
+                <th>#</th>
+                <th>Date & Time</th>
+                <th>Location</th>
+                <th>Order ID</th>
+                <th>Vehicle / Plate</th>
+                <th>Services & Notes</th>
+                <th>Attendant</th>
+                <th>Payment</th>
+                <th>Net</th>
+                <th>Total</th>
+                <th>Tip</th>
+                <th>Actions</th>
+              </tr>`;
+
+            lastTxnLogRows.forEach((r, idx) => {
+              let payCol = r.paymentType === "Pending" ? "#ef4444" : (r.paymentType === "Cash" ? "#059669" : "#2563eb");
+              let extra = [];
+              if (r.dealer) extra.push(`🏢 ${r.dealer}`);
+              if (r.notes) extra.push(`📝 ${r.notes}`);
+              let noteHtml = extra.length > 0 ? `<br><small style="color: #b45309; font-weight: 700;">${extra.join(" | ")}</small>` : "";
+
+              tableHtml += `<tr>
+                <td style="font-weight: 800; color: #6b7280;">${r.num}</td>
+                <td><strong>${r.time}</strong><br><small style="color:#6b7280;">${r.date}</small></td>
+                <td>${r.location.replace("Location ", "Loc ")}</td>
+                <td style="font-weight: 700;">${r.orderId}</td>
+                <td style="font-weight: 800;">${r.vehicle}</td>
+                <td>${r.services}${noteHtml}</td>
+                <td>${r.attendant}</td>
+                <td style="font-weight: 800; color: ${payCol};">${r.paymentType}</td>
+                <td>$${r.subtotal.toFixed(2)}</td>
+                <td style="font-weight: 900;">$${r.total.toFixed(2)}</td>
+                <td style="color: #10b981; font-weight: 700;">${r.tip > 0 ? '$' + r.tip.toFixed(2) : '—'}</td>
+                <td style="display: flex; gap: 5px; align-items: center;">
+                  ${r.paymentType === 'Pending' ? `<button class="btn" style="padding: 5px 8px; font-size: 11px; background: #f59e0b; color: white;" onclick="openDashPayPending(${idx})">💳 Pay</button>` : ''}
+                  <button class="btn btn-primary" style="padding: 5px 8px; font-size: 11px;" onclick="printSearchedInvoice(${idx})">🖨️</button>
+                  <button class="btn" style="padding: 5px 8px; font-size: 11px; background: #fee2e2; color: #b91c1c;" onclick="voidDashInvoice('${r.location}', '${r.orderId}', '$${r.total.toFixed(2)}')">🗑️</button>
+                </td>
+              </tr>`;
+            });
+
+            content.innerHTML = summaryBar + tableHtml + "</table>";
+          }
+        } else {
+          content.innerHTML = `<p style='color: #ef4444;'>Error: ${result.message}</p>`;
+        }
+      } catch (err) {
+        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v9.6 is deployed as a New Version.</p>";
+      }
+      if (btn) { btn.innerText = "🔄 Load Transaction Log"; btn.disabled = false; }
     }
 
     // --- TAB 2: ALL-TIME ACCOUNTS RECEIVABLE (UNPAID PENDING BILLS) ---
@@ -1149,7 +1297,7 @@
           content.innerHTML = `<p style='color: #ef4444;'>Error: ${result.message}</p>`;
         }
       } catch (err) {
-        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v9.5 is deployed.</p>";
+        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v9.6 is deployed.</p>";
       }
       btn.innerText = "🔄 Refresh Unpaid Bills"; btn.disabled = false;
     }
@@ -1227,7 +1375,7 @@
           content.innerHTML = `<p style='color: #ef4444;'>Error: ${result.message}</p>`;
         }
       } catch (err) {
-        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v9.5 is deployed.</p>";
+        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v9.6 is deployed.</p>";
       }
       btn.innerText = "🔄 Calculate Hours"; btn.disabled = false;
     }
@@ -1367,7 +1515,8 @@
         const result = await response.json();
         if (result.status === "success") {
           alert(`✅ Invoice ${orderId} voided and logged in the "Voided Invoices" audit tab.`);
-          if (activeTabName === 'ar') loadARReport();
+          if (activeTabName === 'txnlog') loadDashTxnLog();
+          else if (activeTabName === 'ar') loadARReport();
           else if (activeTabName === 'invoices') searchGlobalInvoices();
           fetchData();
         } else {
@@ -1585,7 +1734,8 @@
         if (result.status === "success") {
           alert(`Invoice ${activeDashPendingTxn.orderId} successfully paid with ${method}!`);
           closeDashModals();
-          if (activeTabName === 'ar') loadARReport();
+          if (activeTabName === 'txnlog') loadDashTxnLog();
+          else if (activeTabName === 'ar') loadARReport();
           else if (activeTabName === 'invoices') searchGlobalInvoices();
           fetchData();
         } else {
@@ -1690,6 +1840,21 @@
       });
 
       downloadCSVFile(`WashOS_Financial_Summary_${startDate}_to_${endDate}.csv`, rows);
+    }
+
+    function exportTxnLogCSV() {
+      if (!lastTxnLogRows || lastTxnLogRows.length === 0) return alert("Load the Transaction Log first before exporting.");
+      const startDate = document.getElementById("startDate").value;
+      const endDate = document.getElementById("endDate").value;
+      let rows = [["#", "Date", "Time", "Location", "Order ID", "Vehicle", "Services", "Dealer", "Notes", "Attendant", "Payment Type", "Net Subtotal", "Tax", "CC Surcharge", "Total Gross", "Tip"]];
+      lastTxnLogRows.forEach(r => {
+        rows.push([
+          r.num, r.date, r.time, r.location, r.orderId, r.vehicle, r.services,
+          r.dealer, r.notes, r.attendant, r.paymentType,
+          r.subtotal.toFixed(2), r.tax.toFixed(2), r.ccFee.toFixed(2), r.total.toFixed(2), r.tip.toFixed(2)
+        ]);
+      });
+      downloadCSVFile(`WashOS_Transaction_Log_${startDate}_to_${endDate}.csv`, rows);
     }
 
     function exportARCSV() {
