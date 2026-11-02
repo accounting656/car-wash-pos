@@ -92,7 +92,7 @@
     <p style="margin-bottom: 20px; color: #9ca3af;">Enter Admin PIN to view financials.</p>
     <input type="password" id="adminPin" placeholder="****">
     <button onclick="fetchData()">Unlock Dashboard</button>
-    <div style="margin-top: 15px; font-size: 12px; color: #6b7280; font-weight: 600;">Command Center v9.6</div>
+    <div style="margin-top: 15px; font-size: 12px; color: #6b7280; font-weight: 600;">Command Center v9.7</div>
   </div>
 
   <!-- DASHBOARD PAY PENDING INVOICE MODAL -->
@@ -190,7 +190,7 @@
   <div id="dashboardContent">
     <div class="header">
       <h1 style="font-weight: 800; font-size: 30px;" id="reportTitle">📊 Owner Command Center</h1>
-      <span style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 800;">v9.6</span>
+      <span style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 800;">v9.7</span>
     </div>
     
     <!-- TAB NAVIGATION -->
@@ -508,8 +508,7 @@
     // Helper to group services into Wash, Add-Ons, Discounts, Retail, Chemicals, Equipment, Custom, and Gift Cards
     function groupLocationServices(servicesObj) {
       let grouped = { wash: {}, addons: {}, discounts: {}, retail: {}, chemicals: {}, equipment: {}, custom: {}, gift: {} };
-      let counts = { wash: 0, addons: 0, discounts: 0, retail: 0, chemicals: 0, equipment: 0, custom: 0, gift: {} };
-      counts.gift = 0;
+      let counts = { wash: 0, addons: 0, discounts: 0, retail: 0, chemicals: 0, equipment: 0, custom: 0, gift: 0 };
       let totalItemsSold = 0;
 
       for (const [name, count] of Object.entries(servicesObj || {})) {
@@ -828,6 +827,7 @@
               <div class="fin-row"><span>Check:</span> <strong>$${lData.tenders.check.toFixed(2)}</strong></div>
               <div class="fin-row"><span>Pending:</span> <strong style="color: #ef4444;">$${lData.tenders.pending.toFixed(2)}</strong></div>
               <div class="fin-row"><span style="color: #10b981; font-weight: bold;">CC Tips:</span> <strong style="color: #10b981;">$${lData.tips.toFixed(2)}</strong></div>
+              <div class="fin-row"><span style="color: #10b981; font-weight: bold;">Cash Tips:</span> <strong style="color: #10b981;">$${(lData.cashTips || 0).toFixed(2)}</strong></div>
               <div class="fin-row" style="margin-top: 5px; padding-top: 5px; border-top: 1px dashed #d1d5db;"><span>Tax Exempt Sales:</span> <strong style="color: #8b5cf6;">$${exemptTotal.toFixed(2)}</strong></div>
             </div>
 
@@ -995,6 +995,7 @@
                       <tr><td style="padding: 4px 0;">Check:</td><td style="text-align: right; font-weight: bold;">$${lData.tenders.check.toFixed(2)}</td></tr>
                       <tr><td style="padding: 4px 0;">Pending:</td><td style="text-align: right; font-weight: bold; color: #ef4444;">$${lData.tenders.pending.toFixed(2)}</td></tr>
                       <tr><td style="padding: 4px 0; color: #10b981; font-weight: bold;">CC Tips:</td><td style="text-align: right; color: #10b981; font-weight: bold;">$${lData.tips.toFixed(2)}</td></tr>
+                      <tr><td style="padding: 4px 0; color: #10b981; font-weight: bold;">Cash Tips:</td><td style="text-align: right; color: #10b981; font-weight: bold;">$${(lData.cashTips || 0).toFixed(2)}</td></tr>
                       <tr><td style="padding: 8px 0 4px 0; border-top: 1px dashed #e5e7eb; color: #4b5563;">Tax Exempt Sales:</td><td style="padding: 8px 0 4px 0; border-top: 1px dashed #e5e7eb; text-align: right; font-weight: bold; color: #374151;">$${exemptTotal.toFixed(2)}</td></tr>
                     </table>
                   </div>
@@ -1167,7 +1168,7 @@
                 <div style="font-size: 22px; font-weight: 900; color: #059669;">$${t.gross.toFixed(2)}</div>
               </div>
               <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px 18px; border-radius: 10px;">
-                <div style="font-size: 11px; color: #166534; font-weight: 800;">CC TIPS</div>
+                <div style="font-size: 11px; color: #166534; font-weight: 800;">CC & CASH TIPS</div>
                 <div style="font-size: 22px; font-weight: 900; color: #16a34a;">$${t.tips.toFixed(2)}</div>
               </div>
             </div>
@@ -1225,7 +1226,7 @@
           content.innerHTML = `<p style='color: #ef4444;'>Error: ${result.message}</p>`;
         }
       } catch (err) {
-        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v9.6 is deployed as a New Version.</p>";
+        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v9.7 is deployed as a New Version.</p>";
       }
       if (btn) { btn.innerText = "🔄 Load Transaction Log"; btn.disabled = false; }
     }
@@ -1297,7 +1298,7 @@
           content.innerHTML = `<p style='color: #ef4444;'>Error: ${result.message}</p>`;
         }
       } catch (err) {
-        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v9.6 is deployed.</p>";
+        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v9.7 is deployed.</p>";
       }
       btn.innerText = "🔄 Refresh Unpaid Bills"; btn.disabled = false;
     }
@@ -1375,7 +1376,7 @@
           content.innerHTML = `<p style='color: #ef4444;'>Error: ${result.message}</p>`;
         }
       } catch (err) {
-        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v9.6 is deployed.</p>";
+        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v9.7 is deployed.</p>";
       }
       btn.innerText = "🔄 Calculate Hours"; btn.disabled = false;
     }
@@ -1822,7 +1823,7 @@
       const locNames = getFilteredLocationsList(currentDashboardData);
 
       let rows = [
-        ["Location", "Period Start", "Period End", "Net Sales", "Tax Collected", "CC Surcharge", "Gross Revenue", "Wash Services ($)", "Retail/Store ($)", "Cars Washed", "Cash Sales", "Cash Payouts", "Net Cash in Drawer", "Credit Card", "Check", "Unpaid Pending", "Pending Collected", "CC Tips", "Tax Exempt Sales"]
+        ["Location", "Period Start", "Period End", "Net Sales", "Tax Collected", "CC Surcharge", "Gross Revenue", "Wash Services ($)", "Retail/Store ($)", "Cars Washed", "Cash Sales", "Cash Payouts", "Net Cash in Drawer", "Credit Card", "Check", "Unpaid Pending", "Pending Collected", "CC Tips", "Cash Tips", "Tax Exempt Sales"]
       ];
 
       locNames.forEach(loc => {
@@ -1835,7 +1836,7 @@
           ld.wash.toFixed(2), ld.retail.toFixed(2), ld.cars,
           ld.tenders.cash.toFixed(2), (-payout).toFixed(2), (ld.tenders.cash - payout).toFixed(2),
           ld.tenders.credit.toFixed(2), ld.tenders.check.toFixed(2), ld.tenders.pending.toFixed(2),
-          (ld.paidPendingTotal || 0).toFixed(2), ld.tips.toFixed(2), exempt.toFixed(2)
+          (ld.paidPendingTotal || 0).toFixed(2), ld.tips.toFixed(2), (ld.cashTips || 0).toFixed(2), exempt.toFixed(2)
         ]);
       });
 
