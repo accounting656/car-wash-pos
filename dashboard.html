@@ -56,7 +56,7 @@
     .list-item { font-size: 14px; color: #4b5563; border-bottom: 1px solid #f3f4f6; padding: 6px 0; display: flex; justify-content: space-between; }
     .cat-header { background: #e5e7eb; color: #111827; padding: 6px 10px; border-radius: 6px; font-size: 13px; font-weight: 800; margin-top: 10px; margin-bottom: 4px; display: flex; justify-content: space-between; }
 
-    /* Modal Styles for Dashboard Pay Bill, Cash Payout, Cash Tips, Manual Timeclock & Square Terminal */
+    /* Modal Styles for Dashboard Pay Bill, Cash Payout, Cash Tips, Backdated Invoice, Manual Timeclock & Square Terminal */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17,24,39,0.7); backdrop-filter: blur(5px); z-index: 9998; display: none; align-items: center; justify-content: center; }
     .modal-box { background: white; width: 90%; max-width: 420px; border-radius: 24px; padding: 30px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); text-align: center; }
     .modal-box h2 { margin-bottom: 16px; font-size: 24px; color: #111827; font-weight: 800; }
@@ -92,7 +92,7 @@
     <p style="margin-bottom: 20px; color: #9ca3af;">Enter Admin PIN to view financials.</p>
     <input type="password" id="adminPin" placeholder="****">
     <button onclick="fetchData()">Unlock Dashboard</button>
-    <div style="margin-top: 15px; font-size: 12px; color: #6b7280; font-weight: 600;">Command Center v9.7</div>
+    <div style="margin-top: 15px; font-size: 12px; color: #6b7280; font-weight: 600;">Command Center v9.8</div>
   </div>
 
   <!-- DASHBOARD PAY PENDING INVOICE MODAL -->
@@ -169,6 +169,118 @@
     </div>
   </div>
 
+  <!-- DASHBOARD ADD BACKDATED / MANUAL INVOICE MODAL -->
+  <div id="dashAddInvoiceModal" class="modal-overlay">
+    <div class="modal-box" style="max-width: 480px; max-height: 92vh; overflow-y: auto;">
+      <h2 style="color: #2563eb;">➕ Add Backdated Invoice</h2>
+      <p style="margin-bottom: 14px; color: #4b5563; font-size: 13px;">Logs a missed ticket under the exact historical wash date so daily car counts, commissions, and A/R stay accurate.</p>
+
+      <select id="dashInvLocation" class="modal-input" style="font-weight: 700; cursor: pointer;">
+        <option value="Location 1 - Tampa Bay">📍 Location 1 - Tampa Bay</option>
+        <option value="Location 2 - Columbus">📍 Location 2 - Columbus</option>
+        <option value="Location 3 - South">📍 Location 3 - South</option>
+        <option value="Location 4 - Armenia">📍 Location 4 - Armenia</option>
+      </select>
+
+      <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+        <div style="flex: 1; text-align: left;">
+          <label style="font-size: 11px; font-weight: 700; color: #6b7280; display: block; margin-bottom: 3px;">Wash Date</label>
+          <input type="date" id="dashInvDate" class="modal-input" style="margin-bottom: 0; font-weight: 700;">
+        </div>
+        <div style="flex: 1; text-align: left;">
+          <label style="font-size: 11px; font-weight: 700; color: #6b7280; display: block; margin-bottom: 3px;">Time</label>
+          <input type="time" id="dashInvTime" class="modal-input" value="12:00" style="margin-bottom: 0;">
+        </div>
+      </div>
+
+      <div style="text-align: left; margin-bottom: 10px;">
+        <label style="font-size: 11px; font-weight: 700; color: #6b7280; display: block; margin-bottom: 3px;">Quick Service Preset (or type below)</label>
+        <select id="dashInvServicePreset" class="modal-input" style="margin-bottom: 6px; cursor: pointer;" onchange="applyDashServicePreset()">
+          <option value="">-- Select a Standard Service (Optional) --</option>
+          <optgroup label="🚗 Car">
+            <option value="Car - Exterior|15">Car - Exterior ($15)</option>
+            <option value="Car - Interior and Exterior|20">Car - Interior and Exterior ($20)</option>
+            <option value="Car - Deluxe|30">Car - Deluxe ($30)</option>
+            <option value="Car - Speed Ceramic|50">Car - Speed Ceramic ($50)</option>
+            <option value="Car - Ultimate Exterior|70">Car - Ultimate Exterior ($70)</option>
+            <option value="Car - Exterior and Shampoo|160">Car - Exterior and Shampoo ($160)</option>
+            <option value="Car - Supreme|180">Car - Supreme ($180)</option>
+            <option value="Car - A Plus House Pack|240">Car - A Plus House Pack ($240)</option>
+          </optgroup>
+          <optgroup label="🚙 SUV">
+            <option value="SUV - Exterior|20">SUV - Exterior ($20)</option>
+            <option value="SUV - Interior and Exterior|25">SUV - Interior and Exterior ($25)</option>
+            <option value="SUV - Deluxe|40">SUV - Deluxe ($40)</option>
+            <option value="SUV - Speed Ceramic|60">SUV - Speed Ceramic ($60)</option>
+            <option value="SUV - Ultimate Exterior|80">SUV - Ultimate Exterior ($80)</option>
+            <option value="SUV - Exterior and Shampoo|180">SUV - Exterior and Shampoo ($180)</option>
+            <option value="SUV - Supreme|200">SUV - Supreme ($200)</option>
+            <option value="SUV - A Plus House Pack|260">SUV - A Plus House Pack ($260)</option>
+          </optgroup>
+          <optgroup label="🚐 Van / Large SUV">
+            <option value="Van/Large SUV - Exterior|25">Van/Large SUV - Exterior ($25)</option>
+            <option value="Van/Large SUV - Interior and Exterior|30">Van/Large SUV - Interior and Exterior ($30)</option>
+            <option value="Van/Large SUV - Deluxe|50">Van/Large SUV - Deluxe ($50)</option>
+            <option value="Van/Large SUV - Speed Ceramic|70">Van/Large SUV - Speed Ceramic ($70)</option>
+            <option value="Van/Large SUV - Ultimate Exterior|90">Van/Large SUV - Ultimate Exterior ($90)</option>
+            <option value="Van/Large SUV - Exterior and Shampoo|200">Van/Large SUV - Exterior and Shampoo ($200)</option>
+            <option value="Van/Large SUV - Supreme|220">Van/Large SUV - Supreme ($220)</option>
+            <option value="Van/Large SUV - A Plus House Pack|280">Van/Large SUV - A Plus House Pack ($280)</option>
+          </optgroup>
+          <optgroup label="🛻 Truck">
+            <option value="Truck - Exterior|25">Truck - Exterior ($25)</option>
+            <option value="Truck - Interior and Exterior|30">Truck - Interior and Exterior ($30)</option>
+            <option value="Truck - Deluxe|60">Truck - Deluxe ($60)</option>
+            <option value="Truck - Speed Ceramic|80">Truck - Speed Ceramic ($80)</option>
+            <option value="Truck - Ultimate Exterior|90">Truck - Ultimate Exterior ($90)</option>
+            <option value="Truck - Exterior and Shampoo|200">Truck - Exterior and Shampoo ($200)</option>
+            <option value="Truck - Supreme|220">Truck - Supreme ($220)</option>
+            <option value="Truck - A Plus House Pack|280">Truck - A Plus House Pack ($280)</option>
+          </optgroup>
+        </select>
+        <input type="text" id="dashInvServices" class="modal-input" placeholder="🧼 Service(s) Rendered (e.g. SUV - Deluxe)" style="margin-bottom: 0; font-weight: 600;">
+      </div>
+
+      <input type="text" id="dashInvVehicle" class="modal-input" placeholder="🚗 Vehicle / Color / Plate (e.g. White Ford F-150)">
+      <input type="text" id="dashInvNotes" class="modal-input" placeholder="📝 Customer Name / Notes (Required for Pending)">
+      <input type="text" id="dashInvAttendant" list="dashRosterList" class="modal-input" placeholder="👤 Attendant / Logged By (Optional)">
+
+      <div style="background: #f3f4f6; padding: 10px 14px; border-radius: 10px; margin-bottom: 10px; text-align: left;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 13px; font-weight: 700; color: #374151;">🏢 Tax Exempt Dealer?</span>
+          <input type="checkbox" id="dashInvExemptCheck" style="transform: scale(1.3); cursor: pointer;" onchange="toggleDashInvExempt()">
+        </div>
+        <select id="dashInvDealerSelect" class="modal-input" style="display: none; margin-top: 8px; margin-bottom: 0; background: #eff6ff; color: #1e3a8a; font-weight: 700;" onchange="applyDashServicePreset(); updateDashInvTotals();">
+          <option value="">-- Select Exempt Dealer --</option>
+        </select>
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+        <div style="flex: 1; text-align: left;">
+          <label style="font-size: 11px; font-weight: 700; color: #6b7280; display: block; margin-bottom: 3px;">Net Subtotal ($)</label>
+          <input type="number" id="dashInvSubtotal" class="modal-input" placeholder="0.00" step="0.01" oninput="updateDashInvTotals()" style="margin-bottom: 0; font-weight: 800; font-size: 16px;">
+        </div>
+        <div style="flex: 1; text-align: left;">
+          <label style="font-size: 11px; font-weight: 700; color: #6b7280; display: block; margin-bottom: 3px;">Payment Status</label>
+          <select id="dashInvPaymentType" class="modal-input" style="margin-bottom: 0; font-weight: 700; cursor: pointer;">
+            <option value="Pending">⏳ Pending (Unpaid Bill)</option>
+            <option value="Cash">💵 Cash (Already Paid)</option>
+            <option value="Check">📝 Check (Already Paid)</option>
+            <option value="Credit Card">💳 Credit Card (Already Paid)</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 10px 14px; border-radius: 10px; margin-bottom: 16px; display: flex; justify-content: space-between; font-size: 14px;">
+        <span>Tax (7.5%): <strong id="dashInvTaxDisplay">$0.00</strong></span>
+        <span style="color: #1d4ed8;">Total Invoice: <strong id="dashInvTotalDisplay" style="font-size: 16px;">$0.00</strong></span>
+      </div>
+
+      <button class="modal-btn" style="background: #2563eb; color: white; border: none;" onclick="submitDashBackdatedInvoice()" id="dashSubmitInvBtn">Save Backdated Invoice</button>
+      <button class="modal-btn btn-cancel" onclick="closeDashModals()">Cancel</button>
+    </div>
+  </div>
+
   <!-- DASHBOARD MANUAL TIMECLOCK PUNCH MODAL -->
   <div id="dashTimeclockModal" class="modal-overlay">
     <div class="modal-box">
@@ -218,7 +330,7 @@
   <div id="dashboardContent">
     <div class="header">
       <h1 style="font-weight: 800; font-size: 30px;" id="reportTitle">📊 Owner Command Center</h1>
-      <span style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 800;">v9.7</span>
+      <span style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 800;">v9.8</span>
     </div>
     
     <!-- TAB NAVIGATION -->
@@ -273,6 +385,7 @@
         </div>
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
           <button class="btn btn-primary" onclick="fetchData()" id="generateBtn">🔄 Load Report</button>
+          <button class="btn" style="background: #2563eb; color: white;" onclick="openDashAddInvoiceModal()">➕ Backdated Invoice</button>
           <button class="btn btn-csv" onclick="exportOverviewCSV()">📥 Export CSV</button>
           <button class="btn" style="background: #059669; color: white;" onclick="openDashCashTipsModal()">💵 Cash Tips</button>
           <button class="btn" style="background: #dc2626; color: white;" onclick="openDashPayoutModal()">💸 Cash Payout</button>
@@ -326,6 +439,7 @@
             <p style="color: #6b7280; font-size: 13px; margin-top: 4px;">Chronological #1, #2, #3... list of every transaction for the selected Start/End Date, Location Filter, and Payment Type above.</p>
           </div>
           <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn" style="background: #2563eb; color: white;" onclick="openDashAddInvoiceModal()">➕ Add Backdated Invoice</button>
             <button class="btn btn-primary" onclick="loadDashTxnLog()" id="btnLoadTxnLog">🔄 Load Transaction Log</button>
             <button class="btn btn-csv" onclick="exportTxnLogCSV()">📥 Export Log CSV</button>
             <button class="btn btn-print" onclick="window.print()">🖨️ Print Log</button>
@@ -343,7 +457,8 @@
             <h2 style="font-size: 22px; color: #111827;">⏳ Open Accounts Receivable (All Unpaid Pending Bills)</h2>
             <p style="color: #6b7280; font-size: 13px; margin-top: 4px;">Scans all historical dates to find every open "Pending / Bill Later" invoice that has not been collected yet (respects the Location Filter above).</p>
           </div>
-          <div style="display: flex; gap: 10px;">
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn" style="background: #2563eb; color: white;" onclick="openDashAddInvoiceModal()">➕ Add Missed Pending Bill</button>
             <button class="btn btn-primary" onclick="loadARReport()" id="btnLoadAR">🔄 Refresh Unpaid Bills</button>
             <button class="btn btn-csv" onclick="exportARCSV()">📥 Export A/R CSV</button>
           </div>
@@ -464,6 +579,7 @@
       document.getElementById('endDate').value = today;
       document.getElementById('dashTcDate').value = today;
       document.getElementById('dashCashTipsDate').value = today;
+      document.getElementById('dashInvDate').value = today;
     });
 
     let salesChart, carsChart;
@@ -1262,7 +1378,7 @@
           content.innerHTML = `<p style='color: #ef4444;'>Error: ${result.message}</p>`;
         }
       } catch (err) {
-        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v9.7 is deployed as a New Version.</p>";
+        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v9.8 is deployed as a New Version.</p>";
       }
       if (btn) { btn.innerText = "🔄 Load Transaction Log"; btn.disabled = false; }
     }
@@ -1334,7 +1450,7 @@
           content.innerHTML = `<p style='color: #ef4444;'>Error: ${result.message}</p>`;
         }
       } catch (err) {
-        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v9.7 is deployed.</p>";
+        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v9.8 is deployed.</p>";
       }
       btn.innerText = "🔄 Refresh Unpaid Bills"; btn.disabled = false;
     }
@@ -1412,7 +1528,7 @@
           content.innerHTML = `<p style='color: #ef4444;'>Error: ${result.message}</p>`;
         }
       } catch (err) {
-        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v9.7 is deployed.</p>";
+        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v9.8 is deployed.</p>";
       }
       btn.innerText = "🔄 Calculate Hours"; btn.disabled = false;
     }
@@ -1659,10 +1775,142 @@
       btn.disabled = false;
     }
 
+    // --- BACKDATED / MANUAL INVOICE ENTRY LOGIC ---
+    function openDashAddInvoiceModal() {
+      const locFilter = document.getElementById("locationFilter").value;
+      document.getElementById("dashInvLocation").value = (locFilter && locFilter !== "All") ? locFilter : "Location 1 - Tampa Bay";
+      document.getElementById("dashInvDate").value = document.getElementById("startDate").value || new Date().toLocaleDateString('en-CA');
+      document.getElementById("dashInvTime").value = "12:00";
+      document.getElementById("dashInvServicePreset").value = "";
+      document.getElementById("dashInvServices").value = "";
+      document.getElementById("dashInvVehicle").value = "";
+      document.getElementById("dashInvNotes").value = "";
+      document.getElementById("dashInvAttendant").value = "";
+      document.getElementById("dashInvSubtotal").value = "";
+      document.getElementById("dashInvPaymentType").value = "Pending";
+      document.getElementById("dashInvExemptCheck").checked = false;
+      document.getElementById("dashInvDealerSelect").style.display = "none";
+
+      // Populate Exempt Dealers dropdown if loaded
+      const dealerSel = document.getElementById("dashInvDealerSelect");
+      if (currentDashboardData && currentDashboardData.dealers && dealerSel.options.length <= 1) {
+        dealerSel.innerHTML = '<option value="">-- Select Exempt Dealer --</option>' +
+          currentDashboardData.dealers.map(d => `<option value="${d.name} (${d.id})" data-disc="${d.discountRate}">${d.name} (${d.id})</option>`).join('');
+      }
+
+      updateDashInvTotals();
+      document.getElementById("dashAddInvoiceModal").style.display = "flex";
+    }
+
+    function applyDashServicePreset() {
+      const val = document.getElementById("dashInvServicePreset").value;
+      if (!val) return;
+      const [srvName, basePriceStr] = val.split("|");
+      let price = parseFloat(basePriceStr) || 0;
+
+      // Apply dealer discount automatically if a Tax Exempt Dealer is selected
+      const isExempt = document.getElementById("dashInvExemptCheck").checked;
+      const dealerSel = document.getElementById("dashInvDealerSelect");
+      if (isExempt && dealerSel.selectedIndex > 0) {
+        const disc = parseFloat(dealerSel.options[dealerSel.selectedIndex].getAttribute("data-disc")) || 0;
+        if (disc > 0) price = +(price * (1 - disc)).toFixed(2);
+      }
+
+      document.getElementById("dashInvServices").value = srvName;
+      document.getElementById("dashInvSubtotal").value = price.toFixed(2);
+      updateDashInvTotals();
+    }
+
+    function toggleDashInvExempt() {
+      const isExempt = document.getElementById("dashInvExemptCheck").checked;
+      document.getElementById("dashInvDealerSelect").style.display = isExempt ? "block" : "none";
+      if (document.getElementById("dashInvServicePreset").value) {
+        applyDashServicePreset();
+      } else {
+        updateDashInvTotals();
+      }
+    }
+
+    function updateDashInvTotals() {
+      const sub = parseFloat(document.getElementById("dashInvSubtotal").value) || 0;
+      const isExempt = document.getElementById("dashInvExemptCheck").checked;
+      const tax = isExempt ? 0 : +(sub * 0.075).toFixed(2);
+      const total = +(sub + tax).toFixed(2);
+
+      document.getElementById("dashInvTaxDisplay").innerText = isExempt ? "$0.00 (Exempt)" : `$${tax.toFixed(2)}`;
+      document.getElementById("dashInvTotalDisplay").innerText = `$${total.toFixed(2)}`;
+    }
+
+    async function submitDashBackdatedInvoice() {
+      const location = document.getElementById("dashInvLocation").value;
+      const dateStr = document.getElementById("dashInvDate").value;
+      const timeStr = document.getElementById("dashInvTime").value || "12:00";
+      const services = document.getElementById("dashInvServices").value.trim();
+      const vehicle = document.getElementById("dashInvVehicle").value.trim() || "N/A";
+      const notes = document.getElementById("dashInvNotes").value.trim();
+      const attendant = document.getElementById("dashInvAttendant").value.trim() || "Owner Dashboard";
+      const isExempt = document.getElementById("dashInvExemptCheck").checked;
+      const exemptDealer = document.getElementById("dashInvDealerSelect").value;
+      const subtotal = parseFloat(document.getElementById("dashInvSubtotal").value);
+      const paymentType = document.getElementById("dashInvPaymentType").value;
+      const pin = document.getElementById("adminPin").value.trim();
+
+      if (!dateStr) return alert("Please select the Wash Date.");
+      if (!services) return alert("Please select or enter the Service(s) rendered.");
+      if (isNaN(subtotal) || subtotal <= 0) return alert("Please enter a valid Net Subtotal amount.");
+      if (isExempt && !exemptDealer) return alert("Please select the Tax Exempt Dealer.");
+      if (paymentType === "Pending" && !notes && !exemptDealer) {
+        return alert("Please enter a Customer Name or Note for this Pending invoice.");
+      }
+
+      const btn = document.getElementById("dashSubmitInvBtn");
+      btn.innerText = "⏳ Saving Invoice...";
+      btn.disabled = true;
+
+      try {
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({
+            recordType: "admin_add_invoice",
+            location: location,
+            dateStr: dateStr,
+            timeStr: timeStr,
+            services: services,
+            vehicle: vehicle,
+            notes: notes,
+            attendant: attendant,
+            isTaxExempt: isExempt,
+            exemptDealer: isExempt ? exemptDealer : "N/A",
+            subtotal: subtotal,
+            paymentType: paymentType,
+            pin: pin
+          })
+        });
+        const result = await response.json();
+        if (result.status === "success") {
+          alert(`✅ Backdated Invoice (${result.orderId}) saved under ${dateStr} for ${location}!\n\nTotal: $${result.grandTotal.toFixed(2)} (${paymentType})`);
+          closeDashModals();
+          if (activeTabName === 'ar') loadARReport();
+          else if (activeTabName === 'txnlog') loadDashTxnLog();
+          else if (activeTabName === 'dealers') generateDealerReport();
+          else if (activeTabName === 'invoices') searchGlobalInvoices();
+          fetchData();
+        } else {
+          alert("❌ Error: " + result.message);
+        }
+      } catch (err) {
+        alert("Network Error while saving backdated invoice.");
+      }
+      btn.innerText = "Save Backdated Invoice";
+      btn.disabled = false;
+    }
+
     function closeDashModals() {
       document.getElementById("dashPayPendingModal").style.display = "none";
       document.getElementById("dashPayoutModal").style.display = "none";
       document.getElementById("dashCashTipsModal").style.display = "none";
+      document.getElementById("dashAddInvoiceModal").style.display = "none";
       document.getElementById("dashTimeclockModal").style.display = "none";
       document.getElementById("dashSquareModal").style.display = "none";
     }
