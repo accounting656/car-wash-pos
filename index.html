@@ -199,7 +199,7 @@
     </div>
     <div id="systemStatus">🟢 System Initializing...</div>
     <button onclick="forceAppUpdate()" style="margin-top: 15px; background: rgba(255,255,255,0.08); color: #9ca3af; border: 1px solid rgba(255,255,255,0.15); padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;">🔄 Update App</button>
-    <div id="appVersionBadge" style="margin-top: 12px; font-size: 12px; font-weight: 700; color: #60a5fa; background: rgba(37,99,235,0.15); border: 1px solid rgba(96,165,250,0.3); padding: 4px 12px; border-radius: 20px; letter-spacing: 0.5px;">WashOS v9.7</div>
+    <div id="appVersionBadge" style="margin-top: 12px; font-size: 12px; font-weight: 700; color: #60a5fa; background: rgba(37,99,235,0.15); border: 1px solid rgba(96,165,250,0.3); padding: 4px 12px; border-radius: 20px; letter-spacing: 0.5px;">WashOS v9.8</div>
   </div>
 
   <!-- PAYMENT MODAL -->
@@ -215,6 +215,7 @@
       </div>
 
       <button class="modal-btn" onclick="processOrder('Credit Card')">💳 Credit Card</button>
+      <button class="modal-btn" style="background: #eff6ff; color: #1d4ed8; border-color: #93c5fd;" onclick="openSplitPaymentModal()">💵 + 💳 Split: Cash + Card</button>
       <button class="modal-btn" onclick="processOrder('Check')">📝 Check</button>
       <button class="modal-btn" onclick="processOrder('Pending')">⏳ Pending / Bill Later (Prints Invoice)</button>
       <button class="modal-btn btn-cancel" onclick="closeModals()">Cancel</button>
@@ -246,6 +247,28 @@
 
       <p style="font-size: 22px; font-weight: bold; color: #10b981; margin-bottom: 20px;">Change Due: <span id="cashChangeDue">$0.00</span></p>
       <button class="modal-btn clock-in-btn" onclick="processOrder('Cash')">Complete Sale</button>
+      <button class="modal-btn btn-cancel" onclick="closeModals()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- SPLIT PAYMENT (CASH + CREDIT CARD) MODAL -->
+  <div id="splitPaymentModalOverlay" class="modal-overlay">
+    <div class="modal-box" style="max-width: 420px;">
+      <h2>💵 + 💳 Split Payment</h2>
+      <p style="font-size: 18px; font-weight: bold; margin-bottom: 12px;">Ticket Total: <span id="splitTotalDue" style="color: #111827;">$0.00</span></p>
+
+      <div style="text-align: left; margin-bottom: 12px;">
+        <label style="font-size: 12px; font-weight: 700; color: #4b5563; display: block; margin-bottom: 4px;">1. Enter Cash Amount Received ($):</label>
+        <input type="number" id="splitCashInput" class="input-field" placeholder="e.g. 20.00" step="0.01" oninput="updateSplitPreview()" style="font-size: 20px; font-weight: 800; text-align: center; background: white; margin-bottom: 0;">
+      </div>
+
+      <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 12px 15px; border-radius: 12px; margin-bottom: 15px; text-align: left; font-size: 14px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>Remaining Balance to Card:</span><strong id="splitCardBaseDisplay">$0.00</strong></div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 6px; color: #6b7280;"><span>CC Surcharge (on Card Portion):</span><span id="splitCardFeeDisplay">$0.00</span></div>
+        <div style="display: flex; justify-content: space-between; padding-top: 6px; border-top: 1px dashed #93c5fd; font-size: 16px; color: #1d4ed8;"><strong>Total to Charge on Card:</strong><strong id="splitCardTotalDisplay">$0.00</strong></div>
+      </div>
+
+      <button class="modal-btn clock-in-btn" style="background: #2563eb;" onclick="processSplitOrder()">💳 Charge Remainder on Terminal</button>
       <button class="modal-btn btn-cancel" onclick="closeModals()">Cancel</button>
     </div>
   </div>
@@ -551,7 +574,7 @@
       <div style="display: flex; gap: 15px; align-items: center;">
         <img src="logo.png" alt="A+ Logo" style="height: 100px; border-radius: 8px; object-fit: contain;">
         <h2 class="header-title">A+ WashOS</h2>
-        <span style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 4px 10px; border-radius: 14px; font-size: 11px; font-weight: 800;">v9.7</span>
+        <span style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 4px 10px; border-radius: 14px; font-size: 11px; font-weight: 800;">v9.8</span>
         <button id="backBtn" style="display:none; background: #e5e7eb; color: #374151; border: none; padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;" onclick="clearVehicleType()">⬅ Back</button>
       </div>
       <div class="controls">
@@ -648,6 +671,9 @@
         <option value="Other">Other...</option>
       </select>
       <input type="text" id="vehiclePlate" class="input-field" placeholder="🚗 License Plate (e.g. ABC-123)">
+      <button onclick="stageAdditionalVehicle()" style="width: 100%; padding: 8px; margin-bottom: 10px; background: #eff6ff; color: #1d4ed8; border: 1px dashed #60a5fa; border-radius: 8px; font-weight: 700; font-size: 12px; cursor: pointer;">🚗 + Add Another Vehicle to Ticket</button>
+      <div id="stagedVehiclesBadge" style="display: none; margin-bottom: 10px; padding: 8px 10px; background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; font-size: 12px; font-weight: 700; color: #166534;"></div>
+
       <input type="text" id="orderNotes" class="input-field" placeholder="📝 Customer Name / Additional Notes">
       
       <div class="tax-exempt-bar">
@@ -734,6 +760,7 @@
   let currentSearchResults = [];
   let pendingPayOrderId = "";
   let pendingPayTransaction = null;
+  let stagedVehiclesList = [];
 
   async function executeSearch() {
     const term = document.getElementById("searchInput").value;
@@ -945,8 +972,9 @@
     document.getElementById("invTotal").innerText = transaction.total;
 
     const notesRow = document.getElementById("invNotesRow");
-    if (transaction.notes && transaction.notes.trim() !== "") {
-      document.getElementById("invNotes").innerText = transaction.notes;
+    let cleanPrintNotes = (transaction.notes || "").replace(/\[SPLIT_PAY:[^\]]+\]/g, "").trim();
+    if (cleanPrintNotes !== "") {
+      document.getElementById("invNotes").innerText = cleanPrintNotes;
       notesRow.style.display = "block";
     } else {
       notesRow.style.display = "none";
@@ -1166,6 +1194,8 @@
     document.getElementById("currentAttendantName").innerText = "None";
     document.getElementById("loginOverlay").style.display = "flex"; 
     cart = []; 
+    stagedVehiclesList = [];
+    renderStagedVehicles();
     selectedVehicleType = null;
     document.getElementById("locationSelect").disabled = true;
     document.getElementById("locationSelect").style.borderColor = "#e5e7eb";
@@ -1181,6 +1211,47 @@
   function loadTabletLocation() { const savedLoc = localStorage.getItem("washos_location"); if(savedLoc) { document.getElementById("locationSelect").value = savedLoc; } }
   function addColor(colorStr) { const input = document.getElementById("vehiclePlate"); input.value = input.value ? colorStr + " " + input.value : colorStr + " "; }
 
+  // --- MULTI-VEHICLE STAGING FOR SINGLE TICKET ---
+  function stageAdditionalVehicle() {
+    const make = document.getElementById("vehicleMake").value.trim();
+    const plate = document.getElementById("vehiclePlate").value.trim();
+    const combined = `${make} ${plate}`.trim();
+    if (!combined) {
+      return alert("Select a Vehicle Make or enter a Color / License Plate for the first vehicle before adding another.");
+    }
+    stagedVehiclesList.push(combined);
+    document.getElementById("vehicleMake").value = "";
+    document.getElementById("vehiclePlate").value = "";
+    renderStagedVehicles();
+  }
+
+  function removeStagedVehicle(idx) {
+    stagedVehiclesList.splice(idx, 1);
+    renderStagedVehicles();
+  }
+
+  function renderStagedVehicles() {
+    const badge = document.getElementById("stagedVehiclesBadge");
+    if (!badge) return;
+    if (stagedVehiclesList.length === 0) {
+      badge.style.display = "none";
+      badge.innerHTML = "";
+      return;
+    }
+    badge.style.display = "block";
+    badge.innerHTML = `<div style="margin-bottom:4px; color:#15803d;">🚗 Multi-Car Ticket (${stagedVehiclesList.length} saved + current):</div>` +
+      stagedVehiclesList.map((v, i) => `<span style="display:inline-block; background:white; border:1px solid #86efac; padding:3px 8px; border-radius:6px; margin-right:5px; margin-bottom:4px;">#${i+1}: ${v} <strong onclick="removeStagedVehicle(${i})" style="color:#dc2626; cursor:pointer; margin-left:4px;">×</strong></span>`).join('');
+  }
+
+  function getCombinedVehiclesString() {
+    const make = document.getElementById("vehicleMake").value.trim();
+    const plate = document.getElementById("vehiclePlate").value.trim();
+    const currentVeh = `${make} ${plate}`.trim();
+    let allVeh = [...stagedVehiclesList];
+    if (currentVeh) allVeh.push(currentVeh);
+    return allVeh.length > 0 ? allVeh.join(" + ") : "N/A";
+  }
+
   function openTimeclock() { 
     document.getElementById("timeclockModalOverlay").style.display = "flex"; 
     document.getElementById("tcPin").value = "";
@@ -1195,6 +1266,7 @@
       "squareModalOverlay", 
       "searchModalOverlay", 
       "cashModalOverlay",
+      "splitPaymentModalOverlay",
       "customerModalOverlay",
       "eodModalOverlay",
       "posTxnLogModalOverlay",
@@ -1687,8 +1759,56 @@
     document.getElementById("paymentModalOverlay").style.display = "flex";
   }
 
+  // --- SPLIT PAYMENT (CASH + CARD) LOGIC ---
+  function getTicketGrandTotal() {
+    const subtotal = cart.reduce((sum, item) => sum + item.price, 0);
+    const taxAmount = isTaxExempt ? 0 : (subtotal * TOTAL_TAX_RATE);
+    let gt = subtotal + taxAmount;
+    if (appliedGcAmount > 0) gt = Math.max(0, gt - appliedGcAmount);
+    return +gt.toFixed(2);
+  }
+
+  function openSplitPaymentModal() {
+    document.getElementById("paymentModalOverlay").style.display = "none";
+    const gt = getTicketGrandTotal();
+    document.getElementById("splitTotalDue").innerText = `$${gt.toFixed(2)}`;
+    document.getElementById("splitCashInput").value = "";
+    document.getElementById("splitCardBaseDisplay").innerText = `$${gt.toFixed(2)}`;
+    const fullFee = gt > 0 ? Math.ceil((((gt * 0.0275) + 0.15) / 0.9725) * 100) / 100 : 0;
+    document.getElementById("splitCardFeeDisplay").innerText = `$${fullFee.toFixed(2)}`;
+    document.getElementById("splitCardTotalDisplay").innerText = `$${(gt + fullFee).toFixed(2)}`;
+    document.getElementById("splitPaymentModalOverlay").style.display = "flex";
+  }
+
+  function updateSplitPreview() {
+    const gt = getTicketGrandTotal();
+    const cashAmt = parseFloat(document.getElementById("splitCashInput").value) || 0;
+    const cardBase = Math.max(0, +(gt - cashAmt).toFixed(2));
+    const cardFee = cardBase > 0 ? Math.ceil((((cardBase * 0.0275) + 0.15) / 0.9725) * 100) / 100 : 0;
+    document.getElementById("splitCardBaseDisplay").innerText = `$${cardBase.toFixed(2)}`;
+    document.getElementById("splitCardFeeDisplay").innerText = `$${cardFee.toFixed(2)}`;
+    document.getElementById("splitCardTotalDisplay").innerText = `$${(cardBase + cardFee).toFixed(2)}`;
+  }
+
+  async function processSplitOrder() {
+    const gt = getTicketGrandTotal();
+    const cashAmt = +(parseFloat(document.getElementById("splitCashInput").value) || 0).toFixed(2);
+    if (cashAmt <= 0 || cashAmt >= gt) {
+      return alert(`Please enter a Cash amount between $0.01 and $${(gt - 0.01).toFixed(2)}.`);
+    }
+    const cardBase = +(gt - cashAmt).toFixed(2);
+    const cardFee = Math.ceil((((cardBase * 0.0275) + 0.15) / 0.9725) * 100) / 100;
+
+    await processOrder('Split (Cash + Card)', {
+      isSplitPayment: true,
+      splitCashAmt: cashAmt,
+      splitCardBase: cardBase,
+      splitCcFee: cardFee
+    });
+  }
+
   // --- SQUARE INTEGRATION & VERIFIED LOGGING LOGIC ---
-  async function processOrder(selectedPaymentType) {
+  async function processOrder(selectedPaymentType, splitOpts = null) {
     // Require a Customer Name, Note, or Dealer when selecting Pending / Bill Later
     if (selectedPaymentType === 'Pending') {
       let currentNotes = document.getElementById("orderNotes").value.trim();
@@ -1716,9 +1836,15 @@
       grandTotal -= appliedGcAmount;
       if (grandTotal < 0) grandTotal = 0;
     }
-    const make = document.getElementById("vehicleMake").value; 
-    const plate = document.getElementById("vehiclePlate").value;
+
+    const combinedVehicles = getCombinedVehiclesString();
     const orderId = "ORD-" + Math.floor(100000 + Math.random() * 900000);
+
+    let rawNotes = document.getElementById("orderNotes").value.trim();
+    if (splitOpts && splitOpts.isSplitPayment) {
+      let splitStamp = `[SPLIT_PAY:${splitOpts.splitCashAmt.toFixed(2)}|${splitOpts.splitCardBase.toFixed(2)}|${splitOpts.splitCcFee.toFixed(2)}]`;
+      rawNotes = rawNotes ? `${rawNotes} ${splitStamp}` : splitStamp;
+    }
 
     const baseSaleData = {
       location: document.getElementById("locationSelect").value,
@@ -1730,8 +1856,8 @@
       subtotal: subtotal,
       taxAmount: taxAmount,
       grandTotal: grandTotal,
-      vehicleInfo: (make || plate) ? `${make} ${plate}`.trim() : "N/A",
-      notes: document.getElementById("orderNotes").value.trim(),
+      vehicleInfo: combinedVehicles,
+      notes: rawNotes,
       attendant: activeAttendant,
       exemptDealer: isTaxExempt ? `${selectedDealer} (${taxExemptDealers[selectedDealer].id})` : "N/A",
       paymentType: selectedPaymentType,
@@ -1741,17 +1867,20 @@
 
     let alreadySavedByServer = false;
 
-    // 1. TRIGGER SQUARE IF CREDIT CARD IS SELECTED
-    if (selectedPaymentType === 'Credit Card') {
+    // 1. TRIGGER SQUARE IF CREDIT CARD OR SPLIT PAYMENT IS SELECTED
+    if (selectedPaymentType === 'Credit Card' || (splitOpts && splitOpts.isSplitPayment)) {
       document.getElementById("squareModalOverlay").style.display = "flex";
       
-      // Exact Square Gross-Up Formula (2.75% + $0.15 on total charged, rounded up to cover tip fees)
-      let ccFee = Math.ceil((((grandTotal * 0.0275) + 0.15) / 0.9725) * 100) / 100;
+      let ccFee = (splitOpts && splitOpts.isSplitPayment)
+        ? splitOpts.splitCcFee
+        : Math.ceil((((grandTotal * 0.0275) + 0.15) / 0.9725) * 100) / 100;
 
       const squarePayload = {
         ...baseSaleData,
         recordType: "square_checkout",
         ccFee: ccFee,
+        isSplitPayment: !!(splitOpts && splitOpts.isSplitPayment),
+        splitCardBase: (splitOpts && splitOpts.isSplitPayment) ? splitOpts.splitCardBase : 0,
         isManualEntry: document.getElementById("manualEntryCheck").checked
       };
       
@@ -1880,7 +2009,7 @@
     
     if (hasGiftCard || selectedPaymentType === 'Pending') {
       shouldPrint = true; // Automatically pop up printer for Gift Cards AND Pending / Bill Later!
-    } else if (selectedPaymentType === 'Cash' || appliedGcCode) {
+    } else if (selectedPaymentType === 'Cash' || appliedGcCode || (splitOpts && splitOpts.isSplitPayment)) {
       shouldPrint = confirm("Does the customer want a printed receipt?");
     }
 
@@ -1889,11 +2018,16 @@
       let changeAmt = cashTenderedAmt - grandTotal;
       if (changeAmt < 0) changeAmt = 0;
 
+      let displayPaymentMethod = selectedPaymentType;
+      if (splitOpts && splitOpts.isSplitPayment) {
+        displayPaymentMethod = `Split ($${splitOpts.splitCashAmt.toFixed(2)} Cash + $${(splitOpts.splitCardBase + splitOpts.splitCcFee).toFixed(2)} Card)`;
+      }
+
       const receiptData = {
         location: document.getElementById("locationSelect").value,
         date: new Date().toISOString(),
         orderId: orderId,
-        vehicle: (make || plate) ? `${make} ${plate}`.trim() : "N/A",
+        vehicle: combinedVehicles,
         services: cart.map(item => item.name).join(", "),
         notes: baseSaleData.notes,
         subtotal: `$${subtotal.toFixed(2)}`,
@@ -1901,7 +2035,7 @@
         total: `$${grandTotal.toFixed(2)}`,
         exemptDealer: isTaxExempt ? `${selectedDealer} (${taxExemptDealers[selectedDealer].id})` : "",
         cart: cart,
-        paymentMethod: selectedPaymentType,
+        paymentMethod: displayPaymentMethod,
         appliedGcCode: appliedGcCode,
         remainingGcBalance: remainingGcBalance,
         cashTendered: selectedPaymentType === 'Cash' ? `$${cashTenderedAmt.toFixed(2)}` : null,
@@ -1911,6 +2045,8 @@
     }
     
     cart = []; 
+    stagedVehiclesList = [];
+    renderStagedVehicles();
     selectedVehicleType = null; 
     document.getElementById("vehicleMake").value = ""; 
     document.getElementById("vehiclePlate").value = ""; 
