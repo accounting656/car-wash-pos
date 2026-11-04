@@ -1453,10 +1453,15 @@
   function clearVehicleType() { selectedVehicleType = null; renderMenu(); }
 
   function addCustomItem() {
-    const name = document.getElementById("customItemName").value.trim(); const price = parseFloat(document.getElementById("customItemPrice").value);
-    if (!name || isNaN(price) || price < 0) return alert("Enter valid data.");
-    cart.push({ id: 'custom-' + Date.now(), name: "Custom - " + name, price: price });
-    document.getElementById("customItemName").value = ""; document.getElementById("customItemPrice").value = ""; updateCart();
+    const name = document.getElementById("customItemName").value.trim();
+    const price = parseFloat(document.getElementById("customItemPrice").value);
+    const countsAsCar = document.getElementById("customCountsAsCar") ? document.getElementById("customCountsAsCar").checked : true;
+    if (!name || isNaN(price) || price < 0) return alert("Enter valid description and price.");
+    const prefix = countsAsCar ? "Custom Wash - " : "Custom - ";
+    cart.push({ id: 'custom-' + Date.now(), name: prefix + name, price: price });
+    document.getElementById("customItemName").value = "";
+    document.getElementById("customItemPrice").value = "";
+    updateCart();
   }
 
   // --- TICKET DISCOUNT & ADDITIONAL WORK LOGIC ---
@@ -1553,11 +1558,21 @@
       backBtn.style.display = "inline-block";
       grid.innerHTML = `
         <div style="grid-column: 1 / -1; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); text-align: center;">
-          <h3 style="margin-bottom: 20px; font-size: 22px;">Add Custom Item</h3>
-          <div style="max-width: 400px; margin: 0 auto;">
-            <input type="text" id="customItemName" class="input-field" placeholder="Description (e.g., Boat Wash)">
+          <div style="background: #fef2f2; border: 2px solid #f87171; color: #991b1b; padding: 14px 18px; border-radius: 12px; margin-bottom: 20px; text-align: left; font-size: 14px; line-height: 1.5;">
+            <strong style="font-size: 15px;">⚠️ STOP! DO NOT USE FOR REGULAR CARS, SUVs, VANS, OR TRUCKS:</strong><br>
+            Using Custom Pricing prevents the vehicle and service from being counted properly on the End of Day report.<br>
+            • If a vehicle needs extra labor (pet hair, mud, stains) or a price adjustment, tap <strong>⬅ Back</strong>, select the normal <strong>Vehicle &amp; Wash Service</strong>, and use <strong>➕ Additional Work</strong> or <strong>🏷️ + Discount</strong> on the ticket!<br>
+            <em style="color: #b91c1c;">• ¡NO USAR para carros normales! Seleccione el vehículo y servicio normal y use "➕ Additional Work" o "🏷️ + Discount". Solo use esta pantalla para Botes, RVs o Motos.</em>
+          </div>
+          <h3 style="margin-bottom: 15px; font-size: 22px;">Add Custom Non-Standard Item (Boats / RVs Only)</h3>
+          <div style="max-width: 420px; margin: 0 auto;">
+            <input type="text" id="customItemName" class="input-field" placeholder="Description (e.g., Boat Wash, RV Wash)">
             <input type="number" id="customItemPrice" class="input-field" placeholder="Price ($)" step="0.01">
-            <button class="submit-btn" style="padding: 16px; margin-top: 15px;" onclick="addCustomItem()">ADD TO TICKET</button>
+            <div style="margin: 10px 0 15px 0; padding: 10px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; text-align: left; display: flex; align-items: center; gap: 10px;">
+              <input type="checkbox" id="customCountsAsCar" checked style="transform: scale(1.4); cursor: pointer;">
+              <label for="customCountsAsCar" style="font-size: 14px; font-weight: 700; color: #1e3a8a; cursor: pointer;">🚗 Count this item as 1 Vehicle Washed on EOD Report</label>
+            </div>
+            <button class="submit-btn" style="padding: 16px; margin-top: 5px;" onclick="addCustomItem()">ADD TO TICKET</button>
           </div>
         </div>
       `; 
