@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -199,7 +199,7 @@
     </div>
     <div id="systemStatus">🟢 System Initializing...</div>
     <button onclick="forceAppUpdate()" style="margin-top: 15px; background: rgba(255,255,255,0.08); color: #9ca3af; border: 1px solid rgba(255,255,255,0.15); padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;">🔄 Update App</button>
-    <div id="appVersionBadge" style="margin-top: 12px; font-size: 12px; font-weight: 700; color: #60a5fa; background: rgba(37,99,235,0.15); border: 1px solid rgba(96,165,250,0.3); padding: 4px 12px; border-radius: 20px; letter-spacing: 0.5px;">WashOS v9.9</div>
+    <div id="appVersionBadge" style="margin-top: 12px; font-size: 12px; font-weight: 700; color: #60a5fa; background: rgba(37,99,235,0.15); border: 1px solid rgba(96,165,250,0.3); padding: 4px 12px; border-radius: 20px; letter-spacing: 0.5px;">WashOS v10.0</div>
   </div>
 
   <!-- PAYMENT MODAL -->
@@ -273,61 +273,193 @@
     </div>
   </div>
 
-  <!-- PRINTABLE END OF DAY REPORT -->
+  <!-- PRINTABLE END OF DAY REPORT (PAGE 1: ACCOUNTING EOD + PAGE 2: MANAGER DAILY CLOSING SLIP) -->
   <div id="printableEOD" class="print-section">
-    <h2 style="margin-bottom: 2px; text-align: center; font-size: 24px;">End of Day Summary</h2>
-    <p style="text-align: center; margin-top: 0; margin-bottom: 15px; color: #555; font-size: 14px;" id="eodLocation"></p>
-    
-    <div style="border-bottom: 3px solid #111827; padding-bottom: 8px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: flex-end;">
-      <div style="font-size: 16px;"><strong>Date:</strong> <span id="eodDate"></span></div>
-      <div style="text-align: right;">
-        <span style="font-size: 14px; color: #555;">Total Cars Washed:</span><br>
-        <strong style="font-size: 24px;" id="eodTotalCars">0</strong>
+    <!-- PAGE 1: ACCOUNTING EOD SUMMARY -->
+    <div id="eodAccountingPageSection">
+      <h2 style="margin-bottom: 2px; text-align: center; font-size: 24px;">Accounting End of Day Summary</h2>
+      <p style="text-align: center; margin-top: 0; margin-bottom: 15px; color: #555; font-size: 14px;" id="eodLocation"></p>
+      
+      <div style="border-bottom: 3px solid #111827; padding-bottom: 8px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: flex-end;">
+        <div style="font-size: 16px;"><strong>Date:</strong> <span id="eodDate"></span></div>
+        <div style="text-align: right;">
+          <span style="font-size: 14px; color: #555;">Total Cars Washed:</span><br>
+          <strong style="font-size: 24px;" id="eodTotalCars">0</strong>
+        </div>
+      </div>
+      
+      <!-- Side-by-Side Bulletproof Table Layout -->
+      <table style="width: 100%; border-collapse: collapse; border: none;">
+        <tr>
+          <!-- LEFT COLUMN: Financials & Tender -->
+          <td style="width: 40%; vertical-align: top; padding-right: 30px; border-right: 1px dashed #ccc;">
+            
+            <table style="width: 100%; text-align: left; font-size: 15px; margin-bottom: 25px;">
+              <tr><th style="padding: 4px 0;">Net Sales:</th><td id="eodNet" style="text-align: right;"></td></tr>
+              <tr><th style="padding: 4px 0;">Tax Collected:</th><td id="eodTax" style="text-align: right;"></td></tr>
+              <tr><th style="padding: 4px 0;">CC Surcharge:</th><td id="eodCcFees" style="text-align: right;"></td></tr>
+              <tr><th style="padding: 8px 0; font-size: 18px; border-top: 1px solid #ccc;">Total Gross:</th><td id="eodTotal" style="padding: 8px 0; font-weight: 800; font-size: 18px; text-align: right; border-top: 1px solid #ccc;"></td></tr>
+            </table>
+            <h3 style="font-size: 16px; border-bottom: 1px solid #111827; padding-bottom: 4px; margin-bottom: 8px;">Revenue Split</h3>
+            <table style="width: 100%; text-align: left; font-size: 14px; margin-bottom: 25px;">
+              <tr><th style="padding: 3px 0; color: #4b5563;">Wash Services:</th><td id="eodWashRev" style="text-align: right; font-weight: 600;"></td></tr>
+              <tr><th style="padding: 3px 0; color: #4b5563;">Retail / Store:</th><td id="eodRetailRev" style="text-align: right; font-weight: 600;"></td></tr>
+            </table>
+            <h3 style="font-size: 16px; border-bottom: 1px solid #111827; padding-bottom: 4px; margin-bottom: 8px;">Tender Breakdown</h3>
+            <table style="width: 100%; text-align: left; font-size: 14px; margin-bottom: 30px;">
+              <tr><th style="padding: 3px 0; color: #4b5563;">Cash (Sales):</th><td id="eodCash" style="text-align: right; font-weight: 600;"></td></tr>
+              <tr id="eodPayoutRow" style="display: none;"><th style="padding: 3px 0; color: #dc2626;">Less Cash Payouts:</th><td id="eodPayouts" style="text-align: right; font-weight: 700; color: #dc2626;"></td></tr>
+              <tr id="eodNetCashRow" style="display: none;"><th style="padding: 4px 0; color: #111827; border-top: 1px dashed #9ca3af;">Net Cash in Drawer:</th><td id="eodNetCash" style="text-align: right; font-weight: 900; border-top: 1px dashed #9ca3af;"></td></tr>
+              <tr><th style="padding: 3px 0; color: #4b5563;">Credit Card:</th><td id="eodCredit" style="text-align: right; font-weight: 600;"></td></tr>
+              <tr><th style="padding: 3px 0; color: #4b5563;">Check:</th><td id="eodCheck" style="text-align: right; font-weight: 600;"></td></tr>
+              <tr><th style="padding: 3px 0; color: #4b5563;">Pending:</th><td id="eodPending" style="text-align: right; font-weight: 600;"></td></tr>
+              <tr><th style="padding: 3px 0; color: #10b981;">CC Tips:</th><td id="eodTips" style="text-align: right; color: #10b981; font-weight: bold;"></td></tr>
+              <tr><th style="padding: 3px 0; color: #10b981;">Cash Tips:</th><td id="eodCashTips" style="text-align: right; color: #10b981; font-weight: bold;"></td></tr>
+            </table>
+
+            <h3 style="font-size: 14px; color: #6b7280; margin-bottom: 5px;">Shift Employees</h3>
+            <p id="eodEmployees" style="font-size: 12px; margin: 0; line-height: 1.4;"></p>
+          </td>
+          
+          <!-- RIGHT COLUMN: Categorized Services Breakdown -->
+          <td style="width: 60%; vertical-align: top; padding-left: 20px;">
+            <h3 style="font-size: 16px; border-bottom: 1px solid #111827; padding-bottom: 4px; margin-top: 0; margin-bottom: 8px;">Items Sold Breakdown</h3>
+            <table style="width: 100%; text-align: left; font-size: 13px; border-collapse: collapse;" id="eodCategorizedTable">
+              <!-- Dynamically populated grouped list -->
+            </table>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- PAGE 2: MANAGER DAILY CLOSING SLIP (COMMISSION & PRODUCTION — STORE EXCLUDED) -->
+    <div id="eodManagerSlipPageSection" style="page-break-before: always; padding-top: 10px;">
+      <div style="border: 2px solid #111827; padding: 18px; border-radius: 6px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #111827; padding-bottom: 10px; margin-bottom: 14px;">
+          <div>
+            <h2 style="margin: 0; font-size: 22px; font-weight: 900; letter-spacing: -0.5px;">A PLUS CAR WASH & DETAILING</h2>
+            <p style="margin: 2px 0 0 0; font-size: 13px; font-weight: 700;">DAILY SLIP REVISED 2026 — MANAGER COMMISSION & PRODUCTION CLOSING</p>
+          </div>
+          <div style="text-align: right; font-size: 12px; font-weight: 700; border: 1px solid #111827; padding: 6px 10px; border-radius: 4px;">
+            WASH & DETAILING ONLY<br>(STORE ITEMS EXCLUDED)
+          </div>
+        </div>
+
+        <!-- DAY INFORMATION -->
+        <div style="background: #e5e7eb; padding: 5px 8px; font-size: 12px; font-weight: 900; border: 1px solid #111827; margin-bottom: 8px;">DAY INFORMATION</div>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 13px;">
+          <tr>
+            <td style="padding: 6px 8px; border: 1px solid #9ca3af; width: 38%;"><strong>Name:</strong> <span id="mgrSlipName"></span></td>
+            <td style="padding: 6px 8px; border: 1px solid #9ca3af; width: 31%;"><strong>Day:</strong> <span id="mgrSlipDay"></span></td>
+            <td style="padding: 6px 8px; border: 1px solid #9ca3af; width: 31%;"><strong>Date:</strong> <span id="mgrSlipDate"></span></td>
+          </tr>
+          <tr>
+            <td colspan="3" style="padding: 8px; border: 1px solid #9ca3af; text-align: center; font-weight: 700; font-size: 13px;" id="mgrSlipLocationsRow">
+              <!-- Populated with checkboxes for Armenia, West Tampa, Tampa Bay, Sur -->
+            </td>
+          </tr>
+        </table>
+
+        <!-- OPERATIONS & CASH CLOSING SIDE-BY-SIDE -->
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 14px;">
+          <tr>
+            <!-- LEFT: OPERATIONS & COMMISSION SUMMARY -->
+            <td style="width: 48%; vertical-align: top; padding-right: 12px;">
+              <div style="background: #e5e7eb; padding: 5px 8px; font-size: 12px; font-weight: 900; border: 1px solid #111827; margin-bottom: 6px;">OPERATIONS & COMMISSION BASE (WASH ONLY)</div>
+              <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                <tr>
+                  <td style="padding: 6px 8px; border: 1px solid #9ca3af; font-weight: 700;">Number of cars</td>
+                  <td style="padding: 6px 8px; border: 1px solid #9ca3af; text-align: right; font-weight: 900; font-size: 16px;" id="mgrSlipNumCars">0</td>
+                </tr>
+                <tr>
+                  <td style="padding: 6px 8px; border: 1px solid #9ca3af; font-weight: 700;">Number of detailing services</td>
+                  <td style="padding: 6px 8px; border: 1px solid #9ca3af; text-align: right; font-weight: 900; font-size: 16px;" id="mgrSlipNumDetailing">0</td>
+                </tr>
+                <tr style="background: #f3f4f6;">
+                  <td style="padding: 7px 8px; border: 1px solid #111827; font-weight: 900;">Total Net Revenue (Without Tax)<br><span style="font-size: 10px; font-weight: normal;">(Commission Base — Excludes Store)</span></td>
+                  <td style="padding: 7px 8px; border: 1px solid #111827; text-align: right; font-weight: 900; font-size: 16px;" id="mgrSlipWashNet">$0.00</td>
+                </tr>
+                <tr>
+                  <td style="padding: 6px 8px; border: 1px solid #9ca3af;">Wash Sales Tax (7.5%)</td>
+                  <td style="padding: 6px 8px; border: 1px solid #9ca3af; text-align: right; font-weight: 700;" id="mgrSlipWashTax">$0.00</td>
+                </tr>
+                <tr style="background: #f3f4f6;">
+                  <td style="padding: 7px 8px; border: 1px solid #111827; font-weight: 900;">Total Wash Revenue (With Tax)</td>
+                  <td style="padding: 7px 8px; border: 1px solid #111827; text-align: right; font-weight: 900; font-size: 16px;" id="mgrSlipWashGross">$0.00</td>
+                </tr>
+                <tr>
+                  <td style="padding: 6px 8px; border: 1px solid #9ca3af; font-weight: 700;">CC Tips</td>
+                  <td style="padding: 6px 8px; border: 1px solid #9ca3af; text-align: right; font-weight: 800;" id="mgrSlipCcTips">$0.00</td>
+                </tr>
+                <tr>
+                  <td style="padding: 6px 8px; border: 1px solid #9ca3af; font-weight: 700;">Cash Tips</td>
+                  <td style="padding: 6px 8px; border: 1px solid #9ca3af; text-align: right; font-weight: 800;" id="mgrSlipCashTips">$0.00</td>
+                </tr>
+                <tr style="background: #f3f4f6;">
+                  <td style="padding: 7px 8px; border: 1px solid #111827; font-weight: 900;">Total Tips (CC + Cash)</td>
+                  <td style="padding: 7px 8px; border: 1px solid #111827; text-align: right; font-weight: 900; font-size: 15px;" id="mgrSlipTotalTips">$0.00</td>
+                </tr>
+              </table>
+            </td>
+
+            <!-- RIGHT: CASH CLOSING (DAILY SLIP REVISED 2026) -->
+            <td style="width: 52%; vertical-align: top; padding-left: 12px;">
+              <div style="background: #e5e7eb; padding: 5px 8px; font-size: 12px; font-weight: 900; border: 1px solid #111827; margin-bottom: 6px;">CASH CLOSING (WASH ONLY — CREATION DATE)</div>
+              <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                <tr>
+                  <td style="padding: 6px 8px; border: 1px solid #9ca3af; font-weight: 700;">Total Cash (Wash)</td>
+                  <td style="padding: 6px 8px; border: 1px solid #9ca3af; text-align: right; font-weight: 800;" id="mgrSlipTotalCash">$0.00</td>
+                </tr>
+                <tr>
+                  <td style="padding: 6px 8px; border: 1px solid #9ca3af;">Cash Taxes</td>
+                  <td style="padding: 6px 8px; border: 1px solid #9ca3af; text-align: right; font-weight: 700;" id="mgrSlipCashTaxes">$0.00</td>
+                </tr>
+                <tr>
+                  <td style="padding: 6px 8px; border: 1px solid #9ca3af;">Tips (CC / Cash)</td>
+                  <td style="padding: 6px 8px; border: 1px solid #9ca3af; text-align: right; font-weight: 700;" id="mgrSlipTipsSplit">$0.00 / $0.00</td>
+                </tr>
+                <tr>
+                  <td style="padding: 6px 8px; border: 1px solid #9ca3af; font-weight: 700;">ATM / Credit Card (Wash)</td>
+                  <td style="padding: 6px 8px; border: 1px solid #9ca3af; text-align: right; font-weight: 800;" id="mgrSlipAtmCard">$0.00</td>
+                </tr>
+                <tr>
+                  <td style="padding: 6px 8px; border: 1px solid #9ca3af;">Pending Taxable (Created Today)</td>
+                  <td style="padding: 6px 8px; border: 1px solid #9ca3af; text-align: right; font-weight: 700;" id="mgrSlipPendingTaxable">$0.00</td>
+                </tr>
+                <tr>
+                  <td style="padding: 6px 8px; border: 1px solid #9ca3af;">Pending Non-Taxable (Created Today)</td>
+                  <td style="padding: 6px 8px; border: 1px solid #9ca3af; text-align: right; font-weight: 700;" id="mgrSlipPendingNonTaxable">$0.00</td>
+                </tr>
+                <tr>
+                  <td style="padding: 6px 8px; border: 1px solid #9ca3af;">Non-Taxable Daily Payment</td>
+                  <td style="padding: 6px 8px; border: 1px solid #9ca3af; text-align: right; font-weight: 700;" id="mgrSlipNonTaxablePaid">$0.00</td>
+                </tr>
+                <tr style="background: #f3f4f6;">
+                  <td style="padding: 7px 8px; border: 1px solid #111827; font-weight: 900;">Total Sale (Wash With Tax)</td>
+                  <td style="padding: 7px 8px; border: 1px solid #111827; text-align: right; font-weight: 900; font-size: 16px;" id="mgrSlipTotalSale">$0.00</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+
+        <!-- EMPLOYEES WHO WORKED (1 TO 12 GRID) -->
+        <div style="background: #e5e7eb; padding: 5px 8px; font-size: 12px; font-weight: 900; border: 1px solid #111827; margin-bottom: 6px;">EMPLOYEES WHO WORKED</div>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 12px;" id="mgrSlipEmployeesGrid">
+          <!-- Populated dynamically with 1-6 on left, 7-12 on right -->
+        </table>
+
+        <!-- DAILY NOTES -->
+        <div style="background: #e5e7eb; padding: 5px 8px; font-size: 12px; font-weight: 900; border: 1px solid #111827; margin-bottom: 6px;">DAILY NOTES</div>
+        <div style="border: 1px solid #9ca3af; height: 55px; margin-bottom: 16px; padding: 6px; font-size: 11px;" id="mgrSlipNotesBox"></div>
+
+        <!-- SIGNATURE FOOTER -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; font-size: 11px; padding-top: 10px;">
+          <div><em>Complete all applicable fields. Store retail sales & prior-day paid pendings are excluded.</em></div>
+          <div style="text-align: center; width: 260px; border-top: 2px solid #111827; padding-top: 4px; font-weight: 900;">RESPONSIBLE PERSON'S SIGNATURE</div>
+        </div>
       </div>
     </div>
-    
-    <!-- Side-by-Side Bulletproof Table Layout -->
-    <table style="width: 100%; border-collapse: collapse; border: none;">
-      <tr>
-        <!-- LEFT COLUMN: Financials & Tender -->
-        <td style="width: 40%; vertical-align: top; padding-right: 30px; border-right: 1px dashed #ccc;">
-          
-          <table style="width: 100%; text-align: left; font-size: 15px; margin-bottom: 25px;">
-            <tr><th style="padding: 4px 0;">Net Sales:</th><td id="eodNet" style="text-align: right;"></td></tr>
-            <tr><th style="padding: 4px 0;">Tax Collected:</th><td id="eodTax" style="text-align: right;"></td></tr>
-            <tr><th style="padding: 4px 0;">CC Surcharge:</th><td id="eodCcFees" style="text-align: right;"></td></tr>
-            <tr><th style="padding: 8px 0; font-size: 18px; border-top: 1px solid #ccc;">Total Gross:</th><td id="eodTotal" style="padding: 8px 0; font-weight: 800; font-size: 18px; text-align: right; border-top: 1px solid #ccc;"></td></tr>
-          </table>
-          <h3 style="font-size: 16px; border-bottom: 1px solid #111827; padding-bottom: 4px; margin-bottom: 8px;">Revenue Split</h3>
-          <table style="width: 100%; text-align: left; font-size: 14px; margin-bottom: 25px;">
-            <tr><th style="padding: 3px 0; color: #4b5563;">Wash Services:</th><td id="eodWashRev" style="text-align: right; font-weight: 600;"></td></tr>
-            <tr><th style="padding: 3px 0; color: #4b5563;">Retail / Store:</th><td id="eodRetailRev" style="text-align: right; font-weight: 600;"></td></tr>
-          </table>
-          <h3 style="font-size: 16px; border-bottom: 1px solid #111827; padding-bottom: 4px; margin-bottom: 8px;">Tender Breakdown</h3>
-          <table style="width: 100%; text-align: left; font-size: 14px; margin-bottom: 30px;">
-            <tr><th style="padding: 3px 0; color: #4b5563;">Cash (Sales):</th><td id="eodCash" style="text-align: right; font-weight: 600;"></td></tr>
-            <tr id="eodPayoutRow" style="display: none;"><th style="padding: 3px 0; color: #dc2626;">Less Cash Payouts:</th><td id="eodPayouts" style="text-align: right; font-weight: 700; color: #dc2626;"></td></tr>
-            <tr id="eodNetCashRow" style="display: none;"><th style="padding: 4px 0; color: #111827; border-top: 1px dashed #9ca3af;">Net Cash in Drawer:</th><td id="eodNetCash" style="text-align: right; font-weight: 900; border-top: 1px dashed #9ca3af;"></td></tr>
-            <tr><th style="padding: 3px 0; color: #4b5563;">Credit Card:</th><td id="eodCredit" style="text-align: right; font-weight: 600;"></td></tr>
-            <tr><th style="padding: 3px 0; color: #4b5563;">Check:</th><td id="eodCheck" style="text-align: right; font-weight: 600;"></td></tr>
-            <tr><th style="padding: 3px 0; color: #4b5563;">Pending:</th><td id="eodPending" style="text-align: right; font-weight: 600;"></td></tr>
-            <tr><th style="padding: 3px 0; color: #10b981;">CC Tips:</th><td id="eodTips" style="text-align: right; color: #10b981; font-weight: bold;"></td></tr>
-            <tr><th style="padding: 3px 0; color: #10b981;">Cash Tips:</th><td id="eodCashTips" style="text-align: right; color: #10b981; font-weight: bold;"></td></tr>
-          </table>
-
-          <h3 style="font-size: 14px; color: #6b7280; margin-bottom: 5px;">Shift Employees</h3>
-          <p id="eodEmployees" style="font-size: 12px; margin: 0; line-height: 1.4;"></p>
-        </td>
-        
-        <!-- RIGHT COLUMN: Categorized Services Breakdown -->
-        <td style="width: 60%; vertical-align: top; padding-left: 20px;">
-          <h3 style="font-size: 16px; border-bottom: 1px solid #111827; padding-bottom: 4px; margin-top: 0; margin-bottom: 8px;">Items Sold Breakdown</h3>
-          <table style="width: 100%; text-align: left; font-size: 13px; border-collapse: collapse;" id="eodCategorizedTable">
-            <!-- Dynamically populated grouped list -->
-          </table>
-        </td>
-      </tr>
-    </table>
   </div>
 
   <!-- SQUARE TERMINAL WAITING MODAL -->
@@ -483,13 +615,14 @@
 
   <!-- END OF DAY ACTION MODAL -->
   <div id="eodModalOverlay" class="modal-overlay">
-    <div class="modal-box">
+    <div class="modal-box" style="max-height: 90vh; overflow-y: auto;">
       <h2>End of Day Menu</h2>
-      <p style="margin-bottom: 20px; color: #4b5563;">Select action for <strong id="eodModalLocDisplay"></strong>:</p>
+      <p style="margin-bottom: 16px; color: #4b5563;">Select action for <strong id="eodModalLocDisplay"></strong>:</p>
       
-      <button class="modal-btn clock-in-btn" onclick="executeEOD('print')">🖨️ Print Receipt Only</button>
+      <button class="modal-btn clock-in-btn" onclick="executeEOD('print')">🖨️ Print Full EOD (Accounting + Manager Slip)</button>
+      <button class="modal-btn clock-in-btn" style="background: #0284c7; border-color: #0369a1;" onclick="executeEOD('print_manager_only')">📋 Print Manager Closing Slip Only</button>
       <button class="modal-btn clock-in-btn" style="background: #3b82f6; border-color: #2563eb;" onclick="executeEOD('email')">✉️ Email Owner Only</button>
-      <button class="modal-btn clock-in-btn" style="background: #8b5cf6; border-color: #7c3aed;" onclick="executeEOD('both')">🖨️ & ✉️ Print & Email</button>
+      <button class="modal-btn clock-in-btn" style="background: #8b5cf6; border-color: #7c3aed;" onclick="executeEOD('both')">🖨️ & ✉️ Print & Email Both</button>
       <button class="modal-btn clock-in-btn" style="background: #10b981; border-color: #059669;" onclick="promptCashTips()">💵 Enter Cash Tips for EOD</button>
       <button class="modal-btn clock-in-btn" style="background: #2563eb; border-color: #1d4ed8;" onclick="openPosTxnLogModal()">📋 View Transaction Log</button>
       <button class="modal-btn clock-in-btn" style="background: #0f766e; border-color: #0d9488;" onclick="openSquareReport()">💳 Run Square Audit</button>
@@ -574,7 +707,7 @@
       <div style="display: flex; gap: 15px; align-items: center;">
         <img src="logo.png" alt="A+ Logo" style="height: 100px; border-radius: 8px; object-fit: contain;">
         <h2 class="header-title">A+ WashOS</h2>
-        <span style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 4px 10px; border-radius: 14px; font-size: 11px; font-weight: 800;">v9.9</span>
+        <span style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 4px 10px; border-radius: 14px; font-size: 11px; font-weight: 800;">v10.0</span>
         <button id="backBtn" style="display:none; background: #e5e7eb; color: #374151; border: none; padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;" onclick="clearVehicleType()">⬅ Back</button>
       </div>
       <div class="controls">
@@ -2251,7 +2384,7 @@
     }
   }
 
-  // --- EOD REPORT LOGIC ---
+  // --- EOD REPORT LOGIC (ACCOUNTING SUMMARY + MANAGER DAILY CLOSING SLIP) ---
   function openEODModal() {
     document.getElementById("eodModalLocDisplay").innerText = document.getElementById("locationSelect").value;
     document.getElementById("eodModalOverlay").style.display = "flex";
@@ -2282,12 +2415,12 @@
         
         if (action === 'email') {
           btn.innerText = originalText;
-          alert("EOD Report successfully emailed to the owner!");
+          alert("EOD Report (including Manager Daily Closing Slip) successfully emailed to the owner!");
           return;
         }
       }
 
-      if (action === 'print' || action === 'both') {
+      if (action === 'print' || action === 'both' || action === 'print_manager_only') {
         btn.innerText = "🖨️ Loading...";
         
         const response = await fetch(GOOGLE_SCRIPT_URL, {
@@ -2298,8 +2431,10 @@
         const result = await response.json();
         
         if (result.status === "success") {
-          // 1. Set Financials & Totals
-          document.getElementById("eodDate").innerText = new Date().toLocaleDateString();
+          const todayStr = new Date().toLocaleDateString();
+
+          // 1. Set Accounting EOD Financials & Totals
+          document.getElementById("eodDate").innerText = todayStr;
           document.getElementById("eodLocation").innerText = location;
           document.getElementById("eodNet").innerText = `$${result.data.netSales.toFixed(2)}`;
           document.getElementById("eodTax").innerText = `$${result.data.tax.toFixed(2)}`;
@@ -2367,7 +2502,7 @@
             }
           }
 
-          // 3. Build the Beautiful HTML Table for Categories
+          // 3. Build the HTML Table for Accounting Categories
           let html = "";
           function buildSection(title, icon, itemsObj, totalCount) {
             if (totalCount === 0) return "";
@@ -2401,7 +2536,6 @@
                     </tr>`;
           }
 
-          // Add Unpaid Pending Invoices Opened Today Summary Section
           const openPending = result.data.openPendingInvoices || [];
           if (openPending.length > 0) {
             html += `<tr><th colspan="2" style="background: #fef3c7; padding: 6px 8px; font-size: 13px; border-top: 2px solid #111827; border-bottom: 1px solid #f59e0b; margin-top: 10px;">⏳ Pending Invoices — Unpaid Today <span style="float:right;">Qty: ${openPending.length}</span></th></tr>`;
@@ -2422,7 +2556,6 @@
                     </tr>`;
           }
 
-          // Add Paid Pending Invoices Summary Section if any were collected today
           const paidPending = result.data.paidPendingInvoices || [];
           if (paidPending.length > 0) {
             html += `<tr><th colspan="2" style="background: #e5e7eb; padding: 6px 8px; font-size: 13px; border-top: 2px solid #111827; border-bottom: 1px solid #9ca3af; margin-top: 10px;">📥 Pending Invoices Collected Today <span style="float:right;">Qty: ${paidPending.length}</span></th></tr>`;
@@ -2443,7 +2576,6 @@
                     </tr>`;
           }
 
-          // Add Cash Payouts / Accidentals Summary Section if any occurred today
           const payouts = result.data.payoutsList || [];
           if (payouts.length > 0) {
             html += `<tr><th colspan="2" style="background: #fee2e2; padding: 6px 8px; font-size: 13px; border-top: 2px solid #111827; border-bottom: 1px solid #f87171; margin-top: 10px;">💸 Cash Payouts / Accidentals <span style="float:right;">Qty: ${payouts.length}</span></th></tr>`;
@@ -2464,10 +2596,89 @@
 
           document.getElementById("eodCategorizedTable").innerHTML = html;
 
-          // 4. Set Employees
           const empList = result.data.employees || [];
           document.getElementById("eodEmployees").innerText = empList.length > 0 ? empList.join(", ") : "No punches recorded.";
-          
+
+          // 4. Populate Page 2: MANAGER DAILY CLOSING SLIP (COMMISSION & PRODUCTION — STORE EXCLUDED)
+          const ms = result.data.managerSlip || {
+            dayOfWeek: new Date().toLocaleDateString('en-US', { weekday: 'long' }),
+            washNet: result.data.washRevenue || 0,
+            washTax: +((result.data.washRevenue || 0) * 0.075).toFixed(2),
+            washGrossWithTax: +((result.data.washRevenue || 0) * 1.075).toFixed(2),
+            ccTips: result.data.totalTips || 0,
+            cashTips: result.data.cashTips || 0,
+            totalTips: (result.data.totalTips || 0) + (result.data.cashTips || 0),
+            numCars: result.data.totalCars || 0,
+            numDetailing: 0,
+            totalCashWash: result.data.cash || 0,
+            cashTaxesWash: 0,
+            atmCardWash: result.data.credit || 0,
+            pendingTaxable: result.data.pending || 0,
+            pendingNonTaxable: 0,
+            nonTaxableDailyPayment: 0,
+            totalSaleWash: +((result.data.washRevenue || 0) * 1.075).toFixed(2)
+          };
+
+          document.getElementById("mgrSlipName").innerText = activeAttendant || "Manager";
+          document.getElementById("mgrSlipDay").innerText = ms.dayOfWeek || new Date().toLocaleDateString('en-US', { weekday: 'long' });
+          document.getElementById("mgrSlipDate").innerText = todayStr;
+
+          const isArmenia = location.includes("Armenia");
+          const isColumbus = location.includes("Columbus");
+          const isTampaBay = location.includes("Tampa Bay");
+          const isSouth = location.includes("South");
+          document.getElementById("mgrSlipLocationsRow").innerHTML = `
+            <span style="margin-right: 22px;">${isArmenia ? '☑️' : '☐'} Armenia</span>
+            <span style="margin-right: 22px;">${isColumbus ? '☑️' : '☐'} West Tampa (Columbus)</span>
+            <span style="margin-right: 22px;">${isTampaBay ? '☑️' : '☐'} Tampa Bay</span>
+            <span>${isSouth ? '☑️' : '☐'} Sur (South)</span>
+          `;
+
+          document.getElementById("mgrSlipNumCars").innerText = ms.numCars;
+          document.getElementById("mgrSlipNumDetailing").innerText = ms.numDetailing;
+          document.getElementById("mgrSlipWashNet").innerText = `$${(ms.washNet || 0).toFixed(2)}`;
+          document.getElementById("mgrSlipWashTax").innerText = `$${(ms.washTax || 0).toFixed(2)}`;
+          document.getElementById("mgrSlipWashGross").innerText = `$${(ms.washGrossWithTax || 0).toFixed(2)}`;
+          document.getElementById("mgrSlipCcTips").innerText = `$${(ms.ccTips || 0).toFixed(2)}`;
+          document.getElementById("mgrSlipCashTips").innerText = `$${(ms.cashTips || 0).toFixed(2)}`;
+          document.getElementById("mgrSlipTotalTips").innerText = `$${(ms.totalTips || 0).toFixed(2)}`;
+
+          document.getElementById("mgrSlipTotalCash").innerText = `$${(ms.totalCashWash || 0).toFixed(2)}`;
+          document.getElementById("mgrSlipCashTaxes").innerText = `$${(ms.cashTaxesWash || 0).toFixed(2)}`;
+          document.getElementById("mgrSlipTipsSplit").innerText = `$${(ms.ccTips || 0).toFixed(2)} CC / $${(ms.cashTips || 0).toFixed(2)} Cash`;
+          document.getElementById("mgrSlipAtmCard").innerText = `$${(ms.atmCardWash || 0).toFixed(2)}`;
+          document.getElementById("mgrSlipPendingTaxable").innerText = `$${(ms.pendingTaxable || 0).toFixed(2)}`;
+          document.getElementById("mgrSlipPendingNonTaxable").innerText = `$${(ms.pendingNonTaxable || 0).toFixed(2)}`;
+          document.getElementById("mgrSlipNonTaxablePaid").innerText = `$${(ms.nonTaxableDailyPayment || 0).toFixed(2)}`;
+          document.getElementById("mgrSlipTotalSale").innerText = `$${(ms.totalSaleWash || 0).toFixed(2)}`;
+
+          // Populate 1–12 Employee Grid
+          let empGridHTML = "";
+          for (let r = 0; r < 6; r++) {
+            let leftIdx = r;
+            let rightIdx = r + 6;
+            let leftEmp = empList[leftIdx] || "";
+            let rightEmp = empList[rightIdx] || "";
+            empGridHTML += `
+              <tr>
+                <td style="padding: 5px 8px; border: 1px solid #9ca3af; width: 50%;"><strong>${leftIdx + 1}.</strong> ${leftEmp}</td>
+                <td style="padding: 5px 8px; border: 1px solid #9ca3af; width: 50%;"><strong>${rightIdx + 1}.</strong> ${rightEmp}</td>
+              </tr>
+            `;
+          }
+          document.getElementById("mgrSlipEmployeesGrid").innerHTML = empGridHTML;
+
+          // Toggle whether Page 1 (Accounting) is shown or if Manager Slip Only was requested
+          const accPage = document.getElementById("eodAccountingPageSection");
+          const mgrPage = document.getElementById("eodManagerSlipPageSection");
+          if (action === 'print_manager_only') {
+            accPage.style.display = "none";
+            mgrPage.style.pageBreakBefore = "auto";
+          } else {
+            accPage.style.display = "block";
+            mgrPage.style.pageBreakBefore = "always";
+          }
+
           document.querySelectorAll('.print-section').forEach(el => el.classList.remove('active-print'));
           const eodDiv = document.getElementById("printableEOD");
           eodDiv.classList.add("active-print");
