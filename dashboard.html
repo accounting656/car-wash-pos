@@ -21,7 +21,7 @@
     #pinOverlay button { padding: 10px 20px; font-size: 18px; font-weight: bold; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; }
     
     #dashboardContent { padding: 30px; display: none; max-width: 1440px; margin: 0 auto; }
-    #taxReportView, #financialReportView { display: none; padding: 40px; background: white; min-height: 100vh; }
+    #taxReportView, #financialReportView, #managerSlipReportView { display: none; padding: 40px; background: white; min-height: 100vh; }
     
     .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
     
@@ -72,14 +72,17 @@
       .controls-bar, #pinOverlay, .btn-print, .btn-tax, .btn-csv, .dash-tabs, .modal-overlay { display: none !important; }
       
       body.print-financial #dashboardContent { display: none !important; }
-      body.print-financial #taxReportView { display: none !important; }
+      body.print-financial #taxReportView, body.print-financial #managerSlipReportView { display: none !important; }
       body.print-financial #financialReportView { display: block !important; padding: 0; }
 
       body.print-tax #dashboardContent { display: none !important; }
-      body.print-tax #financialReportView { display: none !important; }
+      body.print-tax #financialReportView, body.print-tax #managerSlipReportView { display: none !important; }
       body.print-tax #taxReportView { display: block !important; padding: 0; }
+
+      body.print-mgr-slip #dashboardContent, body.print-mgr-slip #financialReportView, body.print-mgr-slip #taxReportView { display: none !important; }
+      body.print-mgr-slip #managerSlipReportView { display: block !important; padding: 20px; }
       
-      body.print-invoice #dashboardContent, body.print-invoice #financialReportView, body.print-invoice #taxReportView { display: none !important; }
+      body.print-invoice #dashboardContent, body.print-invoice #financialReportView, body.print-invoice #taxReportView, body.print-invoice #managerSlipReportView { display: none !important; }
       body.print-invoice #printableInvoice { display: block !important; position: absolute; top: 0; left: 0; width: 100%; padding: 40px; }
     }
     #printableInvoice { display: none; background: white; color: black; font-family: Arial, sans-serif; position: relative; }
@@ -92,7 +95,7 @@
     <p style="margin-bottom: 20px; color: #9ca3af;">Enter Admin PIN to view financials.</p>
     <input type="password" id="adminPin" placeholder="****">
     <button onclick="fetchData()">Unlock Dashboard</button>
-    <div style="margin-top: 15px; font-size: 12px; color: #6b7280; font-weight: 600;">Command Center v9.9</div>
+    <div style="margin-top: 15px; font-size: 12px; color: #6b7280; font-weight: 600;">Command Center v10.1</div>
   </div>
 
   <!-- DASHBOARD PAY PENDING INVOICE MODAL -->
@@ -350,7 +353,7 @@
   <div id="dashboardContent">
     <div class="header">
       <h1 style="font-weight: 800; font-size: 30px;" id="reportTitle">📊 Owner Command Center</h1>
-      <span style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 800;">v9.9</span>
+      <span style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 800;">v10.1</span>
     </div>
     
     <!-- TAB NAVIGATION -->
@@ -411,6 +414,7 @@
           <button class="btn" style="background: #dc2626; color: white;" onclick="openDashPayoutModal()">💸 Cash Payout</button>
           <button class="btn" style="background: #8b5cf6; color: white;" onclick="reconcileSquare()" id="reconcileBtn">🔄 Reconcile Square</button>
           <button class="btn btn-print" onclick="printFinancial()">🖨️ Print Financial</button>
+          <button class="btn" style="background: #0f766e; color: white;" onclick="printManagerSlip()">📋 Print Manager Slip</button>
           <button class="btn btn-tax" onclick="printTax()">📄 Print DR-15 Tax</button>
         </div>
       </div>
@@ -547,6 +551,7 @@
 
   <div id="financialReportView"></div>
   <div id="taxReportView"></div>
+  <div id="managerSlipReportView"></div>
 
   <!-- THE HIDDEN PRINTABLE INVOICE -->
   <div id="printableInvoice">
@@ -892,6 +897,37 @@
           `;
         }
 
+        // Manager Daily Closing Slip Summary Box (Wash Only — Excludes Store)
+        let ms = lData.managerSlip || {
+          washNet: lData.wash || 0,
+          washTax: +((lData.wash || 0) * 0.075).toFixed(2),
+          washGrossWithTax: +((lData.wash || 0) * 1.075).toFixed(2),
+          numCars: lData.cars || 0,
+          numDetailing: 0,
+          totalCashWash: lData.tenders.cash || 0,
+          cashTaxesWash: 0,
+          atmCardWash: lData.tenders.credit || 0,
+          pendingTaxable: lData.tenders.pending || 0,
+          pendingNonTaxable: 0,
+          nonTaxableDailyPayment: 0,
+          totalSaleWash: +((lData.wash || 0) * 1.075).toFixed(2)
+        };
+        let totalTipsCombined = (lData.tips || 0) + (lData.cashTips || 0);
+
+        let managerSlipCardHTML = `
+          <div style="margin-bottom: 20px; background: #f0fdfa; border: 1px solid #99f6e4; padding: 12px; border-radius: 10px; font-size: 13px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #5eead4;">
+              <strong style="color: #0f766e; font-size: 12px; text-transform: uppercase;">📋 Manager Closing Slip (Store Excluded)</strong>
+              <button onclick="printManagerSlip('${loc}')" style="padding: 3px 9px; font-size: 11px; background: #0f766e; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">🖨️ Print Slip</button>
+            </div>
+            <div class="fin-row" style="font-size: 13px; margin-bottom: 4px;"><span style="color:#065f46; font-weight:700;">Wash Net (Commission Base):</span> <strong style="color:#059669; font-size:15px;">$${ms.washNet.toFixed(2)}</strong></div>
+            <div class="fin-row" style="font-size: 13px; margin-bottom: 4px;"><span>Wash Tax (7.5%):</span> <strong>$${ms.washTax.toFixed(2)}</strong></div>
+            <div class="fin-row" style="font-size: 13px; margin-bottom: 4px;"><span>Wash Gross (With Tax):</span> <strong>$${ms.washGrossWithTax.toFixed(2)}</strong></div>
+            <div class="fin-row" style="font-size: 13px; margin-bottom: 4px;"><span>Detailing Services Count:</span> <strong>${ms.numDetailing}</strong></div>
+            <div class="fin-row" style="font-size: 13px; margin-bottom: 0; padding-top: 4px; border-top: 1px dashed #99f6e4;"><span style="color:#059669; font-weight:700;">Total Tips (CC + Cash):</span> <strong style="color:#059669;">$${totalTipsCombined.toFixed(2)}</strong></div>
+          </div>
+        `;
+
         let openPendingHTML = "";
         if (lData.openPending && lData.openPending.length > 0) {
           let opRows = lData.openPending.map((op, opIdx) => {
@@ -978,7 +1014,7 @@
           <div class="loc-card">
             <div class="loc-title">${loc}</div>
             
-            <div style="margin-bottom: 20px; background: #f9fafb; padding: 15px; border-radius: 8px;">
+            <div style="margin-bottom: 16px; background: #f9fafb; padding: 15px; border-radius: 8px;">
               <div class="fin-row"><span>Net Sales:</span> <span>$${lData.net.toFixed(2)}</span></div>
               <div class="fin-row"><span>Tax Collected:</span> <span>$${lData.tax.toFixed(2)}</span></div>
               <div class="fin-row"><span>CC Surcharge:</span> <span>$${(lData.ccFees || 0).toFixed(2)}</span></div>
@@ -987,6 +1023,8 @@
               <div class="fin-row" style="font-size: 13px;"><span>↳ Retail / Store:</span> <strong>$${lData.retail.toFixed(2)}</strong></div>
               <div class="fin-row" style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #d1d5db;"><span>Cars Washed:</span> <strong>${lData.cars}</strong></div>
             </div>
+
+            ${managerSlipCardHTML}
 
             <p style="font-size: 12px; font-weight: bold; color: #6b7280; margin-bottom: 8px;">TENDER BREAKDOWN:</p>
             <div style="margin-bottom: 20px; font-size: 14px; background: white; padding: 10px; border-radius: 8px; border: 1px solid #e5e7eb;">
@@ -1017,6 +1055,205 @@
           </div>`;
       });
       document.getElementById("locationCards").innerHTML = locHTML;
+    }
+
+    // --- PRINT HISTORICAL OR DAILY MANAGER CLOSING SLIP (2026 REVISED LAYOUT) ---
+    function printManagerSlip(specificLoc) {
+      if (!currentDashboardData) {
+        alert("Please click 'Load Report' first.");
+        return;
+      }
+
+      const startDate = document.getElementById("startDate").value;
+      const endDate = document.getElementById("endDate").value;
+      const dateDisplay = (startDate === endDate) ? startDate : `${startDate} to ${endDate}`;
+      let dayDisplay = "Multiple Days";
+      if (startDate === endDate) {
+        const dObj = new Date(startDate + "T12:00:00");
+        if (!isNaN(dObj.getTime())) {
+          dayDisplay = dObj.toLocaleDateString('en-US', { weekday: 'long' });
+        }
+      }
+
+      const locsToPrint = specificLoc ? [specificLoc] : getFilteredLocationsList(currentDashboardData);
+      let html = "";
+
+      locsToPrint.forEach((loc, idx) => {
+        const lData = currentDashboardData.locations[loc];
+        if (!lData) return;
+
+        const ms = lData.managerSlip || {
+          washNet: lData.wash || 0,
+          washTax: +((lData.wash || 0) * 0.075).toFixed(2),
+          washGrossWithTax: +((lData.wash || 0) * 1.075).toFixed(2),
+          numCars: lData.cars || 0,
+          numDetailing: 0,
+          totalCashWash: lData.tenders.cash || 0,
+          cashTaxesWash: 0,
+          atmCardWash: lData.tenders.credit || 0,
+          pendingTaxable: lData.tenders.pending || 0,
+          pendingNonTaxable: 0,
+          nonTaxableDailyPayment: 0,
+          totalSaleWash: +((lData.wash || 0) * 1.075).toFixed(2)
+        };
+
+        const ccTips = lData.tips || 0;
+        const cashTips = lData.cashTips || 0;
+        const totalTips = ccTips + cashTips;
+
+        const isArmenia = loc.includes("Armenia");
+        const isColumbus = loc.includes("Columbus");
+        const isTampaBay = loc.includes("Tampa Bay");
+        const isSouth = loc.includes("South");
+
+        const empList = lData.employees || [];
+        let empGridHTML = "";
+        for (let r = 0; r < 6; r++) {
+          let leftIdx = r;
+          let rightIdx = r + 6;
+          let leftEmp = empList[leftIdx] || "";
+          let rightEmp = empList[rightIdx] || "";
+          empGridHTML += `
+            <tr>
+              <td style="padding: 5px 8px; border: 1px solid #9ca3af; width: 50%;"><strong>${leftIdx + 1}.</strong> ${leftEmp}</td>
+              <td style="padding: 5px 8px; border: 1px solid #9ca3af; width: 50%;"><strong>${rightIdx + 1}.</strong> ${rightEmp}</td>
+            </tr>
+          `;
+        }
+
+        const pageBreakStyle = idx > 0 ? "page-break-before: always; padding-top: 15px;" : "";
+
+        html += `
+          <div style="font-family: Arial, sans-serif; color: #111827; ${pageBreakStyle}">
+            <div style="border: 2px solid #111827; padding: 18px; border-radius: 6px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #111827; padding-bottom: 10px; margin-bottom: 14px;">
+                <div>
+                  <h2 style="margin: 0; font-size: 22px; font-weight: 900; letter-spacing: -0.5px;">A PLUS CAR WASH & DETAILING</h2>
+                  <p style="margin: 2px 0 0 0; font-size: 13px; font-weight: 700;">DAILY SLIP REVISED 2026 — MANAGER COMMISSION & PRODUCTION CLOSING</p>
+                </div>
+                <div style="text-align: right; font-size: 12px; font-weight: 700; border: 1px solid #111827; padding: 6px 10px; border-radius: 4px;">
+                  WASH & DETAILING ONLY<br>(STORE ITEMS EXCLUDED)
+                </div>
+              </div>
+
+              <div style="background: #e5e7eb; padding: 5px 8px; font-size: 12px; font-weight: 900; border: 1px solid #111827; margin-bottom: 8px;">DAY INFORMATION</div>
+              <table style="width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 13px;">
+                <tr>
+                  <td style="padding: 6px 8px; border: 1px solid #9ca3af; width: 38%;"><strong>Location:</strong> ${loc}</td>
+                  <td style="padding: 6px 8px; border: 1px solid #9ca3af; width: 31%;"><strong>Day:</strong> ${dayDisplay}</td>
+                  <td style="padding: 6px 8px; border: 1px solid #9ca3af; width: 31%;"><strong>Date:</strong> ${dateDisplay}</td>
+                </tr>
+                <tr>
+                  <td colspan="3" style="padding: 8px; border: 1px solid #9ca3af; text-align: center; font-weight: 700; font-size: 13px;">
+                    <span style="margin-right: 22px;">${isArmenia ? '☑️' : '☐'} Armenia</span>
+                    <span style="margin-right: 22px;">${isColumbus ? '☑️' : '☐'} West Tampa (Columbus)</span>
+                    <span style="margin-right: 22px;">${isTampaBay ? '☑️' : '☐'} Tampa Bay</span>
+                    <span>${isSouth ? '☑️' : '☐'} Sur (South)</span>
+                  </td>
+                </tr>
+              </table>
+
+              <table style="width: 100%; border-collapse: collapse; margin-bottom: 14px;">
+                <tr>
+                  <td style="width: 48%; vertical-align: top; padding-right: 12px;">
+                    <div style="background: #e5e7eb; padding: 5px 8px; font-size: 12px; font-weight: 900; border: 1px solid #111827; margin-bottom: 6px;">OPERATIONS & COMMISSION BASE (WASH ONLY)</div>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                      <tr>
+                        <td style="padding: 6px 8px; border: 1px solid #9ca3af; font-weight: 700;">Number of cars</td>
+                        <td style="padding: 6px 8px; border: 1px solid #9ca3af; text-align: right; font-weight: 900; font-size: 16px;">${ms.numCars}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 6px 8px; border: 1px solid #9ca3af; font-weight: 700;">Number of detailing services</td>
+                        <td style="padding: 6px 8px; border: 1px solid #9ca3af; text-align: right; font-weight: 900; font-size: 16px;">${ms.numDetailing}</td>
+                      </tr>
+                      <tr style="background: #f3f4f6;">
+                        <td style="padding: 7px 8px; border: 1px solid #111827; font-weight: 900;">Total Net Revenue (Without Tax)<br><span style="font-size: 10px; font-weight: normal;">(Commission Base — Excludes Store)</span></td>
+                        <td style="padding: 7px 8px; border: 1px solid #111827; text-align: right; font-weight: 900; font-size: 16px;">$${ms.washNet.toFixed(2)}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 6px 8px; border: 1px solid #9ca3af;">Wash Sales Tax (7.5%)</td>
+                        <td style="padding: 6px 8px; border: 1px solid #9ca3af; text-align: right; font-weight: 700;">$${ms.washTax.toFixed(2)}</td>
+                      </tr>
+                      <tr style="background: #f3f4f6;">
+                        <td style="padding: 7px 8px; border: 1px solid #111827; font-weight: 900;">Total Wash Revenue (With Tax)</td>
+                        <td style="padding: 7px 8px; border: 1px solid #111827; text-align: right; font-weight: 900; font-size: 16px;">$${ms.washGrossWithTax.toFixed(2)}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 6px 8px; border: 1px solid #9ca3af; font-weight: 700;">CC Tips</td>
+                        <td style="padding: 6px 8px; border: 1px solid #9ca3af; text-align: right; font-weight: 800;">$${ccTips.toFixed(2)}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 6px 8px; border: 1px solid #9ca3af; font-weight: 700;">Cash Tips</td>
+                        <td style="padding: 6px 8px; border: 1px solid #9ca3af; text-align: right; font-weight: 800;">$${cashTips.toFixed(2)}</td>
+                      </tr>
+                      <tr style="background: #f3f4f6;">
+                        <td style="padding: 7px 8px; border: 1px solid #111827; font-weight: 900;">Total Tips (CC + Cash)</td>
+                        <td style="padding: 7px 8px; border: 1px solid #111827; text-align: right; font-weight: 900; font-size: 15px;">$${totalTips.toFixed(2)}</td>
+                      </tr>
+                    </table>
+                  </td>
+
+                  <td style="width: 52%; vertical-align: top; padding-left: 12px;">
+                    <div style="background: #e5e7eb; padding: 5px 8px; font-size: 12px; font-weight: 900; border: 1px solid #111827; margin-bottom: 6px;">CASH CLOSING (WASH ONLY — CREATION DATE)</div>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                      <tr>
+                        <td style="padding: 6px 8px; border: 1px solid #9ca3af; font-weight: 700;">Total Cash (Wash)</td>
+                        <td style="padding: 6px 8px; border: 1px solid #9ca3af; text-align: right; font-weight: 800;">$${ms.totalCashWash.toFixed(2)}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 6px 8px; border: 1px solid #9ca3af;">Cash Taxes</td>
+                        <td style="padding: 6px 8px; border: 1px solid #9ca3af; text-align: right; font-weight: 700;">$${ms.cashTaxesWash.toFixed(2)}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 6px 8px; border: 1px solid #9ca3af;">Tips (CC / Cash)</td>
+                        <td style="padding: 6px 8px; border: 1px solid #9ca3af; text-align: right; font-weight: 700;">$${ccTips.toFixed(2)} CC / $${cashTips.toFixed(2)} Cash</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 6px 8px; border: 1px solid #9ca3af; font-weight: 700;">ATM / Credit Card (Wash)</td>
+                        <td style="padding: 6px 8px; border: 1px solid #9ca3af; text-align: right; font-weight: 800;">$${ms.atmCardWash.toFixed(2)}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 6px 8px; border: 1px solid #9ca3af;">Pending Taxable (Created)</td>
+                        <td style="padding: 6px 8px; border: 1px solid #9ca3af; text-align: right; font-weight: 700;">$${ms.pendingTaxable.toFixed(2)}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 6px 8px; border: 1px solid #9ca3af;">Pending Non-Taxable (Created)</td>
+                        <td style="padding: 6px 8px; border: 1px solid #9ca3af; text-align: right; font-weight: 700;">$${ms.pendingNonTaxable.toFixed(2)}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 6px 8px; border: 1px solid #9ca3af;">Non-Taxable Daily Payment</td>
+                        <td style="padding: 6px 8px; border: 1px solid #9ca3af; text-align: right; font-weight: 700;">$${ms.nonTaxableDailyPayment.toFixed(2)}</td>
+                      </tr>
+                      <tr style="background: #f3f4f6;">
+                        <td style="padding: 7px 8px; border: 1px solid #111827; font-weight: 900;">Total Sale (Wash With Tax)</td>
+                        <td style="padding: 7px 8px; border: 1px solid #111827; text-align: right; font-weight: 900; font-size: 16px;">$${ms.totalSaleWash.toFixed(2)}</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+              <div style="background: #e5e7eb; padding: 5px 8px; font-size: 12px; font-weight: 900; border: 1px solid #111827; margin-bottom: 6px;">EMPLOYEES WHO WORKED</div>
+              <table style="width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 12px;">
+                ${empGridHTML}
+              </table>
+
+              <div style="background: #e5e7eb; padding: 5px 8px; font-size: 12px; font-weight: 900; border: 1px solid #111827; margin-bottom: 6px;">DAILY NOTES</div>
+              <div style="border: 1px solid #9ca3af; height: 55px; margin-bottom: 16px; padding: 6px; font-size: 11px;"></div>
+
+              <div style="display: flex; justify-content: space-between; align-items: flex-end; font-size: 11px; padding-top: 10px;">
+                <div><em>Complete all applicable fields. Store retail sales & prior-day paid pendings are excluded.</em></div>
+                <div style="text-align: center; width: 260px; border-top: 2px solid #111827; padding-top: 4px; font-weight: 900;">RESPONSIBLE PERSON'S SIGNATURE</div>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      document.getElementById("managerSlipReportView").innerHTML = html;
+      document.body.classList.add("print-mgr-slip");
+      window.print();
+      setTimeout(() => { document.body.classList.remove("print-mgr-slip"); }, 500);
     }
 
     function printFinancial() {
@@ -1401,7 +1638,7 @@
           content.innerHTML = `<p style='color: #ef4444;'>Error: ${result.message}</p>`;
         }
       } catch (err) {
-        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v9.8 is deployed as a New Version.</p>";
+        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v10.1 is deployed as a New Version.</p>";
       }
       if (btn) { btn.innerText = "🔄 Load Transaction Log"; btn.disabled = false; }
     }
@@ -1473,7 +1710,7 @@
           content.innerHTML = `<p style='color: #ef4444;'>Error: ${result.message}</p>`;
         }
       } catch (err) {
-        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v9.8 is deployed.</p>";
+        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v10.1 is deployed.</p>";
       }
       btn.innerText = "🔄 Refresh Unpaid Bills"; btn.disabled = false;
     }
@@ -1551,7 +1788,7 @@
           content.innerHTML = `<p style='color: #ef4444;'>Error: ${result.message}</p>`;
         }
       } catch (err) {
-        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v9.8 is deployed.</p>";
+        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v10.1 is deployed.</p>";
       }
       btn.innerText = "🔄 Calculate Hours"; btn.disabled = false;
     }
