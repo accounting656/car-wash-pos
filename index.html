@@ -58,8 +58,8 @@
         margin: 0 !important;
       }
       
-      /* FORCE COMPOSITE BLACK: Bypasses the dead black ink printhead */
-      .active-print * {
+      /* FORCE COMPOSITE BLACK: Bypasses the dead black ink printhead (except for the PAID watermark) */
+      .active-print *:not(#invPaidWatermark) {
         color: #111827 !important; 
         font-family: Arial, Helvetica, sans-serif !important;
         text-shadow: none !important;
@@ -199,7 +199,7 @@
     </div>
     <div id="systemStatus">🟢 System Initializing...</div>
     <button onclick="forceAppUpdate()" style="margin-top: 15px; background: rgba(255,255,255,0.08); color: #9ca3af; border: 1px solid rgba(255,255,255,0.15); padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;">🔄 Update App</button>
-    <div id="appVersionBadge" style="margin-top: 12px; font-size: 12px; font-weight: 700; color: #60a5fa; background: rgba(37,99,235,0.15); border: 1px solid rgba(96,165,250,0.3); padding: 4px 12px; border-radius: 20px; letter-spacing: 0.5px;">WashOS v9.8</div>
+    <div id="appVersionBadge" style="margin-top: 12px; font-size: 12px; font-weight: 700; color: #60a5fa; background: rgba(37,99,235,0.15); border: 1px solid rgba(96,165,250,0.3); padding: 4px 12px; border-radius: 20px; letter-spacing: 0.5px;">WashOS v9.9</div>
   </div>
 
   <!-- PAYMENT MODAL -->
@@ -574,7 +574,7 @@
       <div style="display: flex; gap: 15px; align-items: center;">
         <img src="logo.png" alt="A+ Logo" style="height: 100px; border-radius: 8px; object-fit: contain;">
         <h2 class="header-title">A+ WashOS</h2>
-        <span style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 4px 10px; border-radius: 14px; font-size: 11px; font-weight: 800;">v9.8</span>
+        <span style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 4px 10px; border-radius: 14px; font-size: 11px; font-weight: 800;">v9.9</span>
         <button id="backBtn" style="display:none; background: #e5e7eb; color: #374151; border: none; padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;" onclick="clearVehicleType()">⬅ Back</button>
       </div>
       <div class="controls">
@@ -719,7 +719,9 @@
   </div>
 
   <!-- THE HIDDEN PRINTABLE INVOICE -->
-  <div id="printableInvoice" class="print-section">
+  <div id="printableInvoice" class="print-section" style="position: relative;">
+    <div id="invPaidWatermark" style="display: none; position: absolute; top: 38%; left: 50%; transform: translate(-50%, -50%) rotate(-28deg); font-size: 88px; font-weight: 900; color: rgba(16, 185, 129, 0.22) !important; border: 10px solid rgba(16, 185, 129, 0.22) !important; padding: 10px 40px; border-radius: 20px; pointer-events: none; z-index: 9999; letter-spacing: 10px; text-transform: uppercase; white-space: nowrap;">PAID</div>
+
     <h2 style="margin-bottom: 5px;">A Plus Car Wash & Detailing Inc.</h2>
     <p id="invLocationAddress" style="margin-top: 0; color: #555;"></p>
     
@@ -924,7 +926,7 @@
       }
     }
 
-    // 2. MARK THE PENDING INVOICE AS PAID IN GOOGLE SHEETS
+    // 2. MARK THE PENDING INVOICE AS PAID IN GOOGLE SHEETS & AUTO-PRINT PAID INVOICE
     try {
       const response = await fetch(GOOGLE_SCRIPT_URL, {
         method: "POST",
@@ -940,10 +942,29 @@
       const result = await response.json();
       
       if (result.status === "success") {
-        alert(`Invoice ${pendingPayOrderId} successfully paid with ${method}!`);
+        const paidTxn = pendingPayTransaction ? { ...pendingPayTransaction } : {
+          location: location,
+          date: new Date().toISOString(),
+          orderId: pendingPayOrderId,
+          vehicle: "N/A",
+          services: "Pending Invoice Payment",
+          subtotal: document.getElementById("pendingTotalDisplay").innerText,
+          tax: "$0.00",
+          total: document.getElementById("pendingTotalDisplay").innerText,
+          notes: ""
+        };
+
+        if (method === "Credit Card") {
+          const cleanOrigTotal = parseFloat(String(paidTxn.total).replace(/[^0-9.-]+/g, "")) || 0;
+          const ccFee = cleanOrigTotal > 0 ? Math.ceil((((cleanOrigTotal * 0.0275) + 0.15) / 0.9725) * 100) / 100 : 0;
+          paidTxn.total = `$${(cleanOrigTotal + ccFee).toFixed(2)} (incl. $${ccFee.toFixed(2)} CC Fee)`;
+        }
+
+        paidTxn.paymentType = `${method} (Paid ${new Date().toLocaleDateString()})`;
+        paidTxn.paymentMethod = paidTxn.paymentType;
+
         closeModals();
-        document.getElementById('searchModalOverlay').style.display = 'flex'; 
-        executeSearch();
+        printInvoice(paidTxn);
       } else {
         alert("Error: " + result.message);
       }
@@ -981,6 +1002,12 @@
     }
 
     let pMethod = (transaction.paymentMethod || transaction.paymentType || "Credit / Square").toString().trim(); 
+
+    // Show diagonal PAID watermark whenever the invoice is not an unpaid Pending ticket
+    const paidWatermark = document.getElementById("invPaidWatermark");
+    if (paidWatermark) {
+      paidWatermark.style.display = (pMethod === 'Pending') ? "none" : "block";
+    }
 
     if (transaction.appliedGcCode) {
       let methodText = `Gift Card (${transaction.appliedGcCode})`;
@@ -1561,7 +1588,7 @@
           <div style="background: #fef2f2; border: 2px solid #f87171; color: #991b1b; padding: 14px 18px; border-radius: 12px; margin-bottom: 20px; text-align: left; font-size: 14px; line-height: 1.5;">
             <strong style="font-size: 15px;">⚠️ STOP! DO NOT USE FOR REGULAR CARS, SUVs, VANS, OR TRUCKS:</strong><br>
             Using Custom Pricing prevents the vehicle and service from being counted properly on the End of Day report.<br>
-            • If a vehicle needs extra labor (pet hair, mud, stains) or a price adjustment, tap <strong>⬅ Back</strong>, select the normal <strong>Vehicle &amp; Wash Service</strong>, and use <strong>➕ Additional Work</strong> or <strong>🏷️ + Discount</strong> on the ticket!<br>
+            • If a vehicle needs extra labor (pet hair, mud, stains) or a price adjustment, tap <strong>⬅ Back</strong>, select the normal <strong>Vehicle & Wash Service</strong>, and use <strong>➕ Additional Work</strong> or <strong>🏷️ + Discount</strong> on the ticket!<br>
             <em style="color: #b91c1c;">• ¡NO USAR para carros normales! Seleccione el vehículo y servicio normal y use "➕ Additional Work" o "🏷️ + Discount". Solo use esta pantalla para Botes, RVs o Motos.</em>
           </div>
           <h3 style="margin-bottom: 15px; font-size: 22px;">Add Custom Non-Standard Item (Boats / RVs Only)</h3>
