@@ -201,14 +201,15 @@
     </div>
     <div id="systemStatus">🟢 System Initializing...</div>
     <button onclick="forceAppUpdate()" style="margin-top: 15px; background: rgba(255,255,255,0.08); color: #9ca3af; border: 1px solid rgba(255,255,255,0.15); padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;">🔄 Update App</button>
-    <div id="appVersionBadge" style="margin-top: 12px; font-size: 12px; font-weight: 700; color: #60a5fa; background: rgba(37,99,235,0.15); border: 1px solid rgba(96,165,250,0.3); padding: 4px 12px; border-radius: 20px; letter-spacing: 0.5px;">WashOS v10.1</div>
+    <div id="appVersionBadge" style="margin-top: 12px; font-size: 12px; font-weight: 700; color: #60a5fa; background: rgba(37,99,235,0.15); border: 1px solid rgba(96,165,250,0.3); padding: 4px 12px; border-radius: 20px; letter-spacing: 0.5px;">WashOS v10.2</div>
   </div>
 
   <!-- PAYMENT MODAL -->
   <div id="paymentModalOverlay" class="modal-overlay">
-    <div class="modal-box">
+    <div class="modal-box" style="max-height: 92vh; overflow-y: auto;">
       <h2>Select Payment Method</h2>
-      <button id="gcBtn" onclick="redeemGiftCard()" style="width: 100%; padding: 15px; background: #f59e0b; color: white; border: none; border-radius: 8px; font-size: 18px; margin-bottom: 10px; cursor: pointer; font-weight: bold;">🎁 Redeem Gift Card </button>
+      <button id="gcBtn" onclick="redeemGiftCard()" style="width: 100%; padding: 14px; background: #f59e0b; color: white; border: none; border-radius: 10px; font-size: 16px; margin-bottom: 10px; cursor: pointer; font-weight: bold;">🎁 Redeem Gift Card</button>
+      <button onclick="openFleetModal(true)" style="width: 100%; padding: 14px; background: #4f46e5; color: white; border: none; border-radius: 10px; font-size: 16px; margin-bottom: 12px; cursor: pointer; font-weight: bold;">🎟️ Prepaid Fleet Account (Deane's LLC)</button>
       <button class="modal-btn" onclick="openCashCalculator()">💵 Cash</button>
       
       <div style="margin-bottom: 15px;">
@@ -221,6 +222,79 @@
       <button class="modal-btn" onclick="processOrder('Check')">📝 Check</button>
       <button class="modal-btn" onclick="processOrder('Pending')">⏳ Pending / Bill Later (Prints Invoice)</button>
       <button class="modal-btn btn-cancel" onclick="closeModals()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- PREPAID FLEET ACCOUNT MODAL (DEANE'S LLC) -->
+  <div id="fleetModalOverlay" class="modal-overlay">
+    <div class="modal-box" style="max-width: 580px; width: 95%; max-height: 90vh; overflow-y: auto;">
+      <h2 style="color: #4f46e5; margin-bottom: 6px;">🎟️ Prepaid Fleet Account</h2>
+      <p style="font-size: 14px; color: #4b5563; margin-bottom: 14px;">
+        <strong id="fleetCompanyName" style="color: #111827; font-size: 16px;">Deane's LLC</strong> • 
+        <span id="fleetContactName">Deane Perez</span> • 
+        📞 <strong id="fleetPhone" style="color: #2563eb;">518-892-5616</strong>
+      </p>
+
+      <div id="fleetLowCreditBanner" style="display: none; background: #fef2f2; border: 2px solid #ef4444; color: #991b1b; padding: 12px 15px; border-radius: 12px; margin-bottom: 14px; font-size: 13px; text-align: left; line-height: 1.4;">
+        <strong style="font-size: 15px;">⚠️ LOW FLEET CREDIT REMINDER (5 OR FEWER WASHES LEFT!):</strong><br>
+        Please call <strong>Deane Perez at 518-892-5616</strong> to remind him to reload 50 more washes ($1,250.00 + Tax), and print his 50-Wash Activity Statement below!
+      </div>
+
+      <div style="display: flex; gap: 12px; justify-content: space-around; background: #eef2ff; border: 1px solid #c7d2fe; padding: 14px; border-radius: 14px; margin-bottom: 16px;">
+        <div>
+          <div style="font-size: 11px; font-weight: 800; color: #4338ca; text-transform: uppercase;">Credits Remaining</div>
+          <div id="fleetCreditsRemaining" style="font-size: 34px; font-weight: 900; color: #312e81;">37</div>
+          <div style="font-size: 11px; color: #6366f1; font-weight: 600;">out of 50 Pack</div>
+        </div>
+        <div style="border-left: 1px dashed #a5b4fc; padding-left: 16px;">
+          <div style="font-size: 11px; font-weight: 800; color: #4338ca; text-transform: uppercase;">Current Batch</div>
+          <div id="fleetBatchNumber" style="font-size: 26px; font-weight: 900; color: #1e1b4b; margin-top: 4px;">Batch #1</div>
+          <div style="font-size: 11px; color: #6366f1; font-weight: 600;">$25.00 Regular Wash</div>
+        </div>
+      </div>
+
+      <!-- REDEEM SECTION (SHOWN WHEN TICKET HAS ITEMS) -->
+      <div id="fleetRedeemBox" style="background: #f0fdf4; border: 2px solid #4ade80; padding: 14px; border-radius: 14px; margin-bottom: 16px;">
+        <div style="font-size: 14px; font-weight: 800; color: #166534; margin-bottom: 8px;" id="fleetRedeemSummaryText">
+          Redeem 1 Wash Credit for Current Ticket
+        </div>
+        <button class="modal-btn clock-in-btn" style="margin-bottom: 0; font-size: 16px;" onclick="submitFleetRedemption()" id="btnConfirmFleetRedeem">
+          ✅ Redeem Wash Credit & Print Receipt
+        </button>
+      </div>
+
+      <!-- STATEMENT & 50-WASH RELOAD CONTROLS -->
+      <div style="display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap;">
+        <button class="modal-btn" style="flex: 1; margin: 0; padding: 12px; font-size: 14px; background: #eff6ff; color: #1d4ed8; border-color: #93c5fd;" onclick="printFleetStatement()">
+          🖨️ Print 50-Wash Statement
+        </button>
+        <button class="modal-btn" style="flex: 1; margin: 0; padding: 12px; font-size: 14px; background: #fffbeb; color: #b45309; border-color: #fcd34d;" onclick="toggleFleetReloadBox()">
+          ➕ Reload +50 Washes ($1,250 + Tax)
+        </button>
+      </div>
+
+      <!-- RELOAD +50 WASHES PAYMENT BOX (COLLAPSED BY DEFAULT) -->
+      <div id="fleetReloadPaymentBox" style="display: none; background: #fffbeb; border: 2px dashed #f59e0b; padding: 14px; border-radius: 14px; margin-bottom: 14px; text-align: left;">
+        <div style="font-size: 14px; font-weight: 800; color: #92400e; margin-bottom: 6px;">Reload +50 Regular Washes ($25/ea):</div>
+        <div style="font-size: 13px; color: #4b5563; margin-bottom: 10px;">
+          Net Subtotal: <strong>$1,250.00</strong> + Tax (7.5%): <strong>$93.75</strong> = <strong style="color: #111827; font-size: 15px;">$1,343.75 Total</strong>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="modal-btn" style="margin: 0; padding: 10px; font-size: 13px; background: #10b981; color: white; border: none;" onclick="submitFleetReload('Cash')">💵 Cash ($1,343.75)</button>
+          <button class="modal-btn" style="margin: 0; padding: 10px; font-size: 13px; background: #2563eb; color: white; border: none;" onclick="submitFleetReload('Credit Card')">💳 Card (+CC Fee)</button>
+          <button class="modal-btn" style="margin: 0; padding: 10px; font-size: 13px; background: #6b7280; color: white; border: none;" onclick="submitFleetReload('Check')">📝 Check ($1,343.75)</button>
+        </div>
+      </div>
+
+      <!-- RECENT BATCH ACTIVITY LOG -->
+      <div style="text-align: left; margin-bottom: 12px;">
+        <div style="font-size: 12px; font-weight: 800; color: #6b7280; text-transform: uppercase; margin-bottom: 6px;">Current Batch Wash Log:</div>
+        <div id="fleetHistoryTableContainer" style="max-height: 170px; overflow-y: auto; border: 1px solid #e5e7eb; border-radius: 10px; background: #f9fafb; padding: 8px; font-size: 12px;">
+          Loading wash history...
+        </div>
+      </div>
+
+      <button class="modal-btn btn-cancel" onclick="closeModals()">Close</button>
     </div>
   </div>
 
@@ -462,6 +536,27 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- HIDDEN PRINTABLE 50-WASH FLEET STATEMENT -->
+  <div id="printableFleetStatement" class="print-section">
+    <h2 style="text-align: center; margin-bottom: 2px; font-size: 24px;">A Plus Car Wash & Detailing Inc.</h2>
+    <p style="text-align: center; margin-top: 0; color: #555; font-size: 14px;" id="fleetStmtLocation"></p>
+    <hr style="border: 1px solid #111827; margin: 14px 0;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; font-size: 14px;">
+      <div>
+        <strong style="font-size: 16px;">PREPAID 50-WASH FLEET STATEMENT</strong><br>
+        <strong>Client:</strong> <span id="fleetStmtCompany">Deane's LLC</span> (<span id="fleetStmtContact">Deane Perez</span>)<br>
+        <strong>Phone:</strong> <span id="fleetStmtPhone">518-892-5616</span>
+      </div>
+      <div style="text-align: right;">
+        <strong>Statement Date:</strong> <span id="fleetStmtDate"></span><br>
+        <strong>Batch #:</strong> <span id="fleetStmtBatch">1</span><br>
+        <strong style="font-size: 16px;">Credits Remaining: <span id="fleetStmtRemaining">37</span> / 50</strong>
+      </div>
+    </div>
+    <div id="fleetStmtBody"></div>
+    <p style="margin-top: 30px; text-align: center; font-style: italic; font-size: 13px;">Thank you for your business!</p>
   </div>
 
   <!-- SQUARE TERMINAL WAITING MODAL -->
@@ -709,7 +804,7 @@
       <div style="display: flex; gap: 15px; align-items: center;">
         <img src="logo.png" alt="A+ Logo" style="height: 100px; border-radius: 8px; object-fit: contain;">
         <h2 class="header-title">A+ WashOS</h2>
-        <span style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 4px 10px; border-radius: 14px; font-size: 11px; font-weight: 800;">v10.1</span>
+        <span style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 4px 10px; border-radius: 14px; font-size: 11px; font-weight: 800;">v10.2</span>
         <button id="backBtn" style="display:none; background: #e5e7eb; color: #374151; border: none; padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;" onclick="clearVehicleType()">⬅ Back</button>
       </div>
       <div class="controls">
@@ -722,8 +817,9 @@
         
         <div class="attendant-badge">
           👤 <span id="currentAttendantName">None</span>
-          <div style="display: flex; gap: 8px;">
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
             <button id="eodBtn" class="header-btn" style="background: #8b5cf6; color: white; display: none;" onclick="openEODModal()">📈 End of Day</button>
+            <button class="header-btn" style="background: #e0e7ff; color: #4338ca; border: 1px solid #a5b4fc;" onclick="openFleetModal(false)">🎟️ Fleet (Deane's)</button>
             <button id="addCustomerBtn" class="header-btn" style="background: #fce7f3; color: #be185d;" onclick="document.getElementById('customerModalOverlay').style.display='flex'">👤 Add Customer</button>
             <button class="header-btn" style="background: #e0f2fe; color: #0369a1;" onclick="window.open('dashboard.html', '_blank')">📊 Dashboard</button>
             <button class="header-btn timeclock-btn" onclick="openTimeclock()">🕒 Timeclock</button>
@@ -803,6 +899,7 @@
         <option value="Toyota">Toyota</option>
         <option value="Volkswagen">Volkswagen</option>
         <option value="Volvo">Volvo</option>
+        <option value="Other">Other...</option>
         <option value="Other">Other...</option>
       </select>
       <input type="text" id="vehiclePlate" class="input-field" placeholder="🚗 License Plate (e.g. ABC-123)">
@@ -898,6 +995,8 @@
   let pendingPayOrderId = "";
   let pendingPayTransaction = null;
   let stagedVehiclesList = [];
+  let currentFleetAccount = null;
+  let currentFleetHistory = [];
 
   async function executeSearch() {
     const term = document.getElementById("searchInput").value;
@@ -998,7 +1097,6 @@
       document.getElementById("squareModalOverlay").style.display = "flex";
 
       try {
-        // Omit 'orderId' here so check_square_status doesn't create a duplicate new row
         let sqRes = await fetch(GOOGLE_SCRIPT_URL, {
           method: "POST",
           headers: { "Content-Type": "text/plain" },
@@ -1110,6 +1208,348 @@
     btn.disabled = false;
   }
 
+  // =====================================================================
+  // --- PREPAID FLEET ACCOUNT LOGIC (DEANE'S LLC - 50 WASH PACKS) ---
+  // =====================================================================
+  function countWashCarsInCart() {
+    let c = 0;
+    cart.forEach(item => {
+      let n = String(item.name || "");
+      if (
+        !n.startsWith("Retail -") &&
+        !n.startsWith("Chemical -") &&
+        !n.startsWith("Equipment -") &&
+        !n.startsWith("Custom -") &&
+        !n.startsWith("Gift Card (") &&
+        !n.startsWith("Add-On -") &&
+        !n.startsWith("Discount -") &&
+        !n.startsWith("🎁 Reward:")
+      ) {
+        c++;
+      }
+    });
+    return Math.max(1, c);
+  }
+
+  async function openFleetModal(fromCheckout = false) {
+    document.getElementById("paymentModalOverlay").style.display = "none";
+    document.getElementById("fleetReloadPaymentBox").style.display = "none";
+    document.getElementById("fleetModalOverlay").style.display = "flex";
+
+    const redeemBox = document.getElementById("fleetRedeemBox");
+    if (cart.length > 0) {
+      const carsCount = countWashCarsInCart();
+      redeemBox.style.display = "block";
+      document.getElementById("fleetRedeemSummaryText").innerText = `Ticket Ready: Redeem ${carsCount} Prepaid Wash Credit${carsCount > 1 ? 's' : ''} ($${(carsCount * 25).toFixed(2)} Commission Value)`;
+    } else {
+      redeemBox.style.display = "none";
+    }
+
+    await refreshFleetAccountData();
+  }
+
+  async function refreshFleetAccountData() {
+    const histDiv = document.getElementById("fleetHistoryTableContainer");
+    histDiv.innerHTML = "⏳ Loading Deane's LLC account...";
+
+    try {
+      const response = await fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({ recordType: "get_fleet_account", accountId: "DEANES-LLC" })
+      });
+      const result = await response.json();
+
+      if (result.status === "success" && result.account) {
+        currentFleetAccount = result.account;
+        currentFleetHistory = result.history || [];
+
+        document.getElementById("fleetCompanyName").innerText = result.account.companyName;
+        document.getElementById("fleetContactName").innerText = result.account.contactName;
+        document.getElementById("fleetPhone").innerText = result.account.phone;
+        document.getElementById("fleetCreditsRemaining").innerText = result.account.creditsRemaining;
+        document.getElementById("fleetBatchNumber").innerText = `Batch #${result.account.batchNumber}`;
+
+        const lowBanner = document.getElementById("fleetLowCreditBanner");
+        if (result.account.creditsRemaining <= 5) {
+          lowBanner.style.display = "block";
+          document.getElementById("fleetCreditsRemaining").style.color = "#dc2626";
+        } else {
+          lowBanner.style.display = "none";
+          document.getElementById("fleetCreditsRemaining").style.color = "#312e81";
+        }
+
+        if (currentFleetHistory.length === 0) {
+          histDiv.innerHTML = `<p style="color:#6b7280; text-align:center; padding:10px;">No washes logged in Batch #${result.account.batchNumber} yet (${result.account.creditsRemaining} of 50 credits remaining).</p>`;
+        } else {
+          let rowsHtml = `<table style="width:100%; border-collapse:collapse; font-size:12px;">
+            <tr style="border-bottom:1px solid #d1d5db; text-align:left; color:#4b5563;">
+              <th style="padding:4px;">Wash #</th>
+              <th style="padding:4px;">Date</th>
+              <th style="padding:4px;">Vehicle / Plate</th>
+              <th style="padding:4px; text-align:right;">Left</th>
+            </tr>`;
+          currentFleetHistory.slice().reverse().forEach(h => {
+            rowsHtml += `<tr style="border-bottom:1px solid #f3f4f6;">
+              <td style="padding:4px; font-weight:700; color:#4f46e5;">${h.washNum}</td>
+              <td style="padding:4px;">${h.date}</td>
+              <td style="padding:4px; font-weight:600;">${h.vehicle}</td>
+              <td style="padding:4px; text-align:right; font-weight:800;">${h.remaining}</td>
+            </tr>`;
+          });
+          rowsHtml += `</table>`;
+          histDiv.innerHTML = rowsHtml;
+        }
+      } else {
+        histDiv.innerHTML = `<p style="color:#ef4444;">Error: ${result.message}</p>`;
+      }
+    } catch (err) {
+      histDiv.innerHTML = `<p style="color:#ef4444;">Network Error loading Fleet Account.</p>`;
+    }
+  }
+
+  function toggleFleetReloadBox() {
+    const box = document.getElementById("fleetReloadPaymentBox");
+    box.style.display = box.style.display === "none" ? "block" : "none";
+  }
+
+  async function submitFleetRedemption() {
+    if (cart.length === 0) return alert("Add the vehicle and wash service to the ticket first.");
+    const combinedVehicles = getCombinedVehiclesString();
+    if (combinedVehicles === "N/A") {
+      if (!confirm("No Vehicle Make or License Plate was entered. Continue redeeming Fleet Credit anyway?")) return;
+    }
+
+    const carsCount = countWashCarsInCart();
+    const location = document.getElementById("locationSelect").value;
+    const orderId = "ORD-FLT" + Math.floor(100000 + Math.random() * 900000);
+    const servicesStr = cart.map(item => item.name).join(", ");
+    const rawNotes = document.getElementById("orderNotes").value.trim();
+
+    const btn = document.getElementById("btnConfirmFleetRedeem");
+    const origText = btn.innerText;
+    btn.innerText = "⏳ Redeeming Credit...";
+    btn.disabled = true;
+
+    try {
+      const response = await fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({
+          recordType: "redeem_fleet_wash",
+          location: location,
+          accountId: "DEANES-LLC",
+          carsCount: carsCount,
+          orderId: orderId,
+          services: servicesStr,
+          vehicleInfo: combinedVehicles,
+          notes: rawNotes ? `Deane's LLC - ${rawNotes}` : "Deane's LLC Prepaid Fleet",
+          attendant: activeAttendant
+        })
+      });
+      const result = await response.json();
+
+      if (result.status === "success") {
+        // Trigger bold 5-wash low balance reminder popup!
+        if (result.lowBalanceAlert) {
+          alert(`⚠️ LOW FLEET CREDIT ALERT — ONLY ${result.creditsRemaining} WASH(ES) LEFT!\n\nCustomer: ${result.companyName} (${result.contactName})\nPhone: ${result.phone}\n\n📞 Please call Deane Perez at ${result.phone} right away to remind him to reload 50 more washes, and print his 50-Wash Statement!`);
+        } else {
+          alert(`✅ Redeemed ${result.carsRedeemed} Fleet Wash Credit (${result.washNumLabel})!\n\nRemaining Balance for ${result.companyName}: ${result.creditsRemaining} of 50 washes left.`);
+        }
+
+        const receiptData = {
+          location: location,
+          date: new Date().toISOString(),
+          orderId: orderId,
+          vehicle: combinedVehicles,
+          services: `${servicesStr} (${result.washNumLabel})`,
+          notes: `Deane's LLC Prepaid Fleet • Remaining Credits: ${result.creditsRemaining} of 50`,
+          subtotal: `$0.00 (Prepaid $25.00/wash)`,
+          tax: `$0.00 (Prepaid)`,
+          total: `$0.00 (${result.creditsRemaining} Credits Left)`,
+          exemptDealer: "",
+          cart: [],
+          paymentMethod: `Prepaid Fleet Credit (${result.washNumLabel} — ${result.creditsRemaining} Left)`
+        };
+
+        cart = [];
+        stagedVehiclesList = [];
+        renderStagedVehicles();
+        selectedVehicleType = null;
+        document.getElementById("vehicleMake").value = "";
+        document.getElementById("vehiclePlate").value = "";
+        document.getElementById("orderNotes").value = "";
+        updateCart();
+        renderMenu();
+
+        closeModals();
+        printInvoice(receiptData);
+      } else {
+        alert("❌ Error: " + result.message);
+      }
+    } catch (err) {
+      alert("Network Error redeeming Fleet Credit.");
+    }
+
+    btn.innerText = origText;
+    btn.disabled = false;
+  }
+
+  async function submitFleetReload(method) {
+    const location = document.getElementById("locationSelect").value;
+    const subtotal = 1250.00;
+    const taxAmount = 93.75;
+    const grandTotal = 1343.75;
+    let squareTip = 0;
+
+    if (!confirm(`Confirm reloading +50 Washes for Deane's LLC via ${method}?\n\nNet: $1,250.00\nTax (7.5%): $93.75\nTotal: $1,343.75`)) return;
+
+    if (method === "Credit Card") {
+      const ccFee = Math.ceil((((grandTotal * 0.0275) + 0.15) / 0.9725) * 100) / 100;
+      document.getElementById("fleetModalOverlay").style.display = "none";
+      document.getElementById("squareModalOverlay").style.display = "flex";
+
+      try {
+        let sqRes = await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({
+            recordType: "square_checkout",
+            location: location,
+            subtotal: subtotal,
+            taxAmount: taxAmount,
+            ccFee: ccFee,
+            isManualEntry: false
+          })
+        });
+        let sqResult = await sqRes.json();
+        if (sqResult.error || sqResult.errors) {
+          let errMsg = sqResult.error || sqResult.errors[0].detail;
+          alert("Square Error: " + errMsg);
+          document.getElementById("squareModalOverlay").style.display = "none";
+          return;
+        }
+
+        let checkoutId = sqResult.checkout.id;
+        let isWaiting = true;
+        while (isWaiting) {
+          await new Promise(r => setTimeout(r, 3000));
+          let statusRes = await fetch(GOOGLE_SCRIPT_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain" },
+            body: JSON.stringify({ recordType: "check_square_status", checkoutId: checkoutId })
+          });
+          let statusJson = await statusRes.json();
+          if (statusJson.checkoutStatus === "COMPLETED") {
+            isWaiting = false;
+            squareTip = statusJson.tipAmount || 0;
+            document.getElementById("squareModalOverlay").style.display = "none";
+          } else if (statusJson.checkoutStatus === "CANCELED") {
+            isWaiting = false;
+            document.getElementById("squareModalOverlay").style.display = "none";
+            alert("Payment Canceled on Terminal.");
+            return;
+          }
+        }
+      } catch (err) {
+        document.getElementById("squareModalOverlay").style.display = "none";
+        alert("Terminal Error: " + err.message);
+        return;
+      }
+    }
+
+    try {
+      const response = await fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({
+          recordType: "reload_fleet_account",
+          location: location,
+          accountId: "DEANES-LLC",
+          creditsToAdd: 50,
+          paymentType: method,
+          tipAmount: squareTip,
+          attendant: activeAttendant
+        })
+      });
+      const result = await response.json();
+      if (result.status === "success") {
+        alert(`🎉 Reloaded +50 Washes for ${result.companyName}!\n\nNew Balance: ${result.newCredits} Washes (Batch #${result.newBatch})`);
+        const receiptData = {
+          location: location,
+          date: new Date().toISOString(),
+          orderId: result.orderId,
+          vehicle: result.companyName,
+          services: `Prepaid 50-Wash Fleet Pack (Batch #${result.newBatch} — 50 Regular Washes @ $25.00)`,
+          notes: `New Prepaid Credit Balance: ${result.newCredits} Washes`,
+          subtotal: `$${result.subtotal.toFixed(2)}`,
+          tax: `$${result.taxAmount.toFixed(2)}`,
+          total: `$${result.grandTotal.toFixed(2)}`,
+          exemptDealer: "",
+          cart: [],
+          paymentMethod: `${method} (Paid ${new Date().toLocaleDateString()})`
+        };
+        closeModals();
+        printInvoice(receiptData);
+      } else {
+        alert("❌ Error: " + result.message);
+      }
+    } catch (err) {
+      alert("Network Error reloading Fleet Account.");
+    }
+  }
+
+  function printFleetStatement() {
+    if (!currentFleetAccount) return alert("Account data is still loading.");
+    const location = document.getElementById("locationSelect").value;
+    document.getElementById("fleetStmtLocation").innerText = locationAddresses[location] || location;
+    document.getElementById("fleetStmtCompany").innerText = currentFleetAccount.companyName;
+    document.getElementById("fleetStmtContact").innerText = currentFleetAccount.contactName;
+    document.getElementById("fleetStmtPhone").innerText = currentFleetAccount.phone;
+    document.getElementById("fleetStmtDate").innerText = new Date().toLocaleString();
+    document.getElementById("fleetStmtBatch").innerText = currentFleetAccount.batchNumber;
+    document.getElementById("fleetStmtRemaining").innerText = currentFleetAccount.creditsRemaining;
+
+    let bodyHtml = "";
+    if (currentFleetHistory.length === 0) {
+      bodyHtml = `<p style="padding: 15px; border: 1px solid #ccc; text-align: center;">No washes recorded in Batch #${currentFleetAccount.batchNumber} yet. Current Balance: <strong>${currentFleetAccount.creditsRemaining} of 50 credits remaining</strong>.</p>`;
+    } else {
+      bodyHtml = `<table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+        <thead>
+          <tr style="border-bottom: 2px solid #111827; background: #f3f4f6;">
+            <th style="padding: 6px;">Wash #</th>
+            <th style="padding: 6px;">Date & Time</th>
+            <th style="padding: 6px;">Order ID</th>
+            <th style="padding: 6px;">Vehicle / Plate</th>
+            <th style="padding: 6px;">Service</th>
+            <th style="padding: 6px; text-align: right;">Credits Left</th>
+          </tr>
+        </thead>
+        <tbody>`;
+      currentFleetHistory.forEach(h => {
+        bodyHtml += `<tr style="border-bottom: 1px solid #e5e7eb;">
+          <td style="padding: 6px; font-weight: bold;">${h.washNum}</td>
+          <td style="padding: 6px;">${h.date}</td>
+          <td style="padding: 6px;">${h.orderId}</td>
+          <td style="padding: 6px; font-weight: bold;">${h.vehicle}</td>
+          <td style="padding: 6px;">${h.services}</td>
+          <td style="padding: 6px; text-align: right; font-weight: bold;">${h.remaining}</td>
+        </tr>`;
+      });
+      bodyHtml += `</tbody></table>`;
+    }
+
+    document.getElementById("fleetStmtBody").innerHTML = bodyHtml;
+
+    document.querySelectorAll('.print-section').forEach(el => el.classList.remove('active-print'));
+    const stmtDiv = document.getElementById("printableFleetStatement");
+    stmtDiv.classList.add("active-print");
+
+    setTimeout(() => {
+      window.print();
+    }, 300);
+  }
+
   const locationAddresses = {
     "Location 1 - Tampa Bay": "2522 W Tampa Bay Blvd, Tampa, FL 33607",
     "Location 2 - Columbus": "3204 W Columbus Dr, Tampa, FL 33607",
@@ -1128,7 +1568,7 @@
     document.getElementById("invTotal").innerText = transaction.total;
 
     const notesRow = document.getElementById("invNotesRow");
-    let cleanPrintNotes = (transaction.notes || "").replace(/\[SPLIT_PAY:[^\]]+\]/g, "").trim();
+    let cleanPrintNotes = (transaction.notes || "").replace(/\[SPLIT_PAY:[^\]]+\]/g, "").replace(/\[FLEET_WASH:[^\]]+\]/g, "").trim();
     if (cleanPrintNotes !== "") {
       document.getElementById("invNotes").innerText = cleanPrintNotes;
       notesRow.style.display = "block";
@@ -1423,6 +1863,7 @@
   function closeModals() { 
     const modals = [
       "paymentModalOverlay", 
+      "fleetModalOverlay",
       "timeclockModalOverlay", 
       "promoModalOverlay", 
       "squareModalOverlay", 
