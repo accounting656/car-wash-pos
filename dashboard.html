@@ -21,7 +21,7 @@
     #pinOverlay button { padding: 10px 20px; font-size: 18px; font-weight: bold; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; }
     
     #dashboardContent { padding: 30px; display: none; max-width: 1440px; margin: 0 auto; }
-    #taxReportView, #financialReportView, #managerSlipReportView { display: none; padding: 40px; background: white; min-height: 100vh; }
+    #taxReportView, #financialReportView, #managerSlipReportView, #fleetStatementReportView { display: none; padding: 40px; background: white; min-height: 100vh; }
     
     .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
     
@@ -72,17 +72,20 @@
       .controls-bar, #pinOverlay, .btn-print, .btn-tax, .btn-csv, .dash-tabs, .modal-overlay { display: none !important; }
       
       body.print-financial #dashboardContent { display: none !important; }
-      body.print-financial #taxReportView, body.print-financial #managerSlipReportView { display: none !important; }
+      body.print-financial #taxReportView, body.print-financial #managerSlipReportView, body.print-financial #fleetStatementReportView { display: none !important; }
       body.print-financial #financialReportView { display: block !important; padding: 0; }
 
       body.print-tax #dashboardContent { display: none !important; }
-      body.print-tax #financialReportView, body.print-tax #managerSlipReportView { display: none !important; }
+      body.print-tax #financialReportView, body.print-tax #managerSlipReportView, body.print-tax #fleetStatementReportView { display: none !important; }
       body.print-tax #taxReportView { display: block !important; padding: 0; }
 
-      body.print-mgr-slip #dashboardContent, body.print-mgr-slip #financialReportView, body.print-mgr-slip #taxReportView { display: none !important; }
+      body.print-mgr-slip #dashboardContent, body.print-mgr-slip #financialReportView, body.print-mgr-slip #taxReportView, body.print-mgr-slip #fleetStatementReportView { display: none !important; }
       body.print-mgr-slip #managerSlipReportView { display: block !important; padding: 20px; }
+
+      body.print-fleet-stmt #dashboardContent, body.print-fleet-stmt #financialReportView, body.print-fleet-stmt #taxReportView, body.print-fleet-stmt #managerSlipReportView { display: none !important; }
+      body.print-fleet-stmt #fleetStatementReportView { display: block !important; padding: 20px; }
       
-      body.print-invoice #dashboardContent, body.print-invoice #financialReportView, body.print-invoice #taxReportView, body.print-invoice #managerSlipReportView { display: none !important; }
+      body.print-invoice #dashboardContent, body.print-invoice #financialReportView, body.print-invoice #taxReportView, body.print-invoice #managerSlipReportView, body.print-invoice #fleetStatementReportView { display: none !important; }
       body.print-invoice #printableInvoice { display: block !important; position: absolute; top: 0; left: 0; width: 100%; padding: 40px; }
     }
     #printableInvoice { display: none; background: white; color: black; font-family: Arial, sans-serif; position: relative; }
@@ -95,7 +98,7 @@
     <p style="margin-bottom: 20px; color: #9ca3af;">Enter Admin PIN to view financials.</p>
     <input type="password" id="adminPin" placeholder="****">
     <button onclick="fetchData()">Unlock Dashboard</button>
-    <div style="margin-top: 15px; font-size: 12px; color: #6b7280; font-weight: 600;">Command Center v10.1</div>
+    <div style="margin-top: 15px; font-size: 12px; color: #6b7280; font-weight: 600;">Command Center v10.2</div>
   </div>
 
   <!-- DASHBOARD PAY PENDING INVOICE MODAL -->
@@ -353,7 +356,7 @@
   <div id="dashboardContent">
     <div class="header">
       <h1 style="font-weight: 800; font-size: 30px;" id="reportTitle">📊 Owner Command Center</h1>
-      <span style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 800;">v10.1</span>
+      <span style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 800;">v10.2</span>
     </div>
     
     <!-- TAB NAVIGATION -->
@@ -361,6 +364,7 @@
       <button class="tab-btn active" id="tab-overview" onclick="switchTab('overview')">📊 Financial Overview</button>
       <button class="tab-btn" id="tab-txnlog" onclick="switchTab('txnlog')">📋 Transaction Log</button>
       <button class="tab-btn" id="tab-ar" onclick="switchTab('ar')">⏳ Unpaid Bills (A/R)</button>
+      <button class="tab-btn" id="tab-fleet" onclick="switchTab('fleet')">🎟️ Prepaid Fleet (Deane's LLC)</button>
       <button class="tab-btn" id="tab-payroll" onclick="switchTab('payroll')">🕒 Payroll & Hours</button>
       <button class="tab-btn" id="tab-dealers" onclick="switchTab('dealers')">🏢 Tax Exempt Dealers</button>
       <button class="tab-btn" id="tab-invoices" onclick="switchTab('invoices')">🔍 Invoice Search</button>
@@ -404,6 +408,7 @@
             <option value="Credit Card">Credit Card</option>
             <option value="Check">Check</option>
             <option value="Pending">Pending (Bill Later)</option>
+            <option value="Prepaid Fleet">Prepaid Fleet</option>
           </select>
         </div>
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
@@ -491,6 +496,31 @@
       </div>
     </div>
 
+    <!-- VIEW: PREPAID FLEET ACCOUNT (DEANE'S LLC - COLUMBUS) -->
+    <div id="view-fleet" class="dash-view" style="display: none;">
+      <div style="background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 18px;">
+          <div>
+            <h2 style="font-size: 22px; color: #312e81;">🎟️ Prepaid 50-Wash Fleet Account — Deane's LLC</h2>
+            <p style="color: #6b7280; font-size: 13px; margin-top: 4px;">Location 2 - Columbus • Contact: <strong>Deane Perez (518-892-5616)</strong> • $25.00 Regular Service ($1,250.00 + $93.75 Tax per 50-Wash Pack)</p>
+          </div>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn btn-primary" onclick="loadDashFleetReport()" id="btnLoadFleet">🔄 Refresh Fleet Balance</button>
+            <button class="btn" style="background: #f59e0b; color: white;" onclick="promptDashFleetReload()">➕ Reload +50 Washes ($1,343.75)</button>
+            <button class="btn btn-csv" onclick="exportFleetCSV()">📥 Export Fleet CSV</button>
+            <button class="btn" style="background: #4f46e5; color: white;" onclick="printDashFleetStatement()">🖨️ Print 50-Wash Statement</button>
+          </div>
+        </div>
+
+        <div id="dashFleetLowBanner" style="display: none; background: #fef2f2; border: 2px solid #ef4444; color: #991b1b; padding: 14px 18px; border-radius: 12px; margin-bottom: 18px; font-size: 14px;">
+          <strong>⚠️ LOW FLEET CREDIT ALERT (5 OR FEWER WASHES REMAINING!):</strong> Please call <strong>Deane Perez at 518-892-5616</strong> to remind him to reload 50 more washes, and print his 50-Wash Statement!
+        </div>
+
+        <div id="dashFleetSummaryCards" style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;"></div>
+        <div id="dashFleetHistoryContent"></div>
+      </div>
+    </div>
+
     <!-- VIEW 3: PAYROLL & TIMECLOCK HOURS -->
     <div id="view-payroll" class="dash-view" style="display: none;">
       <div style="background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
@@ -538,6 +568,7 @@
             <option value="Credit Card">💳 Credit Card</option>
             <option value="Cash">💵 Cash</option>
             <option value="Check">📝 Check</option>
+            <option value="Prepaid Fleet">🎟️ Prepaid Fleet</option>
             <option value="Cash Payout">💸 Cash Payouts</option>
           </select>
           <button class="btn btn-primary" onclick="searchGlobalInvoices()" id="btnGlobalSearch">🔍 Search Invoices</button>
@@ -552,6 +583,7 @@
   <div id="financialReportView"></div>
   <div id="taxReportView"></div>
   <div id="managerSlipReportView"></div>
+  <div id="fleetStatementReportView"></div>
 
   <!-- THE HIDDEN PRINTABLE INVOICE -->
   <div id="printableInvoice">
@@ -593,6 +625,8 @@
     let lastDealerTxns = [];
     let lastTxnLogRows = [];
     let dashStagedItems = [];
+    let lastDashFleetAccount = null;
+    let lastDashFleetHistory = [];
 
     const corpEntities = {
       "Location 1 - Tampa Bay": { name: "A Plus Car Wash & Detailing Tampa Bay Inc.", cert: "39-8020182731-8" },
@@ -624,7 +658,7 @@
         start.setDate(now.getDate() - 1);
         end.setDate(now.getDate() - 1);
       } else if (preset === 'thisWeek') {
-        const day = now.getDay(); // 0 (Sun) to 6 (Sat)
+        const day = now.getDay();
         const diffToMon = day === 0 ? -6 : 1 - day;
         start.setDate(now.getDate() + diffToMon);
       } else if (preset === 'thisMonth') {
@@ -643,7 +677,6 @@
       else if (activeTabName === 'dealers') generateDealerReport();
     }
 
-    // Helper to get active locations based on #locationFilter
     function getFilteredLocationsList(dataObj) {
       const allLocs = Object.keys(dataObj.locations || {});
       const locFilter = document.getElementById("locationFilter").value;
@@ -653,7 +686,6 @@
       return allLocs;
     }
 
-    // Dynamically re-renders the active view when the Location Filter dropdown changes
     function handleLocationFilterChange() {
       if (activeTabName === 'overview' && currentDashboardData) {
         renderOverviewFromMemory();
@@ -670,7 +702,6 @@
       }
     }
 
-    // Helper to calculate exact Tax-Exempt Sales (uses row-by-row lData.exempt if available, with 50-cent rounding guard)
     function getExactExemptSales(lData) {
       if (lData.exempt !== undefined) {
         return Number(lData.exempt) || 0;
@@ -679,7 +710,6 @@
       return est < 0.50 ? 0 : est;
     }
 
-    // Helper to group services into Wash, Add-Ons, Discounts, Retail, Chemicals, Equipment, Custom, and Gift Cards
     function groupLocationServices(servicesObj) {
       let grouped = { wash: {}, addons: {}, discounts: {}, retail: {}, chemicals: {}, equipment: {}, custom: {}, gift: {} };
       let counts = { wash: 0, addons: 0, discounts: 0, retail: 0, chemicals: 0, equipment: 0, custom: 0, gift: 0 };
@@ -818,6 +848,7 @@
         currentDashboardData = result.data; 
         renderOverviewFromMemory();
         if (activeTabName === 'txnlog') loadDashTxnLog();
+        else if (activeTabName === 'fleet') loadDashFleetReport();
 
       } catch (err) { 
         console.error(err); 
@@ -844,7 +875,6 @@
 
       const locNames = getFilteredLocationsList(data);
 
-      // Recalculate KPIs dynamically for the selected Location Filter
       let filtGross = 0, filtNet = 0, filtTax = 0, filtCars = 0;
       locNames.forEach(l => {
         let ld = data.locations[l];
@@ -897,7 +927,6 @@
           `;
         }
 
-        // Manager Daily Closing Slip Summary Box (Wash Only — Excludes Store)
         let ms = lData.managerSlip || {
           washNet: lData.wash || 0,
           washTax: +((lData.wash || 0) * 0.075).toFixed(2),
@@ -1510,16 +1539,205 @@
       document.getElementById('view-' + tabName).style.display = 'block';
       document.getElementById('tab-' + tabName).classList.add('active');
 
-      // Auto-load tab data if empty
       if (tabName === 'txnlog' && !document.getElementById('dashTxnLogContent').innerHTML.trim()) {
         loadDashTxnLog();
       } else if (tabName === 'ar' && !document.getElementById('arReportContent').innerHTML.trim()) {
         loadARReport();
+      } else if (tabName === 'fleet' && !document.getElementById('dashFleetHistoryContent').innerHTML.trim()) {
+        loadDashFleetReport();
       } else if (tabName === 'payroll' && !document.getElementById('payrollReportContent').innerHTML.trim()) {
         loadPayrollReport();
       } else if (tabName === 'dealers' && !document.getElementById('dealerReportContent').innerHTML.trim()) {
         generateDealerReport();
       }
+    }
+
+    // --- TAB: PREPAID FLEET ACCOUNT (DEANE'S LLC - 50 WASH STATEMENTS) ---
+    async function loadDashFleetReport() {
+      const btn = document.getElementById("btnLoadFleet");
+      if (btn) { btn.innerText = "⏳ Loading..."; btn.disabled = true; }
+      const cardsDiv = document.getElementById("dashFleetSummaryCards");
+      const content = document.getElementById("dashFleetHistoryContent");
+      content.innerHTML = "<p style='color: #6b7280;'>Loading Deane's LLC Prepaid Fleet Account...</p>";
+
+      try {
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({ recordType: "get_fleet_account", accountId: "DEANES-LLC" })
+        });
+        const result = await response.json();
+
+        if (result.status === "success" && result.account) {
+          lastDashFleetAccount = result.account;
+          lastDashFleetHistory = result.history || [];
+
+          const rem = result.account.creditsRemaining;
+          const usedInBatch = Math.max(0, 50 - rem);
+          const remColor = rem <= 5 ? "#dc2626" : "#4f46e5";
+
+          document.getElementById("dashFleetLowBanner").style.display = rem <= 5 ? "block" : "none";
+
+          cardsDiv.innerHTML = `
+            <div style="background: #eef2ff; border: 2px solid #c7d2fe; padding: 16px 24px; border-radius: 12px; min-width: 200px;">
+              <div style="font-size: 11px; color: #4338ca; font-weight: 800; text-transform: uppercase;">CREDITS REMAINING</div>
+              <div style="font-size: 32px; color: ${remColor}; font-weight: 900; margin-top: 4px;">${rem} <span style="font-size: 14px; color: #6b7280; font-weight: 600;">/ 50 Washes</span></div>
+            </div>
+            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 16px 24px; border-radius: 12px; min-width: 190px;">
+              <div style="font-size: 11px; color: #166534; font-weight: 800; text-transform: uppercase;">WASHES USED IN BATCH</div>
+              <div style="font-size: 28px; color: #15803d; font-weight: 900; margin-top: 4px;">${usedInBatch} <span style="font-size: 13px; color: #6b7280; font-weight: 600;">($${(usedInBatch * 25).toFixed(2)})</span></div>
+            </div>
+            <div style="background: #f9fafb; border: 1px solid #e5e7eb; padding: 16px 24px; border-radius: 12px; min-width: 170px;">
+              <div style="font-size: 11px; color: #4b5563; font-weight: 800; text-transform: uppercase;">ACTIVE BATCH</div>
+              <div style="font-size: 26px; color: #111827; font-weight: 900; margin-top: 4px;">Batch #${result.account.batchNumber}</div>
+            </div>
+            <div style="background: #f9fafb; border: 1px solid #e5e7eb; padding: 16px 24px; border-radius: 12px; min-width: 220px;">
+              <div style="font-size: 11px; color: #4b5563; font-weight: 800; text-transform: uppercase;">CLIENT CONTACT</div>
+              <div style="font-size: 16px; color: #111827; font-weight: 800; margin-top: 6px;">${result.account.contactName}</div>
+              <div style="font-size: 14px; color: #2563eb; font-weight: 700;">📞 ${result.account.phone}</div>
+            </div>
+          `;
+
+          if (lastDashFleetHistory.length === 0) {
+            content.innerHTML = `<p style="padding: 20px; background: #f9fafb; border-radius: 10px; color: #6b7280; font-weight: 600;">No washes logged in Batch #${result.account.batchNumber} yet. Current Balance: <strong>${rem} of 50 credits remaining</strong>.</p>`;
+          } else {
+            let tableHtml = `<table class="data-table">
+              <tr>
+                <th>Wash # in Batch</th>
+                <th>Date & Time</th>
+                <th>Location</th>
+                <th>Order ID</th>
+                <th>Vehicle / Plate</th>
+                <th>Service</th>
+                <th>Attendant</th>
+                <th>Credits Left</th>
+              </tr>`;
+            lastDashFleetHistory.slice().reverse().forEach(h => {
+              tableHtml += `<tr>
+                <td style="font-weight: 800; color: #4f46e5;">${h.washNum}</td>
+                <td>${h.date}</td>
+                <td>${String(h.location || "").replace("Location ", "Loc ")}</td>
+                <td style="font-weight: 700;">${h.orderId}</td>
+                <td style="font-weight: 800;">${h.vehicle}</td>
+                <td>${h.services}</td>
+                <td>${h.attendant}</td>
+                <td style="font-weight: 900; font-size: 15px; color: ${h.remaining <= 5 ? '#dc2626' : '#111827'};">${h.remaining}</td>
+              </tr>`;
+            });
+            content.innerHTML = tableHtml + "</table>";
+          }
+        } else {
+          content.innerHTML = `<p style="color: #ef4444;">Error: ${result.message}</p>`;
+        }
+      } catch (err) {
+        content.innerHTML = `<p style="color: #ef4444;">Network Error loading Fleet Account.</p>`;
+      }
+      if (btn) { btn.innerText = "🔄 Refresh Fleet Balance"; btn.disabled = false; }
+    }
+
+    async function promptDashFleetReload() {
+      const method = prompt("➕ RELOAD +50 WASHES FOR DEANE'S LLC ($1,250.00 + $93.75 Tax = $1,343.75):\n\nEnter Payment Method (Cash, Check, or Credit Card):", "Check");
+      if (!method || !method.trim()) return;
+
+      if (!confirm(`Confirm logging a +50 Wash Reload ($1,343.75 via ${method.trim()}) under Location 2 - Columbus for Deane's LLC?`)) return;
+
+      try {
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({
+            recordType: "reload_fleet_account",
+            location: "Location 2 - Columbus",
+            accountId: "DEANES-LLC",
+            creditsToAdd: 50,
+            paymentType: method.trim(),
+            tipAmount: 0,
+            attendant: "Owner Dashboard"
+          })
+        });
+        const result = await response.json();
+        if (result.status === "success") {
+          alert(`🎉 Reloaded +50 Washes for ${result.companyName}!\n\nNew Balance: ${result.newCredits} Washes (Batch #${result.newBatch})`);
+          loadDashFleetReport();
+          fetchData();
+        } else {
+          alert("❌ Error: " + result.message);
+        }
+      } catch (err) {
+        alert("Network Error reloading Fleet Account.");
+      }
+    }
+
+    function printDashFleetStatement() {
+      if (!lastDashFleetAccount) {
+        alert("Please click 'Refresh Fleet Balance' first.");
+        return;
+      }
+
+      let rowsHtml = "";
+      if (lastDashFleetHistory.length === 0) {
+        rowsHtml = `<p style="padding: 15px; border: 1px solid #ccc; text-align: center;">No washes recorded in Batch #${lastDashFleetAccount.batchNumber} yet. Current Balance: <strong>${lastDashFleetAccount.creditsRemaining} of 50 credits remaining</strong>.</p>`;
+      } else {
+        rowsHtml = `<table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+          <thead>
+            <tr style="border-bottom: 2px solid #111827; background: #f3f4f6;">
+              <th style="padding: 8px;">Wash #</th>
+              <th style="padding: 8px;">Date & Time</th>
+              <th style="padding: 8px;">Order ID</th>
+              <th style="padding: 8px;">Vehicle / Plate</th>
+              <th style="padding: 8px;">Service</th>
+              <th style="padding: 8px; text-align: right;">Credits Left</th>
+            </tr>
+          </thead>
+          <tbody>`;
+        lastDashFleetHistory.forEach(h => {
+          rowsHtml += `<tr style="border-bottom: 1px solid #e5e7eb;">
+            <td style="padding: 8px; font-weight: bold;">${h.washNum}</td>
+            <td style="padding: 8px;">${h.date}</td>
+            <td style="padding: 8px;">${h.orderId}</td>
+            <td style="padding: 8px; font-weight: bold;">${h.vehicle}</td>
+            <td style="padding: 8px;">${h.services}</td>
+            <td style="padding: 8px; text-align: right; font-weight: bold;">${h.remaining}</td>
+          </tr>`;
+        });
+        rowsHtml += `</tbody></table>`;
+      }
+
+      const stmtHtml = `
+        <div style="font-family: Arial, sans-serif; color: #111827;">
+          <h2 style="text-align: center; margin-bottom: 2px; font-size: 24px;">A Plus Car Wash & Detailing Inc.</h2>
+          <p style="text-align: center; margin-top: 0; color: #555; font-size: 14px;">3204 W Columbus Dr, Tampa, FL 33607 (Location 2 - Columbus)</p>
+          <hr style="border: 1px solid #111827; margin: 16px 0;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; font-size: 14px;">
+            <div>
+              <strong style="font-size: 17px;">PREPAID 50-WASH FLEET STATEMENT</strong><br>
+              <strong>Client:</strong> ${lastDashFleetAccount.companyName} (${lastDashFleetAccount.contactName})<br>
+              <strong>Phone:</strong> ${lastDashFleetAccount.phone}
+            </div>
+            <div style="text-align: right;">
+              <strong>Statement Date:</strong> ${new Date().toLocaleString()}<br>
+              <strong>Batch #:</strong> ${lastDashFleetAccount.batchNumber}<br>
+              <strong style="font-size: 16px;">Credits Remaining: ${lastDashFleetAccount.creditsRemaining} / 50</strong>
+            </div>
+          </div>
+          ${rowsHtml}
+          <p style="margin-top: 35px; text-align: center; font-style: italic; font-size: 13px;">Thank you for your business!</p>
+        </div>
+      `;
+
+      document.getElementById("fleetStatementReportView").innerHTML = stmtHtml;
+      document.body.classList.add("print-fleet-stmt");
+      window.print();
+      setTimeout(() => { document.body.classList.remove("print-fleet-stmt"); }, 500);
+    }
+
+    function exportFleetCSV() {
+      if (!lastDashFleetAccount) return alert("Load the Prepaid Fleet tab first before exporting.");
+      let rows = [["Batch #", "Wash # in Batch", "Date & Time", "Location", "Order ID", "Vehicle / Plate", "Services", "Attendant", "Credits Remaining"]];
+      lastDashFleetHistory.forEach(h => {
+        rows.push([lastDashFleetAccount.batchNumber, h.washNum, h.date, h.location, h.orderId, h.vehicle, h.services, h.attendant, h.remaining]);
+      });
+      downloadCSVFile(`Deanes_LLC_Fleet_Statement_Batch_${lastDashFleetAccount.batchNumber}.csv`, rows);
     }
 
     // --- TAB: COMPLETE CHRONOLOGICAL TRANSACTION LOG ---
@@ -1638,7 +1856,7 @@
           content.innerHTML = `<p style='color: #ef4444;'>Error: ${result.message}</p>`;
         }
       } catch (err) {
-        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v10.1 is deployed as a New Version.</p>";
+        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v10.2 is deployed as a New Version.</p>";
       }
       if (btn) { btn.innerText = "🔄 Load Transaction Log"; btn.disabled = false; }
     }
@@ -1663,7 +1881,7 @@
 
         if (result.status === "success") {
           lastARData = result.invoices || [];
-          window.currentSearchResults = lastARData; // Allows printSearchedInvoice & openDashPayPending to work seamlessly!
+          window.currentSearchResults = lastARData;
 
           let cardsHtml = `<div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
             <div style="background: #fef2f2; border: 2px solid #fecaca; padding: 16px 22px; border-radius: 12px; min-width: 220px;">
@@ -1710,7 +1928,7 @@
           content.innerHTML = `<p style='color: #ef4444;'>Error: ${result.message}</p>`;
         }
       } catch (err) {
-        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v10.1 is deployed.</p>";
+        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v10.2 is deployed.</p>";
       }
       btn.innerText = "🔄 Refresh Unpaid Bills"; btn.disabled = false;
     }
@@ -1740,7 +1958,6 @@
           const empTotals = result.empTotals || {};
           const empNames = Object.keys(empTotals).sort();
 
-          // Populate Employee Roster datalist for the Manual Timeclock modal
           const rosterArr = (result.roster && result.roster.length > 0) ? result.roster : empNames;
           const dl = document.getElementById("dashRosterList");
           if (dl && rosterArr.length > 0) {
@@ -1788,7 +2005,7 @@
           content.innerHTML = `<p style='color: #ef4444;'>Error: ${result.message}</p>`;
         }
       } catch (err) {
-        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v10.1 is deployed.</p>";
+        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v10.2 is deployed.</p>";
       }
       btn.innerText = "🔄 Calculate Hours"; btn.disabled = false;
     }
@@ -2060,7 +2277,6 @@
       dashStagedItems = [];
       renderDashStagedVehicles();
 
-      // Populate Exempt Dealers dropdown if loaded
       const dealerSel = document.getElementById("dashInvDealerSelect");
       if (currentDashboardData && currentDashboardData.dealers && dealerSel.options.length <= 1) {
         dealerSel.innerHTML = '<option value="">-- Select Exempt Dealer --</option>' +
@@ -2077,7 +2293,6 @@
       const [srvName, basePriceStr] = val.split("|");
       let price = parseFloat(basePriceStr) || 0;
 
-      // Apply dealer discount automatically if a Tax Exempt Dealer is selected
       const isExempt = document.getElementById("dashInvExemptCheck").checked;
       const dealerSel = document.getElementById("dashInvDealerSelect");
       if (isExempt && dealerSel.selectedIndex > 0) {
@@ -2176,7 +2391,6 @@
       const paymentType = document.getElementById("dashInvPaymentType").value;
       const pin = document.getElementById("adminPin").value.trim();
 
-      // Combine all staged vehicles + any current vehicle/service in the inputs
       let allServices = dashStagedItems.map(it => it.service);
       let allVehicles = dashStagedItems.map(it => it.vehicle);
       if (currService) {
@@ -2301,7 +2515,6 @@
 
       let squareTip = 0;
 
-      // 1. If Credit Card is selected, wake up that location's Square Terminal
       if (method === "Credit Card") {
         const cleanTotal = parseFloat(String(activeDashPendingTxn.total).replace(/[^0-9.-]+/g, "")) || 0;
         const cleanSub = parseFloat(String(activeDashPendingTxn.subtotal).replace(/[^0-9.-]+/g, "")) || cleanTotal;
@@ -2382,7 +2595,6 @@
         }
       }
 
-      // 2. Mark the Pending Invoice as Paid in Google Sheets & Auto-Print PAID Watermarked Invoice
       try {
         const response = await fetch(GOOGLE_SCRIPT_URL, {
           method: "POST",
@@ -2605,7 +2817,6 @@
       const pMethod = String(transaction.paymentType || "N/A").trim();
       document.getElementById("invPaymentMethod").innerText = pMethod === "Pending" ? "Pending (Bill Later — UNPAID)" : pMethod;
 
-      // Show diagonal PAID watermark whenever the invoice is not an unpaid Pending ticket
       const paidWatermark = document.getElementById("invPaidWatermark");
       if (paidWatermark) {
         paidWatermark.style.display = (pMethod === "Pending") ? "none" : "block";
