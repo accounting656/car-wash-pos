@@ -201,7 +201,7 @@
     </div>
     <div id="systemStatus">🟢 System Initializing...</div>
     <button onclick="forceAppUpdate()" style="margin-top: 15px; background: rgba(255,255,255,0.08); color: #9ca3af; border: 1px solid rgba(255,255,255,0.15); padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;">🔄 Update App</button>
-    <div id="appVersionBadge" style="margin-top: 12px; font-size: 12px; font-weight: 700; color: #60a5fa; background: rgba(37,99,235,0.15); border: 1px solid rgba(96,165,250,0.3); padding: 4px 12px; border-radius: 20px; letter-spacing: 0.5px;">WashOS v10.2</div>
+    <div id="appVersionBadge" style="margin-top: 12px; font-size: 12px; font-weight: 700; color: #60a5fa; background: rgba(37,99,235,0.15); border: 1px solid rgba(96,165,250,0.3); padding: 4px 12px; border-radius: 20px; letter-spacing: 0.5px;">WashOS v10.3</div>
   </div>
 
   <!-- PAYMENT MODAL -->
@@ -209,7 +209,7 @@
     <div class="modal-box" style="max-height: 92vh; overflow-y: auto;">
       <h2>Select Payment Method</h2>
       <button id="gcBtn" onclick="redeemGiftCard()" style="width: 100%; padding: 14px; background: #f59e0b; color: white; border: none; border-radius: 10px; font-size: 16px; margin-bottom: 10px; cursor: pointer; font-weight: bold;">🎁 Redeem Gift Card</button>
-      <button onclick="openFleetModal(true)" style="width: 100%; padding: 14px; background: #4f46e5; color: white; border: none; border-radius: 10px; font-size: 16px; margin-bottom: 12px; cursor: pointer; font-weight: bold;">🎟️ Prepaid Fleet Account (Deane's LLC)</button>
+      <button id="payModalFleetBtn" onclick="openFleetModal(true)" style="display: none; width: 100%; padding: 14px; background: #4f46e5; color: white; border: none; border-radius: 10px; font-size: 16px; margin-bottom: 12px; cursor: pointer; font-weight: bold;">🎟️ Prepaid Fleet Account (Deane's LLC)</button>
       <button class="modal-btn" onclick="openCashCalculator()">💵 Cash</button>
       
       <div style="margin-bottom: 15px;">
@@ -225,7 +225,7 @@
     </div>
   </div>
 
-  <!-- PREPAID FLEET ACCOUNT MODAL (DEANE'S LLC) -->
+  <!-- PREPAID FLEET ACCOUNT MODAL (DEANE'S LLC - COLUMBUS ONLY) -->
   <div id="fleetModalOverlay" class="modal-overlay">
     <div class="modal-box" style="max-width: 580px; width: 95%; max-height: 90vh; overflow-y: auto;">
       <h2 style="color: #4f46e5; margin-bottom: 6px;">🎟️ Prepaid Fleet Account</h2>
@@ -253,10 +253,10 @@
         </div>
       </div>
 
-      <!-- REDEEM SECTION (SHOWN WHEN TICKET HAS ITEMS) -->
+      <!-- REDEEM SECTION (ALWAYS AVAILABLE IN COLUMBUS CUSTOM MENU) -->
       <div id="fleetRedeemBox" style="background: #f0fdf4; border: 2px solid #4ade80; padding: 14px; border-radius: 14px; margin-bottom: 16px;">
         <div style="font-size: 14px; font-weight: 800; color: #166534; margin-bottom: 8px;" id="fleetRedeemSummaryText">
-          Redeem 1 Wash Credit for Current Ticket
+          Redeem 1 Wash Credit ($25.00 Regular Service)
         </div>
         <button class="modal-btn clock-in-btn" style="margin-bottom: 0; font-size: 16px;" onclick="submitFleetRedemption()" id="btnConfirmFleetRedeem">
           ✅ Redeem Wash Credit & Print Receipt
@@ -804,7 +804,7 @@
       <div style="display: flex; gap: 15px; align-items: center;">
         <img src="logo.png" alt="A+ Logo" style="height: 100px; border-radius: 8px; object-fit: contain;">
         <h2 class="header-title">A+ WashOS</h2>
-        <span style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 4px 10px; border-radius: 14px; font-size: 11px; font-weight: 800;">v10.2</span>
+        <span style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 4px 10px; border-radius: 14px; font-size: 11px; font-weight: 800;">v10.3</span>
         <button id="backBtn" style="display:none; background: #e5e7eb; color: #374151; border: none; padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;" onclick="clearVehicleType()">⬅ Back</button>
       </div>
       <div class="controls">
@@ -819,7 +819,6 @@
           👤 <span id="currentAttendantName">None</span>
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
             <button id="eodBtn" class="header-btn" style="background: #8b5cf6; color: white; display: none;" onclick="openEODModal()">📈 End of Day</button>
-            <button class="header-btn" style="background: #e0e7ff; color: #4338ca; border: 1px solid #a5b4fc;" onclick="openFleetModal(false)">🎟️ Fleet (Deane's)</button>
             <button id="addCustomerBtn" class="header-btn" style="background: #fce7f3; color: #be185d;" onclick="document.getElementById('customerModalOverlay').style.display='flex'">👤 Add Customer</button>
             <button class="header-btn" style="background: #e0f2fe; color: #0369a1;" onclick="window.open('dashboard.html', '_blank')">📊 Dashboard</button>
             <button class="header-btn timeclock-btn" onclick="openTimeclock()">🕒 Timeclock</button>
@@ -899,7 +898,6 @@
         <option value="Toyota">Toyota</option>
         <option value="Volkswagen">Volkswagen</option>
         <option value="Volvo">Volvo</option>
-        <option value="Other">Other...</option>
         <option value="Other">Other...</option>
       </select>
       <input type="text" id="vehiclePlate" class="input-field" placeholder="🚗 License Plate (e.g. ABC-123)">
@@ -1209,7 +1207,7 @@
   }
 
   // =====================================================================
-  // --- PREPAID FLEET ACCOUNT LOGIC (DEANE'S LLC - 50 WASH PACKS) ---
+  // --- PREPAID FLEET ACCOUNT LOGIC (DEANE'S LLC - COLUMBUS ONLY) ---
   // =====================================================================
   function countWashCarsInCart() {
     let c = 0;
@@ -1228,21 +1226,29 @@
         c++;
       }
     });
-    return Math.max(1, c);
+    if (c === 0) {
+      return Math.max(1, stagedVehiclesList.length + 1);
+    }
+    return c;
   }
 
   async function openFleetModal(fromCheckout = false) {
+    const activeLoc = document.getElementById("locationSelect").value;
+    if (activeLoc !== "Location 2 - Columbus") {
+      return alert("The Deane's LLC Prepaid Fleet Account is only available at Location 2 - Columbus.");
+    }
+
     document.getElementById("paymentModalOverlay").style.display = "none";
     document.getElementById("fleetReloadPaymentBox").style.display = "none";
     document.getElementById("fleetModalOverlay").style.display = "flex";
 
     const redeemBox = document.getElementById("fleetRedeemBox");
+    const carsCount = countWashCarsInCart();
+    redeemBox.style.display = "block";
     if (cart.length > 0) {
-      const carsCount = countWashCarsInCart();
-      redeemBox.style.display = "block";
       document.getElementById("fleetRedeemSummaryText").innerText = `Ticket Ready: Redeem ${carsCount} Prepaid Wash Credit${carsCount > 1 ? 's' : ''} ($${(carsCount * 25).toFixed(2)} Commission Value)`;
     } else {
-      redeemBox.style.display = "none";
+      document.getElementById("fleetRedeemSummaryText").innerText = `Redeem ${carsCount} Prepaid Wash Credit${carsCount > 1 ? 's' : ''} ($25.00 Regular Wash Service)`;
     }
 
     await refreshFleetAccountData();
@@ -1314,16 +1320,16 @@
   }
 
   async function submitFleetRedemption() {
-    if (cart.length === 0) return alert("Add the vehicle and wash service to the ticket first.");
     const combinedVehicles = getCombinedVehiclesString();
     if (combinedVehicles === "N/A") {
-      if (!confirm("No Vehicle Make or License Plate was entered. Continue redeeming Fleet Credit anyway?")) return;
+      if (!confirm("No Vehicle Make or License Plate was entered in the ticket panel. Continue redeeming Fleet Credit anyway?")) return;
     }
 
     const carsCount = countWashCarsInCart();
     const location = document.getElementById("locationSelect").value;
     const orderId = "ORD-FLT" + Math.floor(100000 + Math.random() * 900000);
-    const servicesStr = cart.map(item => item.name).join(", ");
+    const defaultServicesStr = Array(carsCount).fill("Car - Interior and Exterior").join(", ");
+    const servicesStr = cart.length > 0 ? cart.map(item => item.name).join(", ") : defaultServicesStr;
     const rawNotes = document.getElementById("orderNotes").value.trim();
 
     const btn = document.getElementById("btnConfirmFleetRedeem");
@@ -1350,7 +1356,6 @@
       const result = await response.json();
 
       if (result.status === "success") {
-        // Trigger bold 5-wash low balance reminder popup!
         if (result.lowBalanceAlert) {
           alert(`⚠️ LOW FLEET CREDIT ALERT — ONLY ${result.creditsRemaining} WASH(ES) LEFT!\n\nCustomer: ${result.companyName} (${result.contactName})\nPhone: ${result.phone}\n\n📞 Please call Deane Perez at ${result.phone} right away to remind him to reload 50 more washes, and print his 50-Wash Statement!`);
         } else {
@@ -1578,7 +1583,6 @@
 
     let pMethod = (transaction.paymentMethod || transaction.paymentType || "Credit / Square").toString().trim(); 
 
-    // Show diagonal PAID watermark whenever the invoice is not an unpaid Pending ticket
     const paidWatermark = document.getElementById("invPaidWatermark");
     if (paidWatermark) {
       paidWatermark.style.display = (pMethod === 'Pending') ? "none" : "block";
@@ -1809,7 +1813,10 @@
     checkForSilentUpdate();
   }
 
-  function saveTabletLocation() { localStorage.setItem("washos_location", document.getElementById("locationSelect").value); }
+  function saveTabletLocation() {
+    localStorage.setItem("washos_location", document.getElementById("locationSelect").value);
+    renderMenu();
+  }
   function loadTabletLocation() { const savedLoc = localStorage.getItem("washos_location"); if(savedLoc) { document.getElementById("locationSelect").value = savedLoc; } }
   function addColor(colorStr) { const input = document.getElementById("vehiclePlate"); input.value = input.value ? colorStr + " " + input.value : colorStr + " "; }
 
@@ -2159,8 +2166,21 @@
       `;
     } else if (selectedVehicleType === 'Custom') {
       backBtn.style.display = "inline-block";
+      const isColumbus = document.getElementById("locationSelect").value === "Location 2 - Columbus";
+      const columbusFleetSection = isColumbus ? `
+        <div style="background: #eef2ff; border: 2px solid #6366f1; padding: 20px; border-radius: 16px; margin-bottom: 24px; text-align: center;">
+          <div style="font-size: 12px; font-weight: 800; color: #4338ca; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">📍 Columbus Exclusive • Prepaid Fleet Account</div>
+          <h3 style="margin-bottom: 6px; font-size: 22px; color: #1e1b4b;">🎟️ Deane's LLC (Deane Perez • 518-892-5616)</h3>
+          <p style="color: #4b5563; font-size: 14px; margin-bottom: 14px;">Enter the vehicle's Make, Color & License Plate on the right, then tap below to redeem a prepaid $25 Regular Service wash credit, print a 50-wash statement, or reload 50 washes.</p>
+          <button onclick="openFleetModal(false)" style="width: 100%; max-width: 440px; padding: 16px; background: #4f46e5; color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 10px rgba(79,70,229,0.3);">
+            🎟️ Open Deane's LLC Fleet Account (Redeem / Statement / Reload)
+          </button>
+        </div>
+      ` : "";
+
       grid.innerHTML = `
         <div style="grid-column: 1 / -1; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); text-align: center;">
+          ${columbusFleetSection}
           <div style="background: #fef2f2; border: 2px solid #f87171; color: #991b1b; padding: 14px 18px; border-radius: 12px; margin-bottom: 20px; text-align: left; font-size: 14px; line-height: 1.5;">
             <strong style="font-size: 15px;">⚠️ STOP! DO NOT USE FOR REGULAR CARS, SUVs, VANS, OR TRUCKS:</strong><br>
             Using Custom Pricing prevents the vehicle and service from being counted properly on the End of Day report.<br>
@@ -2371,6 +2391,10 @@
       gcBtn.innerText = "🎁 Redeem Gift Card";
       gcBtn.style.background = "#f59e0b";
       gcBtn.disabled = false;
+    }
+    const fleetBtn = document.getElementById("payModalFleetBtn");
+    if (fleetBtn) {
+      fleetBtn.style.display = (document.getElementById("locationSelect").value === "Location 2 - Columbus") ? "block" : "none";
     }
     if (cart.length === 0) return alert("Add a service first.");
     if (isTaxExempt && !selectedDealer) return alert("Select an Exempt Dealer.");
@@ -2626,7 +2650,7 @@
     let shouldPrint = false;
     
     if (hasGiftCard || selectedPaymentType === 'Pending') {
-      shouldPrint = true; // Automatically pop up printer for Gift Cards AND Pending / Bill Later!
+      shouldPrint = true;
     } else if (selectedPaymentType === 'Cash' || appliedGcCode || (splitOpts && splitOpts.isSplitPayment)) {
       shouldPrint = confirm("Does the customer want a printed receipt?");
     }
@@ -3111,7 +3135,6 @@
           }
           document.getElementById("mgrSlipEmployeesGrid").innerHTML = empGridHTML;
 
-          // Toggle whether Page 1 (Accounting) is shown or if Manager Slip Only was requested
           const accPage = document.getElementById("eodAccountingPageSection");
           const mgrPage = document.getElementById("eodManagerSlipPageSection");
           if (action === 'print_manager_only') {
@@ -3365,7 +3388,6 @@
   // --- ZERO-TOUCH PWA AUTO-UPDATER & CACHE BUSTER ---
   let currentAppSignature = null;
 
-  // 1. Manual button to force-fetch latest code & reload inside Guided Access
   async function forceAppUpdate() {
     const statusDiv = document.getElementById("systemStatus");
     if (statusDiv) statusDiv.innerText = "🔄 Fetching latest update...";
@@ -3387,7 +3409,6 @@
     }
   }
 
-  // 2. Silent background checker: auto-reloads when you push a new GitHub commit!
   async function checkForSilentUpdate() {
     try {
       const cleanUrl = window.location.origin + window.location.pathname;
