@@ -7,7 +7,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     .dash-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #e5e7eb; padding-bottom: 15px; flex-wrap: wrap; }
-    .tab-btn { padding: 10px 18px; font-size: 14px; font-weight: 800; border-radius: 8px; border: none; cursor: pointer; background: #e5e7eb; color: #4b5563; transition: 0.2s; }
+    .tab-btn { padding: 10px 16px; font-size: 13px; font-weight: 800; border-radius: 8px; border: none; cursor: pointer; background: #e5e7eb; color: #4b5563; transition: 0.2s; }
     .tab-btn.active { background: #3b82f6; color: white; box-shadow: 0 4px 6px rgba(59,130,246,0.25); }
     .data-table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
     .data-table th { background: #1f2937; color: white; padding: 12px 15px; text-align: left; font-size: 13px; }
@@ -21,7 +21,7 @@
     #pinOverlay button { padding: 10px 20px; font-size: 18px; font-weight: bold; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; }
     
     #dashboardContent { padding: 30px; display: none; max-width: 1440px; margin: 0 auto; }
-    #taxReportView, #financialReportView, #managerSlipReportView, #fleetStatementReportView { display: none; padding: 40px; background: white; min-height: 100vh; }
+    #taxReportView, #financialReportView, #managerSlipReportView, #fleetStatementReportView, #regCustStatementReportView { display: none; padding: 40px; background: white; min-height: 100vh; }
     
     .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
     
@@ -56,7 +56,7 @@
     .list-item { font-size: 14px; color: #4b5563; border-bottom: 1px solid #f3f4f6; padding: 6px 0; display: flex; justify-content: space-between; }
     .cat-header { background: #e5e7eb; color: #111827; padding: 6px 10px; border-radius: 6px; font-size: 13px; font-weight: 800; margin-top: 10px; margin-bottom: 4px; display: flex; justify-content: space-between; }
 
-    /* Modal Styles for Dashboard Pay Bill, Cash Payout, Cash Tips, Backdated Invoice, Manual Timeclock & Square Terminal */
+    /* Modal Styles */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17,24,39,0.7); backdrop-filter: blur(5px); z-index: 9998; display: none; align-items: center; justify-content: center; }
     .modal-box { background: white; width: 90%; max-width: 420px; border-radius: 24px; padding: 30px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); text-align: center; }
     .modal-box h2 { margin-bottom: 16px; font-size: 24px; color: #111827; font-weight: 800; }
@@ -71,21 +71,22 @@
       body { background: white; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
       .controls-bar, #pinOverlay, .btn-print, .btn-tax, .btn-csv, .dash-tabs, .modal-overlay { display: none !important; }
       
-      body.print-financial #dashboardContent { display: none !important; }
-      body.print-financial #taxReportView, body.print-financial #managerSlipReportView, body.print-financial #fleetStatementReportView { display: none !important; }
+      body.print-financial #dashboardContent, body.print-financial #taxReportView, body.print-financial #managerSlipReportView, body.print-financial #fleetStatementReportView, body.print-financial #regCustStatementReportView { display: none !important; }
       body.print-financial #financialReportView { display: block !important; padding: 0; }
 
-      body.print-tax #dashboardContent { display: none !important; }
-      body.print-tax #financialReportView, body.print-tax #managerSlipReportView, body.print-tax #fleetStatementReportView { display: none !important; }
+      body.print-tax #dashboardContent, body.print-tax #financialReportView, body.print-tax #managerSlipReportView, body.print-tax #fleetStatementReportView, body.print-tax #regCustStatementReportView { display: none !important; }
       body.print-tax #taxReportView { display: block !important; padding: 0; }
 
-      body.print-mgr-slip #dashboardContent, body.print-mgr-slip #financialReportView, body.print-mgr-slip #taxReportView, body.print-mgr-slip #fleetStatementReportView { display: none !important; }
+      body.print-mgr-slip #dashboardContent, body.print-mgr-slip #financialReportView, body.print-mgr-slip #taxReportView, body.print-mgr-slip #fleetStatementReportView, body.print-mgr-slip #regCustStatementReportView { display: none !important; }
       body.print-mgr-slip #managerSlipReportView { display: block !important; padding: 20px; }
 
-      body.print-fleet-stmt #dashboardContent, body.print-fleet-stmt #financialReportView, body.print-fleet-stmt #taxReportView, body.print-fleet-stmt #managerSlipReportView { display: none !important; }
+      body.print-fleet-stmt #dashboardContent, body.print-fleet-stmt #financialReportView, body.print-fleet-stmt #taxReportView, body.print-fleet-stmt #managerSlipReportView, body.print-fleet-stmt #regCustStatementReportView { display: none !important; }
       body.print-fleet-stmt #fleetStatementReportView { display: block !important; padding: 20px; }
+
+      body.print-reg-stmt #dashboardContent, body.print-reg-stmt #financialReportView, body.print-reg-stmt #taxReportView, body.print-reg-stmt #managerSlipReportView, body.print-reg-stmt #fleetStatementReportView { display: none !important; }
+      body.print-reg-stmt #regCustStatementReportView { display: block !important; padding: 20px; }
       
-      body.print-invoice #dashboardContent, body.print-invoice #financialReportView, body.print-invoice #taxReportView, body.print-invoice #managerSlipReportView, body.print-invoice #fleetStatementReportView { display: none !important; }
+      body.print-invoice #dashboardContent, body.print-invoice #financialReportView, body.print-invoice #taxReportView, body.print-invoice #managerSlipReportView, body.print-invoice #fleetStatementReportView, body.print-invoice #regCustStatementReportView { display: none !important; }
       body.print-invoice #printableInvoice { display: block !important; position: absolute; top: 0; left: 0; width: 100%; padding: 40px; }
     }
     #printableInvoice { display: none; background: white; color: black; font-family: Arial, sans-serif; position: relative; }
@@ -98,7 +99,7 @@
     <p style="margin-bottom: 20px; color: #9ca3af;">Enter Admin PIN to view financials.</p>
     <input type="password" id="adminPin" placeholder="****">
     <button onclick="fetchData()">Unlock Dashboard</button>
-    <div style="margin-top: 15px; font-size: 12px; color: #6b7280; font-weight: 600;">Command Center v10.2</div>
+    <div style="margin-top: 15px; font-size: 12px; color: #6b7280; font-weight: 600;">Command Center v10.4</div>
   </div>
 
   <!-- DASHBOARD PAY PENDING INVOICE MODAL -->
@@ -356,7 +357,7 @@
   <div id="dashboardContent">
     <div class="header">
       <h1 style="font-weight: 800; font-size: 30px;" id="reportTitle">📊 Owner Command Center</h1>
-      <span style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 800;">v10.2</span>
+      <span style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 800;">v10.4</span>
     </div>
     
     <!-- TAB NAVIGATION -->
@@ -365,8 +366,9 @@
       <button class="tab-btn" id="tab-txnlog" onclick="switchTab('txnlog')">📋 Transaction Log</button>
       <button class="tab-btn" id="tab-ar" onclick="switchTab('ar')">⏳ Unpaid Bills (A/R)</button>
       <button class="tab-btn" id="tab-fleet" onclick="switchTab('fleet')">🎟️ Prepaid Fleet (Deane's LLC)</button>
-      <button class="tab-btn" id="tab-payroll" onclick="switchTab('payroll')">🕒 Payroll & Hours</button>
+      <button class="tab-btn" id="tab-payroll" onclick="switchTab('payroll')">🕒 Payroll & Roster</button>
       <button class="tab-btn" id="tab-dealers" onclick="switchTab('dealers')">🏢 Tax Exempt Dealers</button>
+      <button class="tab-btn" id="tab-regcust" onclick="switchTab('regcust')">📇 Regular Accounts</button>
       <button class="tab-btn" id="tab-invoices" onclick="switchTab('invoices')">🔍 Invoice Search</button>
     </div>
 
@@ -521,38 +523,125 @@
       </div>
     </div>
 
-    <!-- VIEW 3: PAYROLL & TIMECLOCK HOURS -->
+    <!-- VIEW 3: PAYROLL, TIMECLOCK HOURS & EMPLOYEE ROSTER MANAGEMENT -->
     <div id="view-payroll" class="dash-view" style="display: none;">
-      <div style="background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+      <div style="background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 25px;">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 15px;">
           <div>
             <h2 style="font-size: 22px; color: #111827;">🕒 Employee Timeclock & Payroll Hours</h2>
             <p style="color: #6b7280; font-size: 13px; margin-top: 4px;">Calculates shifts and total hours worked between Clock-In and Clock-Out punches for the selected date range and Location Filter above.</p>
           </div>
           <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn" style="background: #0f766e; color: white;" onclick="toggleEmployeeRosterManager()">👥 Manage Employee Roster & PINs</button>
             <button class="btn" style="background: #4f46e5; color: white;" onclick="openDashTimeclockModal()">➕ Add Manual Punch</button>
             <button class="btn btn-primary" onclick="loadPayrollReport()" id="btnLoadPayroll">🔄 Calculate Hours</button>
             <button class="btn btn-csv" onclick="exportPayrollCSV()">📥 Export Payroll CSV</button>
           </div>
         </div>
+
+        <!-- COLLAPSIBLE EMPLOYEE ROSTER & 4-DIGIT PIN GENERATOR PANEL -->
+        <div id="empRosterManagerBox" style="display: none; background: #f8fafc; border: 2px solid #cbd5e1; border-radius: 14px; padding: 20px; margin-bottom: 20px;">
+          <h3 style="font-size: 18px; color: #0f172a; margin-bottom: 6px;">👥 Employee Roster & Unique 4-Digit PIN Generator</h3>
+          <p style="font-size: 13px; color: #475569; margin-bottom: 14px;">Add new employees or managers with a system-generated, non-duplicate 4-digit PIN, or remove former staff.</p>
+          
+          <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; background: white; padding: 14px; border-radius: 10px; border: 1px solid #e2e8f0;">
+            <input type="text" id="newEmpName" class="date-input" placeholder="👤 Full Employee Name" style="flex: 2; min-width: 180px;">
+            <select id="newEmpRole" class="date-input" style="flex: 1; min-width: 130px; font-weight: 700; cursor: pointer;">
+              <option value="Attendant">Attendant</option>
+              <option value="Manager">Manager (Can Run EOD)</option>
+              <option value="Admin">Admin (All Locations)</option>
+            </select>
+            <input type="text" id="newEmpPin" class="date-input" placeholder="🔢 4-Digit PIN" maxlength="4" style="width: 120px; text-align: center; font-weight: 800; letter-spacing: 2px;">
+            <button class="btn" style="background: #6366f1; color: white;" onclick="generateUniqueEmpPinPreview()">🎲 Auto-Generate Unique PIN</button>
+            <button class="btn btn-primary" onclick="addDashEmployee()" id="btnAddEmp">➕ Add Employee</button>
+          </div>
+
+          <div id="empRosterTableContainer" style="max-height: 280px; overflow-y: auto;">Loading roster...</div>
+        </div>
+
         <div id="payrollReportContent"></div>
       </div>
     </div>
 
-    <!-- VIEW 4: DEALER REPORT -->
+    <!-- VIEW 4: TAX EXEMPT DEALER REPORT & DIRECTORY MANAGER -->
     <div id="view-dealers" class="dash-view" style="display: none;">
       <div style="background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
           <div>
-            <h2 style="font-size: 22px;">🏢 Tax Exempt Dealer Activity</h2>
-            <p style="color: #6b7280; font-size: 13px; margin-top: 4px;">Showing dealer activity for the selected date range and Location Filter above.</p>
+            <h2 style="font-size: 22px;">🏢 Tax Exempt Dealer Activity & Directory</h2>
+            <p style="color: #6b7280; font-size: 13px; margin-top: 4px;">View dealer wash activity for the selected date range, or add/remove Tax-Exempt Dealers on the POS.</p>
           </div>
-          <div style="display: flex; gap: 10px;">
-            <button class="btn btn-primary" onclick="generateDealerReport()" id="btnDealerReport">🔄 Generate Dealer Report</button>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn" style="background: #4f46e5; color: white;" onclick="toggleDealerManagerBox()">🏢 Add / Manage Tax-Exempt Dealers</button>
+            <button class="btn btn-primary" onclick="generateDealerReport()" id="btnDealerReport">🔄 Generate Activity Report</button>
             <button class="btn btn-csv" onclick="exportDealerCSV()">📥 Export Dealer CSV</button>
           </div>
         </div>
+
+        <!-- COLLAPSIBLE TAX-EXEMPT DEALER DIRECTORY MANAGER -->
+        <div id="dealerManagerBox" style="display: none; background: #eff6ff; border: 2px solid #93c5fd; border-radius: 14px; padding: 20px; margin-bottom: 22px;">
+          <h3 style="font-size: 18px; color: #1e3a8a; margin-bottom: 6px;">🏢 Manage Tax-Exempt Dealers (FL Resale Certificates)</h3>
+          <p style="font-size: 13px; color: #475569; margin-bottom: 14px;">Adding or updating a dealer here immediately updates the Tax-Exempt dropdown on all iPad POS terminals.</p>
+
+          <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; background: white; padding: 14px; border-radius: 10px; border: 1px solid #bfdbfe;">
+            <input type="text" id="newDealerName" class="date-input" placeholder="🏢 Dealer / Company Name" style="flex: 2; min-width: 190px;">
+            <input type="text" id="newDealerCert" class="date-input" placeholder="📜 FL Resale Cert # (e.g. 39-801...)" style="flex: 1.5; min-width: 170px;">
+            <input type="number" id="newDealerDisc" class="date-input" placeholder="🏷️ Discount % (e.g. 15)" step="1" min="0" max="100" style="width: 150px;">
+            <input type="text" id="newDealerAddr" class="date-input" placeholder="📍 Billing Address" style="flex: 2; min-width: 200px;">
+            <button class="btn btn-primary" onclick="addDashDealer()" id="btnAddDealer">💾 Save Dealer</button>
+          </div>
+
+          <div id="dealerDirectoryTableContainer" style="max-height: 280px; overflow-y: auto;">Loading dealer directory...</div>
+        </div>
+
         <div id="dealerReportContent"></div>
+      </div>
+    </div>
+
+    <!-- VIEW: REGULAR / COMMERCIAL ACCOUNTS (NON-TAX-EXEMPT WEEKLY CUSTOMERS) -->
+    <div id="view-regcust" class="dash-view" style="display: none;">
+      <div style="background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 18px;">
+          <div>
+            <h2 style="font-size: 22px; color: #166534;">📇 Regular & Commercial Customer Database (Non-Tax-Exempt)</h2>
+            <p style="color: #6b7280; font-size: 13px; margin-top: 4px;">Manage weekly dealers, fleets, and regular customers who do not have a tax exemption and request periodic invoice or statement copies.</p>
+          </div>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn btn-primary" onclick="loadRegularCustomersDirectory()" id="btnLoadRegCust">🔄 Refresh Customer List</button>
+          </div>
+        </div>
+
+        <!-- ADD / UPDATE REGULAR CUSTOMER FORM -->
+        <div style="background: #f0fdf4; border: 1px solid #86efac; padding: 16px; border-radius: 12px; margin-bottom: 20px;">
+          <div style="font-size: 13px; font-weight: 800; color: #166534; margin-bottom: 10px;">➕ ADD OR UPDATE REGULAR ACCOUNT (SYNCS TO POS TICKET DROPDOWN):</div>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+            <input type="text" id="regCustName" class="date-input" placeholder="🏢 Company / Customer Name *" style="flex: 1.5; min-width: 180px;">
+            <input type="text" id="regCustContact" class="date-input" placeholder="👤 Contact Person" style="flex: 1; min-width: 140px;">
+            <input type="text" id="regCustPhone" class="date-input" placeholder="📞 Phone Number" style="flex: 1; min-width: 130px;">
+            <input type="text" id="regCustAddr" class="date-input" placeholder="📍 Address / Email" style="flex: 1.5; min-width: 170px;">
+            <input type="number" id="regCustDisc" class="date-input" placeholder="🏷️ Disc % (0)" step="1" min="0" max="100" style="width: 115px;">
+            <input type="text" id="regCustNotes" class="date-input" placeholder="📝 Default Notes / Plate" style="flex: 1; min-width: 140px;">
+            <button class="btn btn-primary" onclick="saveRegularCustomer()" id="btnSaveRegCust">💾 Save Account</button>
+          </div>
+        </div>
+
+        <div id="regularCustomersTableContainer" style="margin-bottom: 25px;"></div>
+
+        <!-- STATEMENT / INVOICE HISTORY VIEWER FOR SELECTED REGULAR CUSTOMER -->
+        <div id="regCustStatementSection" style="display: none; border-top: 2px dashed #d1d5db; padding-top: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+            <div>
+              <h3 style="font-size: 19px; color: #111827;">📜 Account Statement: <span id="regStmtTitleName" style="color: #2563eb;"></span></h3>
+              <p style="font-size: 12px; color: #6b7280;">Showing all washes matching this account for the Start/End Date & Location Filter selected above.</p>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn" style="background: #2563eb; color: white;" onclick="printRegCustomerStatement()">🖨️ Print Account Statement</button>
+              <button class="btn btn-csv" onclick="exportRegCustomerStatementCSV()">📥 Export Statement CSV</button>
+            </div>
+          </div>
+          <div id="regCustStatementSummary" style="display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 15px;"></div>
+          <div id="regCustStatementTable"></div>
+        </div>
       </div>
     </div>
 
@@ -584,6 +673,7 @@
   <div id="taxReportView"></div>
   <div id="managerSlipReportView"></div>
   <div id="fleetStatementReportView"></div>
+  <div id="regCustStatementReportView"></div>
 
   <!-- THE HIDDEN PRINTABLE INVOICE -->
   <div id="printableInvoice">
@@ -622,7 +712,11 @@
     let activeTabName = 'overview';
     let lastARData = [];
     let lastPayrollShifts = [];
+    let lastEmployeeRoster = [];
     let lastDealerTxns = [];
+    let lastDealerDirectory = [];
+    let lastRegularCustomers = [];
+    let activeRegCustomerStmt = null;
     let lastTxnLogRows = [];
     let dashStagedItems = [];
     let lastDashFleetAccount = null;
@@ -653,7 +747,6 @@
       let end = new Date(now);
 
       if (preset === 'today') {
-        // today
       } else if (preset === 'yesterday') {
         start.setDate(now.getDate() - 1);
         end.setDate(now.getDate() - 1);
@@ -675,6 +768,7 @@
       else if (activeTabName === 'txnlog') loadDashTxnLog();
       else if (activeTabName === 'payroll') loadPayrollReport();
       else if (activeTabName === 'dealers') generateDealerReport();
+      else if (activeTabName === 'regcust' && activeRegCustomerStmt) pullRegularCustomerStatement(activeRegCustomerStmt.customerName);
     }
 
     function getFilteredLocationsList(dataObj) {
@@ -697,6 +791,8 @@
         loadPayrollReport();
       } else if (activeTabName === 'dealers') {
         generateDealerReport();
+      } else if (activeTabName === 'regcust' && activeRegCustomerStmt) {
+        pullRegularCustomerStatement(activeRegCustomerStmt.customerName);
       } else if (activeTabName === 'invoices') {
         searchGlobalInvoices();
       }
@@ -846,9 +942,11 @@
         document.getElementById('pinOverlay').style.display = 'none';
         document.getElementById('dashboardContent').style.display = 'block';
         currentDashboardData = result.data; 
+        lastDealerDirectory = result.data.dealers || [];
         renderOverviewFromMemory();
         if (activeTabName === 'txnlog') loadDashTxnLog();
         else if (activeTabName === 'fleet') loadDashFleetReport();
+        else if (activeTabName === 'regcust') loadRegularCustomersDirectory();
 
       } catch (err) { 
         console.error(err); 
@@ -1549,7 +1647,643 @@
         loadPayrollReport();
       } else if (tabName === 'dealers' && !document.getElementById('dealerReportContent').innerHTML.trim()) {
         generateDealerReport();
+      } else if (tabName === 'regcust' && !document.getElementById('regularCustomersTableContainer').innerHTML.trim()) {
+        loadRegularCustomersDirectory();
       }
+    }
+
+    // =====================================================================
+    // --- EMPLOYEE ROSTER & COLLISION-FREE 4-DIGIT PIN GENERATOR ---
+    // =====================================================================
+    function toggleEmployeeRosterManager() {
+      const box = document.getElementById("empRosterManagerBox");
+      if (box.style.display === "none") {
+        box.style.display = "block";
+        loadEmployeeRosterDirectory();
+      } else {
+        box.style.display = "none";
+      }
+    }
+
+    function generateUniqueEmpPinPreview() {
+      const usedSet = new Set(lastEmployeeRoster.map(e => String(e.pin).trim()));
+      const adminPinVal = String(document.getElementById("adminPin").value || "").trim();
+      if (adminPinVal) usedSet.add(adminPinVal);
+
+      let candidate = "";
+      let attempts = 0;
+      do {
+        candidate = String(Math.floor(1000 + Math.random() * 9000));
+        attempts++;
+      } while (usedSet.has(candidate) && attempts < 500);
+
+      document.getElementById("newEmpPin").value = candidate;
+    }
+
+    async function loadEmployeeRosterDirectory() {
+      const container = document.getElementById("empRosterTableContainer");
+      container.innerHTML = "<p style='color:#6b7280;'>Loading Employee Roster...</p>";
+      try {
+        const res = await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({
+            recordType: "admin_manage_employees",
+            subAction: "list",
+            pin: document.getElementById("adminPin").value
+          })
+        });
+        const result = await res.json();
+        if (result.status === "success") {
+          lastEmployeeRoster = result.employees || [];
+          renderEmployeeRosterTable();
+          generateUniqueEmpPinPreview();
+        } else {
+          container.innerHTML = `<p style='color:#ef4444;'>Error: ${result.message}</p>`;
+        }
+      } catch (err) {
+        container.innerHTML = "<p style='color:#ef4444;'>Network error loading employee roster.</p>";
+      }
+    }
+
+    function renderEmployeeRosterTable() {
+      const container = document.getElementById("empRosterTableContainer");
+      if (lastEmployeeRoster.length === 0) {
+        container.innerHTML = "<p style='color:#6b7280;'>No employees found in roster.</p>";
+        return;
+      }
+
+      let html = `<table class="data-table">
+        <tr>
+          <th>Employee Name</th>
+          <th>Role / Access Level</th>
+          <th>4-Digit POS PIN</th>
+          <th style="text-align:right;">Action</th>
+        </tr>`;
+      lastEmployeeRoster.forEach(emp => {
+        let roleBadge = emp.role === "Admin" ? "#dbeafe; color:#1e40af;" : (emp.role === "Manager" ? "#f3e8ff; color:#6b21a8;" : "#f3f4f6; color:#374151;");
+        html += `<tr>
+          <td style="font-weight:800;">👤 ${emp.name}</td>
+          <td><span style="padding:4px 8px; border-radius:6px; font-size:12px; font-weight:700; background:${roleBadge}">${emp.role}</span></td>
+          <td style="font-family:monospace; font-size:16px; font-weight:900; color:#2563eb; letter-spacing:2px;">${emp.pin}</td>
+          <td style="text-align:right;">
+            <button class="btn" style="padding:5px 10px; font-size:11px; background:#fee2e2; color:#b91c1c;" onclick="deleteDashEmployee('${emp.pin}', '${emp.name.replace(/'/g, "\\'")}')">🗑️ Remove</button>
+          </td>
+        </tr>`;
+      });
+      container.innerHTML = html + "</table>";
+    }
+
+    async function addDashEmployee() {
+      const name = document.getElementById("newEmpName").value.trim();
+      const role = document.getElementById("newEmpRole").value;
+      const pinVal = document.getElementById("newEmpPin").value.trim();
+
+      if (!name) return alert("Please enter the Employee Name.");
+
+      const btn = document.getElementById("btnAddEmp");
+      btn.innerText = "⏳ Saving...";
+      btn.disabled = true;
+
+      try {
+        const res = await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({
+            recordType: "admin_manage_employees",
+            subAction: "add",
+            employeeName: name,
+            role: role,
+            assignedPin: pinVal,
+            pin: document.getElementById("adminPin").value
+          })
+        });
+        const result = await res.json();
+        if (result.status === "success") {
+          lastEmployeeRoster = result.employees || [];
+          const addedEmp = lastEmployeeRoster.find(e => e.name.toLowerCase() === name.toLowerCase());
+          alert(`✅ Added ${name} (${role})!\n\nAssigned 4-Digit POS PIN: ${addedEmp ? addedEmp.pin : pinVal}`);
+          document.getElementById("newEmpName").value = "";
+          renderEmployeeRosterTable();
+          generateUniqueEmpPinPreview();
+        } else {
+          alert("❌ Error: " + result.message);
+        }
+      } catch (err) {
+        alert("Network error adding employee.");
+      }
+      btn.innerText = "➕ Add Employee";
+      btn.disabled = false;
+    }
+
+    async function deleteDashEmployee(targetPin, targetName) {
+      if (!confirm(`Are you sure you want to remove ${targetName} (PIN: ${targetPin}) from the Employee Roster?`)) return;
+      try {
+        const res = await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({
+            recordType: "admin_manage_employees",
+            subAction: "delete",
+            targetPin: targetPin,
+            targetName: targetName,
+            pin: document.getElementById("adminPin").value
+          })
+        });
+        const result = await res.json();
+        if (result.status === "success") {
+          lastEmployeeRoster = result.employees || [];
+          renderEmployeeRosterTable();
+        } else {
+          alert("❌ Error: " + result.message);
+        }
+      } catch (err) {
+        alert("Network error removing employee.");
+      }
+    }
+
+    // =====================================================================
+    // --- TAX-EXEMPT DEALER DIRECTORY MANAGER ---
+    // =====================================================================
+    function toggleDealerManagerBox() {
+      const box = document.getElementById("dealerManagerBox");
+      if (box.style.display === "none") {
+        box.style.display = "block";
+        loadDealerDirectory();
+      } else {
+        box.style.display = "none";
+      }
+    }
+
+    async function loadDealerDirectory() {
+      const container = document.getElementById("dealerDirectoryTableContainer");
+      container.innerHTML = "<p style='color:#6b7280;'>Loading Tax-Exempt Dealer directory...</p>";
+      try {
+        const res = await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({
+            recordType: "admin_manage_dealers",
+            subAction: "list",
+            pin: document.getElementById("adminPin").value
+          })
+        });
+        const result = await res.json();
+        if (result.status === "success") {
+          lastDealerDirectory = result.dealers || [];
+          if (currentDashboardData) currentDashboardData.dealers = lastDealerDirectory;
+          renderDealerDirectoryTable();
+        } else {
+          container.innerHTML = `<p style='color:#ef4444;'>Error: ${result.message}</p>`;
+        }
+      } catch (err) {
+        container.innerHTML = "<p style='color:#ef4444;'>Network error loading dealer directory.</p>";
+      }
+    }
+
+    function renderDealerDirectoryTable() {
+      const container = document.getElementById("dealerDirectoryTableContainer");
+      if (lastDealerDirectory.length === 0) {
+        container.innerHTML = "<p style='color:#6b7280;'>No tax-exempt dealers found.</p>";
+        return;
+      }
+
+      let html = `<table class="data-table">
+        <tr>
+          <th>Dealer / Company Name</th>
+          <th>FL Resale Certificate #</th>
+          <th>Discount %</th>
+          <th>Billing Address</th>
+          <th style="text-align:right;">Action</th>
+        </tr>`;
+      lastDealerDirectory.forEach(d => {
+        const pct = Math.round((Number(d.discountRate) || 0) * 100);
+        html += `<tr>
+          <td style="font-weight:800; color:#1e3a8a;">🏢 ${d.name}</td>
+          <td style="font-weight:700; color:#dc2626;">${d.id}</td>
+          <td style="font-weight:700;">${pct}% Off</td>
+          <td style="font-size:12px; color:#4b5563;">${d.address || "—"}</td>
+          <td style="text-align:right; display:flex; gap:6px; justify-content:flex-end;">
+            <button class="btn" style="padding:5px 8px; font-size:11px; background:#eff6ff; color:#1d4ed8;" onclick="prefillEditDealer('${d.name.replace(/'/g, "\\'")}', '${d.id.replace(/'/g, "\\'")}', ${pct}, '${(d.address || "").replace(/'/g, "\\'")}')">✏️ Edit</button>
+            <button class="btn" style="padding:5px 8px; font-size:11px; background:#fee2e2; color:#b91c1c;" onclick="deleteDashDealer('${d.name.replace(/'/g, "\\'")}')">🗑️ Remove</button>
+          </td>
+        </tr>`;
+      });
+      container.innerHTML = html + "</table>";
+    }
+
+    function prefillEditDealer(name, cert, pct, addr) {
+      document.getElementById("newDealerName").value = name;
+      document.getElementById("newDealerCert").value = cert;
+      document.getElementById("newDealerDisc").value = pct;
+      document.getElementById("newDealerAddr").value = addr;
+    }
+
+    async function addDashDealer() {
+      const name = document.getElementById("newDealerName").value.trim();
+      const cert = document.getElementById("newDealerCert").value.trim();
+      const disc = parseFloat(document.getElementById("newDealerDisc").value) || 0;
+      const addr = document.getElementById("newDealerAddr").value.trim();
+
+      if (!name || !cert) return alert("Please enter both the Dealer Name and Florida Resale Certificate #.");
+
+      const btn = document.getElementById("btnAddDealer");
+      btn.innerText = "⏳ Saving...";
+      btn.disabled = true;
+
+      try {
+        const res = await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({
+            recordType: "admin_manage_dealers",
+            subAction: "add",
+            dealerName: name,
+            certId: cert,
+            discountPct: disc,
+            address: addr,
+            pin: document.getElementById("adminPin").value
+          })
+        });
+        const result = await res.json();
+        if (result.status === "success") {
+          lastDealerDirectory = result.dealers || [];
+          if (currentDashboardData) currentDashboardData.dealers = lastDealerDirectory;
+          alert(`✅ Saved Tax-Exempt Dealer: ${name.toUpperCase()} (${cert})!`);
+          document.getElementById("newDealerName").value = "";
+          document.getElementById("newDealerCert").value = "";
+          document.getElementById("newDealerDisc").value = "";
+          document.getElementById("newDealerAddr").value = "";
+          renderDealerDirectoryTable();
+        } else {
+          alert("❌ Error: " + result.message);
+        }
+      } catch (err) {
+        alert("Network error saving dealer.");
+      }
+      btn.innerText = "💾 Save Dealer";
+      btn.disabled = false;
+    }
+
+    async function deleteDashDealer(dealerName) {
+      if (!confirm(`Are you sure you want to remove "${dealerName}" from the Tax-Exempt Dealers list?`)) return;
+      try {
+        const res = await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({
+            recordType: "admin_manage_dealers",
+            subAction: "delete",
+            dealerName: dealerName,
+            pin: document.getElementById("adminPin").value
+          })
+        });
+        const result = await res.json();
+        if (result.status === "success") {
+          lastDealerDirectory = result.dealers || [];
+          if (currentDashboardData) currentDashboardData.dealers = lastDealerDirectory;
+          renderDealerDirectoryTable();
+        } else {
+          alert("❌ Error: " + result.message);
+        }
+      } catch (err) {
+        alert("Network error removing dealer.");
+      }
+    }
+
+    // =====================================================================
+    // --- REGULAR / COMMERCIAL CUSTOMERS DATABASE (NON-TAX-EXEMPT) ---
+    // =====================================================================
+    async function loadRegularCustomersDirectory() {
+      const btn = document.getElementById("btnLoadRegCust");
+      if (btn) { btn.innerText = "⏳ Loading..."; btn.disabled = true; }
+      const container = document.getElementById("regularCustomersTableContainer");
+      container.innerHTML = "<p style='color:#6b7280;'>Loading Regular & Commercial Accounts...</p>";
+
+      try {
+        const res = await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({
+            recordType: "admin_manage_regular_customers",
+            subAction: "list",
+            pin: document.getElementById("adminPin").value
+          })
+        });
+        const result = await res.json();
+        if (result.status === "success") {
+          lastRegularCustomers = result.regularCustomers || [];
+          renderRegularCustomersTable();
+        } else {
+          container.innerHTML = `<p style='color:#ef4444;'>Error: ${result.message}</p>`;
+        }
+      } catch (err) {
+        container.innerHTML = "<p style='color:#ef4444;'>Network error loading regular customers.</p>";
+      }
+      if (btn) { btn.innerText = "🔄 Refresh Customer List"; btn.disabled = false; }
+    }
+
+    function renderRegularCustomersTable() {
+      const container = document.getElementById("regularCustomersTableContainer");
+      if (lastRegularCustomers.length === 0) {
+        container.innerHTML = "<p style='padding:15px; background:#f9fafb; border-radius:10px; color:#6b7280; font-weight:600;'>No Regular / Commercial Accounts saved yet. Use the green box above to add your weekly customers or non-exempt dealers!</p>";
+        return;
+      }
+
+      let html = `<table class="data-table">
+        <tr>
+          <th>Company / Customer Name</th>
+          <th>Contact Person</th>
+          <th>Phone</th>
+          <th>Address / Email</th>
+          <th>Discount</th>
+          <th>Notes</th>
+          <th style="text-align:right;">Actions / Statements</th>
+        </tr>`;
+
+      lastRegularCustomers.forEach(c => {
+        const pct = Math.round((Number(c.discountRate) || 0) * 100);
+        html += `<tr>
+          <td style="font-weight:800; color:#166534;">📇 ${c.name}</td>
+          <td style="font-weight:600;">${c.contact || "—"}</td>
+          <td style="color:#2563eb; font-weight:700;">${c.phone || "—"}</td>
+          <td style="font-size:12px;">${c.address || "—"}</td>
+          <td style="font-weight:700;">${pct > 0 ? pct + '% Off' : 'Standard'}</td>
+          <td style="font-size:12px; color:#6b7280;">${c.notes || "—"}</td>
+          <td style="text-align:right; display:flex; gap:6px; justify-content:flex-end;">
+            <button class="btn" style="padding:6px 10px; font-size:11px; background:#2563eb; color:white;" onclick="pullRegularCustomerStatement('${c.name.replace(/'/g, "\\'")}')">📜 Pull Statement / Invoices</button>
+            <button class="btn" style="padding:6px 8px; font-size:11px; background:#eff6ff; color:#1d4ed8;" onclick="prefillEditRegCust('${c.name.replace(/'/g, "\\'")}', '${(c.contact || "").replace(/'/g, "\\'")}', '${(c.phone || "").replace(/'/g, "\\'")}', '${(c.address || "").replace(/'/g, "\\'")}', ${pct}, '${(c.notes || "").replace(/'/g, "\\'")}')">✏️</button>
+            <button class="btn" style="padding:6px 8px; font-size:11px; background:#fee2e2; color:#b91c1c;" onclick="deleteRegularCustomer('${c.name.replace(/'/g, "\\'")}')">🗑️</button>
+          </td>
+        </tr>`;
+      });
+      container.innerHTML = html + "</table>";
+    }
+
+    function prefillEditRegCust(name, contact, phone, addr, pct, notes) {
+      document.getElementById("regCustName").value = name;
+      document.getElementById("regCustContact").value = contact;
+      document.getElementById("regCustPhone").value = phone;
+      document.getElementById("regCustAddr").value = addr;
+      document.getElementById("regCustDisc").value = pct;
+      document.getElementById("regCustNotes").value = notes;
+    }
+
+    async function saveRegularCustomer() {
+      const name = document.getElementById("regCustName").value.trim();
+      const contact = document.getElementById("regCustContact").value.trim();
+      const phone = document.getElementById("regCustPhone").value.trim();
+      const addr = document.getElementById("regCustAddr").value.trim();
+      const disc = parseFloat(document.getElementById("regCustDisc").value) || 0;
+      const notes = document.getElementById("regCustNotes").value.trim();
+
+      if (!name) return alert("Please enter the Company or Customer Name.");
+
+      const btn = document.getElementById("btnSaveRegCust");
+      btn.innerText = "⏳ Saving...";
+      btn.disabled = true;
+
+      try {
+        const res = await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({
+            recordType: "admin_manage_regular_customers",
+            subAction: "add",
+            customerName: name,
+            contactName: contact,
+            phone: phone,
+            address: addr,
+            discountPct: disc,
+            notes: notes,
+            pin: document.getElementById("adminPin").value
+          })
+        });
+        const result = await res.json();
+        if (result.status === "success") {
+          lastRegularCustomers = result.regularCustomers || [];
+          alert(`✅ Saved Regular Account: ${name}!`);
+          document.getElementById("regCustName").value = "";
+          document.getElementById("regCustContact").value = "";
+          document.getElementById("regCustPhone").value = "";
+          document.getElementById("regCustAddr").value = "";
+          document.getElementById("regCustDisc").value = "";
+          document.getElementById("regCustNotes").value = "";
+          renderRegularCustomersTable();
+        } else {
+          alert("❌ Error: " + result.message);
+        }
+      } catch (err) {
+        alert("Network error saving regular customer.");
+      }
+      btn.innerText = "💾 Save Account";
+      btn.disabled = false;
+    }
+
+    async function deleteRegularCustomer(name) {
+      if (!confirm(`Are you sure you want to remove "${name}" from Regular Accounts?`)) return;
+      try {
+        const res = await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({
+            recordType: "admin_manage_regular_customers",
+            subAction: "delete",
+            customerName: name,
+            pin: document.getElementById("adminPin").value
+          })
+        });
+        const result = await res.json();
+        if (result.status === "success") {
+          lastRegularCustomers = result.regularCustomers || [];
+          renderRegularCustomersTable();
+        } else {
+          alert("❌ Error: " + result.message);
+        }
+      } catch (err) {
+        alert("Network error removing customer.");
+      }
+    }
+
+    async function pullRegularCustomerStatement(customerName) {
+      const sec = document.getElementById("regCustStatementSection");
+      sec.style.display = "block";
+      document.getElementById("regStmtTitleName").innerText = customerName;
+      const sumDiv = document.getElementById("regCustStatementSummary");
+      const tblDiv = document.getElementById("regCustStatementTable");
+      sumDiv.innerHTML = "";
+      tblDiv.innerHTML = `<p style="color:#6b7280;">Scanning invoices for <strong>${customerName}</strong>...</p>`;
+
+      try {
+        const res = await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({
+            recordType: "admin_manage_regular_customers",
+            subAction: "statement",
+            customerName: customerName,
+            startDate: document.getElementById("startDate").value,
+            endDate: document.getElementById("endDate").value,
+            locationFilter: document.getElementById("locationFilter").value,
+            pin: document.getElementById("adminPin").value
+          })
+        });
+        const result = await res.json();
+        if (result.status === "success") {
+          activeRegCustomerStmt = result;
+          window.currentSearchResults = result.transactions || [];
+          const t = result.totals || { count: 0, net: 0, tax: 0, gross: 0 };
+
+          sumDiv.innerHTML = `
+            <div style="background:#f9fafb; border:1px solid #e5e7eb; padding:12px 18px; border-radius:10px;">
+              <div style="font-size:11px; color:#6b7280; font-weight:800;">VEHICLES WASHED</div>
+              <div style="font-size:22px; font-weight:900; color:#111827;">${t.count}</div>
+            </div>
+            <div style="background:#f9fafb; border:1px solid #e5e7eb; padding:12px 18px; border-radius:10px;">
+              <div style="font-size:11px; color:#6b7280; font-weight:800;">NET SUBTOTAL</div>
+              <div style="font-size:22px; font-weight:900; color:#111827;">$${t.net.toFixed(2)}</div>
+            </div>
+            <div style="background:#f9fafb; border:1px solid #e5e7eb; padding:12px 18px; border-radius:10px;">
+              <div style="font-size:11px; color:#6b7280; font-weight:800;">SALES TAX (7.5%)</div>
+              <div style="font-size:22px; font-weight:900; color:#111827;">$${t.tax.toFixed(2)}</div>
+            </div>
+            <div style="background:#ecfdf5; border:1px solid #a7f3d0; padding:12px 18px; border-radius:10px;">
+              <div style="font-size:11px; color:#065f46; font-weight:800;">TOTAL BILLED / PAID</div>
+              <div style="font-size:22px; font-weight:900; color:#059669;">$${t.gross.toFixed(2)}</div>
+            </div>
+          `;
+
+          if (result.transactions.length === 0) {
+            tblDiv.innerHTML = `<p style="color:#ef4444; font-weight:bold;">No transactions found for "${customerName}" in the selected Start/End Date range (${document.getElementById("startDate").value} to ${document.getElementById("endDate").value}). Try clicking 'This Month' or 'Last Month' in Quick Dates above!</p>`;
+          } else {
+            let html = `<table class="data-table">
+              <tr>
+                <th>Date & Time</th>
+                <th>Location</th>
+                <th>Order ID</th>
+                <th>Vehicle / Plate</th>
+                <th>Services & Notes</th>
+                <th>Subtotal</th>
+                <th>Tax</th>
+                <th>Total</th>
+                <th>Payment Status</th>
+                <th>Action</th>
+              </tr>`;
+            result.transactions.forEach((tx, idx) => {
+              const isPend = tx.paymentType === "Pending";
+              html += `<tr>
+                <td>${tx.date}</td>
+                <td>${tx.location.replace("Location ", "Loc ")}</td>
+                <td style="font-weight:700;">${tx.orderId}</td>
+                <td style="font-weight:800;">${tx.vehicle}</td>
+                <td>${tx.services}<br><small style="color:#b45309; font-weight:600;">${tx.notes || ""}</small></td>
+                <td>${tx.subtotal}</td>
+                <td>${tx.tax}</td>
+                <td style="font-weight:900;">${tx.total}</td>
+                <td style="font-weight:800; color:${isPend ? '#ef4444' : '#059669'};">${tx.paymentType}</td>
+                <td style="display:flex; gap:6px;">
+                  ${isPend ? `<button class="btn" style="padding:5px 8px; font-size:11px; background:#f59e0b; color:white;" onclick="openDashPayPending(${idx})">💳 Pay</button>` : ''}
+                  <button class="btn btn-primary" style="padding:5px 8px; font-size:11px;" onclick="printSearchedInvoice(${idx})">🖨️ Invoice</button>
+                </td>
+              </tr>`;
+            });
+            tblDiv.innerHTML = html + "</table>";
+          }
+        } else {
+          tblDiv.innerHTML = `<p style="color:#ef4444;">Error: ${result.message}</p>`;
+        }
+      } catch (err) {
+        tblDiv.innerHTML = "<p style='color:#ef4444;'>Network error pulling statement.</p>";
+      }
+    }
+
+    function printRegCustomerStatement() {
+      if (!activeRegCustomerStmt || !activeRegCustomerStmt.transactions || activeRegCustomerStmt.transactions.length === 0) {
+        return alert("No transactions loaded to print for this customer statement.");
+      }
+      const cName = activeRegCustomerStmt.customerName;
+      const custObj = lastRegularCustomers.find(c => c.name.toLowerCase() === cName.toLowerCase()) || {};
+      const startDate = document.getElementById("startDate").value;
+      const endDate = document.getElementById("endDate").value;
+      const t = activeRegCustomerStmt.totals;
+
+      let rowsHtml = `<table style="width:100%; border-collapse:collapse; font-size:13px; text-align:left; margin-top:15px;">
+        <thead>
+          <tr style="border-bottom:2px solid #111827; background:#f3f4f6;">
+            <th style="padding:8px;">Date & Time</th>
+            <th style="padding:8px;">Location</th>
+            <th style="padding:8px;">Order ID</th>
+            <th style="padding:8px;">Vehicle / Plate</th>
+            <th style="padding:8px;">Services</th>
+            <th style="padding:8px;">Status</th>
+            <th style="padding:8px; text-align:right;">Net</th>
+            <th style="padding:8px; text-align:right;">Tax</th>
+            <th style="padding:8px; text-align:right;">Total</th>
+          </tr>
+        </thead>
+        <tbody>`;
+
+      activeRegCustomerStmt.transactions.slice().reverse().forEach(tx => {
+        rowsHtml += `<tr style="border-bottom:1px solid #e5e7eb;">
+          <td style="padding:7px 8px;">${tx.date}</td>
+          <td style="padding:7px 8px;">${tx.location.replace("Location ", "Loc ")}</td>
+          <td style="padding:7px 8px; font-weight:bold;">${tx.orderId}</td>
+          <td style="padding:7px 8px; font-weight:bold;">${tx.vehicle}</td>
+          <td style="padding:7px 8px;">${tx.services}</td>
+          <td style="padding:7px 8px;">${tx.paymentType}</td>
+          <td style="padding:7px 8px; text-align:right;">${tx.subtotal}</td>
+          <td style="padding:7px 8px; text-align:right;">${tx.tax}</td>
+          <td style="padding:7px 8px; text-align:right; font-weight:bold;">${tx.total}</td>
+        </tr>`;
+      });
+
+      rowsHtml += `
+        <tr style="border-top:2px solid #111827; font-weight:900; font-size:14px; background:#f9fafb;">
+          <td colspan="6" style="padding:10px 8px; text-align:right;">STATEMENT TOTALS (${t.count} Vehicles):</td>
+          <td style="padding:10px 8px; text-align:right;">$${t.net.toFixed(2)}</td>
+          <td style="padding:10px 8px; text-align:right;">$${t.tax.toFixed(2)}</td>
+          <td style="padding:10px 8px; text-align:right;">$${t.gross.toFixed(2)}</td>
+        </tr>
+      </tbody></table>`;
+
+      const stmtHtml = `
+        <div style="font-family:Arial, sans-serif; color:#111827;">
+          <h2 style="text-align:center; margin-bottom:2px; font-size:24px;">A Plus Car Wash & Detailing Inc.</h2>
+          <p style="text-align:center; margin-top:0; color:#555; font-size:14px;">Customer Account Activity Statement</p>
+          <hr style="border:1px solid #111827; margin:16px 0;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:15px; font-size:14px;">
+            <div>
+              <strong style="font-size:17px;">ACCOUNT: ${cName}</strong><br>
+              ${custObj.contact ? `<strong>Contact:</strong> ${custObj.contact}<br>` : ''}
+              ${custObj.phone ? `<strong>Phone:</strong> ${custObj.phone}<br>` : ''}
+              ${custObj.address ? `<strong>Address/Email:</strong> ${custObj.address}` : ''}
+            </div>
+            <div style="text-align:right;">
+              <strong>Statement Period:</strong> ${startDate} to ${endDate}<br>
+              <strong>Total Vehicles Washed:</strong> ${t.count}<br>
+              <strong style="font-size:16px;">Total Amount: $${t.gross.toFixed(2)}</strong>
+            </div>
+          </div>
+          ${rowsHtml}
+          <p style="margin-top:35px; text-align:center; font-style:italic; font-size:13px;">Thank you for your business!</p>
+        </div>
+      `;
+
+      document.getElementById("regCustStatementReportView").innerHTML = stmtHtml;
+      document.body.classList.add("print-reg-stmt");
+      window.print();
+      setTimeout(() => { document.body.classList.remove("print-reg-stmt"); }, 500);
+    }
+
+    function exportRegCustomerStatementCSV() {
+      if (!activeRegCustomerStmt || !activeRegCustomerStmt.transactions || activeRegCustomerStmt.transactions.length === 0) {
+        return alert("No statement transactions to export.");
+      }
+      let rows = [["Date & Time", "Location", "Order ID", "Vehicle / Plate", "Services", "Notes", "Payment Status", "Subtotal", "Tax", "Total"]];
+      activeRegCustomerStmt.transactions.forEach(tx => {
+        rows.push([tx.date, tx.location, tx.orderId, tx.vehicle, tx.services, tx.notes, tx.paymentType, tx.subtotalNum.toFixed(2), tx.taxNum.toFixed(2), tx.totalNum.toFixed(2)]);
+      });
+      downloadCSVFile(`Statement_${activeRegCustomerStmt.customerName.replace(/[^a-z0-9]/gi, '_')}.csv`, rows);
     }
 
     // --- TAB: PREPAID FLEET ACCOUNT (DEANE'S LLC - 50 WASH STATEMENTS) ---
@@ -1856,7 +2590,7 @@
           content.innerHTML = `<p style='color: #ef4444;'>Error: ${result.message}</p>`;
         }
       } catch (err) {
-        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v10.2 is deployed as a New Version.</p>";
+        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v10.4 is deployed as a New Version.</p>";
       }
       if (btn) { btn.innerText = "🔄 Load Transaction Log"; btn.disabled = false; }
     }
@@ -1928,7 +2662,7 @@
           content.innerHTML = `<p style='color: #ef4444;'>Error: ${result.message}</p>`;
         }
       } catch (err) {
-        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v10.2 is deployed.</p>";
+        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v10.4 is deployed.</p>";
       }
       btn.innerText = "🔄 Refresh Unpaid Bills"; btn.disabled = false;
     }
@@ -1955,6 +2689,12 @@
 
         if (result.status === "success") {
           lastPayrollShifts = result.shifts || [];
+          if (result.rosterFull) {
+            lastEmployeeRoster = result.rosterFull;
+            if (document.getElementById("empRosterManagerBox").style.display !== "none") {
+              renderEmployeeRosterTable();
+            }
+          }
           const empTotals = result.empTotals || {};
           const empNames = Object.keys(empTotals).sort();
 
@@ -1965,7 +2705,7 @@
           }
 
           if (empNames.length === 0) {
-            content.innerHTML = "<p style='color: #ef4444; font-weight: bold;'>No timeclock punches found for this date range and location. Click '➕ Add Manual Punch' above to log a shift.</p>";
+            content.innerHTML = "<p style='color: #ef4444; font-weight: bold;'>No timeclock punches found for this date range and location. Click '➕ Add Manual Punch' above to log a shift, or click '👥 Manage Employee Roster & PINs' to add/remove employees.</p>";
           } else {
             let cardsHtml = `<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 14px; margin-bottom: 25px;">`;
             empNames.forEach(name => {
@@ -2005,7 +2745,7 @@
           content.innerHTML = `<p style='color: #ef4444;'>Error: ${result.message}</p>`;
         }
       } catch (err) {
-        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v10.2 is deployed.</p>";
+        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v10.4 is deployed.</p>";
       }
       btn.innerText = "🔄 Calculate Hours"; btn.disabled = false;
     }
@@ -2278,7 +3018,7 @@
       renderDashStagedVehicles();
 
       const dealerSel = document.getElementById("dashInvDealerSelect");
-      if (currentDashboardData && currentDashboardData.dealers && dealerSel.options.length <= 1) {
+      if (currentDashboardData && currentDashboardData.dealers) {
         dealerSel.innerHTML = '<option value="">-- Select Exempt Dealer --</option>' +
           currentDashboardData.dealers.map(d => `<option value="${d.name} (${d.id})" data-disc="${d.discountRate}">${d.name} (${d.id})</option>`).join('');
       }
@@ -2623,6 +3363,7 @@
 
           if (activeTabName === 'txnlog') loadDashTxnLog();
           else if (activeTabName === 'ar') loadARReport();
+          else if (activeTabName === 'regcust' && activeRegCustomerStmt) pullRegularCustomerStatement(activeRegCustomerStmt.customerName);
           else if (activeTabName === 'invoices') searchGlobalInvoices();
           fetchData();
         } else {
@@ -2684,7 +3425,7 @@
           content.innerHTML = "<p style='color: #ef4444; font-weight: bold;'>No exempt dealer transactions found in this date range.</p>";
         }
       } catch (err) { content.innerHTML = "<p style='color: #ef4444;'>Network Error.</p>"; }
-      btn.innerText = "🔄 Generate Dealer Report"; btn.disabled = false;
+      btn.innerText = "🔄 Generate Activity Report"; btn.disabled = false;
     }
 
     // --- CSV / EXCEL EXPORT UTILITIES ---
