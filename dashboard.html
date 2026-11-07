@@ -21,7 +21,7 @@
     #pinOverlay button { padding: 10px 20px; font-size: 18px; font-weight: bold; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; }
     
     #dashboardContent { padding: 30px; display: none; max-width: 1440px; margin: 0 auto; }
-    #taxReportView, #financialReportView, #managerSlipReportView, #fleetStatementReportView, #regCustStatementReportView { display: none; padding: 40px; background: white; min-height: 100vh; }
+    #taxReportView, #financialReportView, #managerSlipReportView, #fleetStatementReportView, #regCustStatementReportView, #giftCardSheetReportView { display: none; padding: 40px; background: white; min-height: 100vh; }
     
     .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
     
@@ -84,8 +84,11 @@
       body.print-fleet-stmt #dashboardContent, body.print-fleet-stmt #financialReportView, body.print-fleet-stmt #taxReportView, body.print-fleet-stmt #managerSlipReportView, body.print-fleet-stmt #regCustStatementReportView { display: none !important; }
       body.print-fleet-stmt #fleetStatementReportView { display: block !important; padding: 20px; }
 
-      body.print-reg-stmt #dashboardContent, body.print-reg-stmt #financialReportView, body.print-reg-stmt #taxReportView, body.print-reg-stmt #managerSlipReportView, body.print-reg-stmt #fleetStatementReportView { display: none !important; }
+      body.print-reg-stmt #dashboardContent, body.print-reg-stmt #financialReportView, body.print-reg-stmt #taxReportView, body.print-reg-stmt #managerSlipReportView, body.print-reg-stmt #fleetStatementReportView, body.print-reg-stmt #giftCardSheetReportView { display: none !important; }
       body.print-reg-stmt #regCustStatementReportView { display: block !important; padding: 20px; }
+
+      body.print-gc-sheet #dashboardContent, body.print-gc-sheet #financialReportView, body.print-gc-sheet #taxReportView, body.print-gc-sheet #managerSlipReportView, body.print-gc-sheet #fleetStatementReportView, body.print-gc-sheet #regCustStatementReportView, body.print-gc-sheet #printableInvoice { display: none !important; }
+      body.print-gc-sheet #giftCardSheetReportView { display: block !important; padding: 0 !important; margin: 0 !important; }
       
       body.print-invoice #dashboardContent, body.print-invoice #financialReportView, body.print-invoice #taxReportView, body.print-invoice #managerSlipReportView, body.print-invoice #fleetStatementReportView, body.print-invoice #regCustStatementReportView { display: none !important; }
       body.print-invoice #printableInvoice { display: block !important; position: absolute; top: 0; left: 0; width: 100%; padding: 40px; }
@@ -436,6 +439,48 @@
       </div>
     </div>
   </div>
+  <!-- DASHBOARD 10-UP AVERY BUSINESS CARD BARCODE GIFT CARD GENERATOR MODAL -->
+  <div id="dashGiftCardPrintModal" class="modal-overlay">
+    <div class="modal-box" style="max-width: 480px; text-align: left;">
+      <h2 style="text-align: center; color: #b45309; margin-bottom: 6px;">💳 Print 10-Up Barcode Gift Cards</h2>
+      <p style="text-align: center; font-size: 13px; color: #6b7280; margin-bottom: 14px;">Formats 10 scannable Code-39 barcode gift cards (3.5" × 2") per page for standard <strong>Avery 8871 / 5371</strong> perforated business card sheets.</p>
+
+      <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+        <div style="flex: 1;">
+          <label style="font-size: 11px; font-weight: 800; color: #374151; display: block; margin-bottom: 3px;">Card Prefix</label>
+          <input type="text" id="gcBatchPrefix" class="modal-input" value="GC-" style="font-weight: 800; text-transform: uppercase; margin-bottom: 0; background: white;">
+        </div>
+        <div style="flex: 1.2;">
+          <label style="font-size: 11px; font-weight: 800; color: #374151; display: block; margin-bottom: 3px;">Starting Number</label>
+          <input type="number" id="gcBatchStartNum" class="modal-input" value="1001" step="1" min="1" style="font-weight: 800; margin-bottom: 0; background: white;">
+        </div>
+        <div style="flex: 1;">
+          <label style="font-size: 11px; font-weight: 800; color: #374151; display: block; margin-bottom: 3px;">Sheets (10/pg)</label>
+          <select id="gcBatchPages" class="modal-input" style="font-weight: 800; margin-bottom: 0; background: white; cursor: pointer;">
+            <option value="1">1 Sheet (10 Cards)</option>
+            <option value="2">2 Sheets (20 Cards)</option>
+            <option value="5">5 Sheets (50 Cards)</option>
+            <option value="10">10 Sheets (100 Cards)</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 14px;">
+        <label style="font-size: 11px; font-weight: 800; color: #374151; display: block; margin-bottom: 3px;">Printed Value Display on Card</label>
+        <input type="text" id="gcBatchDenom" class="modal-input" placeholder="Leave blank for '$________' (write/load any amount at POS) or type e.g. $50.00" style="margin-bottom: 0; background: white;">
+      </div>
+
+      <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 10px 12px; margin-bottom: 16px; font-size: 12px; color: #92400e; line-height: 1.4;">
+        💡 <strong>Printer Tip:</strong> In the print dialog, set <strong>Margins = None (or Default)</strong> and <strong>Scale = 100% (Actual Size)</strong> so the 2×5 grid lines up with your perforated Avery business card paper.
+      </div>
+
+      <button class="modal-btn" style="background: #d97706; color: white; border: none; margin-bottom: 8px; font-size: 15px; padding: 14px;" onclick="printAveryGiftCardSheets()">
+        🖨️ Generate & Print 10-Up Card Sheet(s)
+      </button>
+      <button class="modal-btn btn-cancel" style="margin-top: 0; padding: 11px;" onclick="closeDashModals()">Cancel</button>
+    </div>
+  </div>
+
   <!-- DASHBOARD SQUARE TERMINAL WAITING MODAL -->
   <div id="dashSquareModal" class="modal-overlay">
     <div class="modal-box">
@@ -512,8 +557,8 @@
           <button class="btn" style="background: #dc2626; color: white;" onclick="openDashPayoutModal()">💸 Cash Payout</button>
           <button class="btn" style="background: #8b5cf6; color: white;" onclick="reconcileSquare()" id="reconcileBtn">🔄 Reconcile Square</button>
           <button class="btn btn-print" onclick="printFinancial()">🖨️ Print Financial</button>
-          <button class="btn" style="background: #0f766e; color: white;" onclick="printManagerSlip()">📋 Print Manager Slip</button>
-          <button class="btn" style="background: #4f46e5; color: white;" onclick="openEodByDateModal()">📑 EOD & Slip by Date</button>
+          <button class="btn" style="background: #0f766e; color: white;" onclick="openEodByDateModal()">📋 EOD & Manager Slip</button>
+          <button class="btn" style="background: #d97706; color: white;" onclick="openGiftCardPrintModal()">💳 Print 10-Up Gift Cards</button>
           <button class="btn btn-tax" onclick="printTax()">📄 Print DR-15 Tax</button>
         </div>
       </div>
@@ -766,6 +811,7 @@
   <div id="managerSlipReportView"></div>
   <div id="fleetStatementReportView"></div>
   <div id="regCustStatementReportView"></div>
+  <div id="giftCardSheetReportView"></div>
 
   <!-- THE HIDDEN PRINTABLE INVOICE -->
   <div id="printableInvoice">
@@ -3572,6 +3618,8 @@
       document.getElementById("dashSquareModal").style.display = "none";
       const dcm = document.getElementById("dashDrawerClosingModal");
       if (dcm) dcm.style.display = "none";
+      const gcm = document.getElementById("dashGiftCardPrintModal");
+      if (gcm) gcm.style.display = "none";
     }
 
     async function submitDashCashPayout() {
@@ -3993,6 +4041,107 @@
       }
       btn.innerText = "🔄 Reconcile Square";
       btn.disabled = false;
+    }
+
+    // --- 10-UP AVERY BUSINESS CARD (3.5" x 2") BARCODE GIFT CARD SHEET GENERATOR ---
+    function openGiftCardPrintModal() {
+      const savedNextNum = parseInt(localStorage.getItem("washos_next_gc_num")) || 1001;
+      document.getElementById("gcBatchStartNum").value = savedNextNum;
+      document.getElementById("gcBatchDenom").value = "";
+      document.getElementById("dashGiftCardPrintModal").style.display = "flex";
+    }
+
+    function buildDashCode39SVG(text) {
+      const patterns = {
+        '0':'nnnwwnwnn','1':'wnnwnnnnw','2':'nnwwnnnnw','3':'wnwwnnnnn','4':'nnnwwnnnw',
+        '5':'wnnwwnnnn','6':'nnwwwnnnn','7':'nnnwnnwnw','8':'wnnwnnwnn','9':'nnwwnnwnn',
+        'A':'wnnnnwnnw','B':'nnwnnwnnw','C':'wnwnnwnnn','D':'nnnnwwnnw','E':'wnnnwwnnn',
+        'F':'nnwnwwnnn','G':'nnnnnwwnw','H':'wnnnnwwnn','I':'nnwnnwwnn','J':'nnnnwwwnn',
+        'K':'wnnnnnnww','L':'nnwnnnnww','M':'wnwnnnnwn','N':'nnnnwnnww','O':'wnnnwnnwn',
+        'P':'nnwnwnnwn','Q':'nnnnnnwww','R':'wnnnnnwwn','S':'nnwnnnwwn','T':'nnnnwnwwn',
+        'U':'wwnnnnnnw','V':'nwwnnnnnw','W':'wwwnnnnnn','X':'nwnnwnnnw','Y':'wwnnwnnnn',
+        'Z':'nwwnwnnnn','-':'nwnnnnwnw','.':'wwnnnnwnn',' ':'nwwnnnwnn','*':'nwnnwnwnn'
+      };
+      const clean = '*' + String(text || '').toUpperCase().replace(/[^0-9A-Z\-. ]/g, '') + '*';
+      let x = 0;
+      let rects = '';
+      for (let c of clean) {
+        const pat = patterns[c] || patterns['-'];
+        for (let i = 0; i < 9; i++) {
+          const w = pat[i] === 'w' ? 3 : 1;
+          if (i % 2 === 0) {
+            rects += `<rect x="${x}" y="0" width="${w}" height="34" fill="#111827"/>`;
+          }
+          x += w;
+        }
+        x += 1;
+      }
+      return `<svg viewBox="0 0 ${x} 34" style="width: 2.55in; height: 0.42in; display: block; margin: 2px auto;">${rects}</svg>`;
+    }
+
+    function printAveryGiftCardSheets() {
+      const prefix = (document.getElementById("gcBatchPrefix").value || "GC-").trim().toUpperCase();
+      const startNum = Math.max(1, parseInt(document.getElementById("gcBatchStartNum").value) || 1001);
+      const pages = Math.max(1, parseInt(document.getElementById("gcBatchPages").value) || 1);
+      const denomRaw = document.getElementById("gcBatchDenom").value.trim();
+      const denomDisplay = denomRaw ? denomRaw : "$___________";
+
+      let currNum = startNum;
+      let allPagesHTML = "";
+
+      for (let p = 0; p < pages; p++) {
+        const pageBreak = p > 0 ? "page-break-before: always;" : "";
+        let cardsHTML = "";
+
+        for (let c = 0; c < 10; c++) {
+          const paddedNum = String(currNum).padStart(4, "0");
+          const fullCode = `${prefix}${paddedNum}`;
+          currNum++;
+
+          cardsHTML += `
+            <div style="width: 3.5in; height: 2.0in; box-sizing: border-box; padding: 0.14in 0.18in; border: 1px dashed #d1d5db; display: flex; flex-direction: column; justify-content: space-between; text-align: center; font-family: 'Inter', Arial, sans-serif; color: #111827; overflow: hidden;">
+              <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #1e3a8a; padding-bottom: 4px;">
+                <div style="text-align: left;">
+                  <div style="font-size: 12px; font-weight: 900; color: #1e3a8a; letter-spacing: -0.3px;">A PLUS CAR WASH</div>
+                  <div style="font-size: 8px; font-weight: 700; color: #4b5563; letter-spacing: 0.5px;">& DETAILING INC.</div>
+                </div>
+                <div style="background: #eff6ff; border: 1px solid #93c5fd; color: #1d4ed8; font-size: 9px; font-weight: 900; padding: 2px 6px; border-radius: 4px; text-transform: uppercase;">
+                  🎁 GIFT CARD
+                </div>
+              </div>
+
+              <div style="margin: 2px 0;">
+                <div style="font-size: 10px; font-weight: 700; color: #374151; margin-bottom: 2px;">
+                  AMOUNT: <strong style="font-size: 13px; color: #111827;">${denomDisplay}</strong>
+                </div>
+                ${buildDashCode39SVG(fullCode)}
+                <div style="font-size: 11px; font-weight: 800; letter-spacing: 2px; font-family: monospace; color: #111827;">${fullCode}</div>
+              </div>
+
+              <div style="font-size: 7.5px; color: #6b7280; border-top: 1px solid #e5e7eb; padding-top: 3px; display: flex; justify-content: space-between;">
+                <span>Redeemable at all 4 Tampa locations</span>
+                <span>Activated at Register</span>
+              </div>
+            </div>
+          `;
+        }
+
+        allPagesHTML += `
+          <div style="${pageBreak} width: 8.5in; height: 11.0in; box-sizing: border-box; padding: 0.2in 0.45in; margin: 0 auto; background: white;">
+            <div style="display: grid; grid-template-columns: 3.5in 3.5in; grid-template-rows: repeat(5, 2.0in); width: 7.0in; height: 10.0in; margin: 0 auto;">
+              ${cardsHTML}
+            </div>
+          </div>
+        `;
+      }
+
+      localStorage.setItem("washos_next_gc_num", currNum);
+      closeDashModals();
+
+      document.getElementById("giftCardSheetReportView").innerHTML = allPagesHTML;
+      document.body.classList.add("print-gc-sheet");
+      window.print();
+      setTimeout(() => { document.body.classList.remove("print-gc-sheet"); }, 500);
     }
   </script>
 </body>
