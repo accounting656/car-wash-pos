@@ -99,7 +99,7 @@
     <p style="margin-bottom: 20px; color: #9ca3af;">Enter Admin PIN to view financials.</p>
     <input type="password" id="adminPin" placeholder="****">
     <button onclick="fetchData()">Unlock Dashboard</button>
-    <div style="margin-top: 15px; font-size: 12px; color: #6b7280; font-weight: 600;">Command Center v10.4</div>
+    <div style="margin-top: 15px; font-size: 12px; color: #6b7280; font-weight: 600;">Command Center v10.8</div>
   </div>
 
   <!-- DASHBOARD PAY PENDING INVOICE MODAL -->
@@ -357,7 +357,7 @@
   <div id="dashboardContent">
     <div class="header">
       <h1 style="font-weight: 800; font-size: 30px;" id="reportTitle">📊 Owner Command Center</h1>
-      <span style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 800;">v10.4</span>
+      <span style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 800;">v10.8</span>
     </div>
     
     <!-- TAB NAVIGATION -->
@@ -1029,6 +1029,7 @@
           washNet: lData.wash || 0,
           washTax: +((lData.wash || 0) * 0.075).toFixed(2),
           washGrossWithTax: +((lData.wash || 0) * 1.075).toFixed(2),
+          ccFees: lData.ccFees || 0,
           numCars: lData.cars || 0,
           numDetailing: 0,
           totalCashWash: lData.tenders.cash || 0,
@@ -1050,6 +1051,7 @@
             <div class="fin-row" style="font-size: 13px; margin-bottom: 4px;"><span style="color:#065f46; font-weight:700;">Wash Net (Commission Base):</span> <strong style="color:#059669; font-size:15px;">$${ms.washNet.toFixed(2)}</strong></div>
             <div class="fin-row" style="font-size: 13px; margin-bottom: 4px;"><span>Wash Tax (7.5%):</span> <strong>$${ms.washTax.toFixed(2)}</strong></div>
             <div class="fin-row" style="font-size: 13px; margin-bottom: 4px;"><span>Wash Gross (With Tax):</span> <strong>$${ms.washGrossWithTax.toFixed(2)}</strong></div>
+            <div class="fin-row" style="font-size: 13px; margin-bottom: 4px; color: #4b5563;"><span>CC Surcharge (Square Bridge):</span> <strong>$${(lData.ccFees || 0).toFixed(2)}</strong></div>
             <div class="fin-row" style="font-size: 13px; margin-bottom: 4px;"><span>Detailing Services Count:</span> <strong>${ms.numDetailing}</strong></div>
             <div class="fin-row" style="font-size: 13px; margin-bottom: 0; padding-top: 4px; border-top: 1px dashed #99f6e4;"><span style="color:#059669; font-weight:700;">Total Tips (CC + Cash):</span> <strong style="color:#059669;">$${totalTipsCombined.toFixed(2)}</strong></div>
           </div>
@@ -1184,7 +1186,7 @@
       document.getElementById("locationCards").innerHTML = locHTML;
     }
 
-    // --- PRINT HISTORICAL OR DAILY MANAGER CLOSING SLIP (2026 REVISED LAYOUT) ---
+    // --- PRINT HISTORICAL OR DAILY MANAGER CLOSING SLIP (2026 REVISED LAYOUT WITH CC SURCHARGE BRIDGE) ---
     function printManagerSlip(specificLoc) {
       if (!currentDashboardData) {
         alert("Please click 'Load Report' first.");
@@ -1213,6 +1215,7 @@
           washNet: lData.wash || 0,
           washTax: +((lData.wash || 0) * 0.075).toFixed(2),
           washGrossWithTax: +((lData.wash || 0) * 1.075).toFixed(2),
+          ccFees: lData.ccFees || 0,
           numCars: lData.cars || 0,
           numDetailing: 0,
           totalCashWash: lData.tenders.cash || 0,
@@ -1227,6 +1230,7 @@
         const ccTips = lData.tips || 0;
         const cashTips = lData.cashTips || 0;
         const totalTips = ccTips + cashTips;
+        const ccSurchargeVal = ms.ccFees !== undefined ? ms.ccFees : (lData.ccFees || 0);
 
         const isArmenia = loc.includes("Armenia");
         const isColumbus = loc.includes("Columbus");
@@ -1338,6 +1342,10 @@
                       <tr>
                         <td style="padding: 6px 8px; border: 1px solid #9ca3af; font-weight: 700;">ATM / Credit Card (Wash)</td>
                         <td style="padding: 6px 8px; border: 1px solid #9ca3af; text-align: right; font-weight: 800;">$${ms.atmCardWash.toFixed(2)}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 6px 8px; border: 1px solid #9ca3af; color: #4b5563;">CC Surcharge (Non-Commission)</td>
+                        <td style="padding: 6px 8px; border: 1px solid #9ca3af; text-align: right; font-weight: 700; color: #4b5563;">$${ccSurchargeVal.toFixed(2)}</td>
                       </tr>
                       <tr>
                         <td style="padding: 6px 8px; border: 1px solid #9ca3af;">Pending Taxable (Created)</td>
@@ -2558,7 +2566,7 @@
               </tr>`;
 
             lastTxnLogRows.forEach((r, idx) => {
-              let payCol = r.paymentType === "Pending" ? "#ef4444" : (r.paymentType === "Cash" ? "#059669" : "#2563eb");
+              let payCol = r.paymentType === "Pending" ? "#ef4444" : ((r.paymentType === "Cash" || r.paymentType.includes("Cash Portion")) ? "#059669" : "#2563eb");
               let extra = [];
               if (r.dealer) extra.push(`🏢 ${r.dealer}`);
               if (r.notes) extra.push(`📝 ${r.notes}`);
@@ -2590,7 +2598,7 @@
           content.innerHTML = `<p style='color: #ef4444;'>Error: ${result.message}</p>`;
         }
       } catch (err) {
-        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v10.4 is deployed as a New Version.</p>";
+        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v10.8 is deployed as a New Version.</p>";
       }
       if (btn) { btn.innerText = "🔄 Load Transaction Log"; btn.disabled = false; }
     }
@@ -2662,7 +2670,7 @@
           content.innerHTML = `<p style='color: #ef4444;'>Error: ${result.message}</p>`;
         }
       } catch (err) {
-        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v10.4 is deployed.</p>";
+        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v10.8 is deployed.</p>";
       }
       btn.innerText = "🔄 Refresh Unpaid Bills"; btn.disabled = false;
     }
@@ -2745,7 +2753,7 @@
           content.innerHTML = `<p style='color: #ef4444;'>Error: ${result.message}</p>`;
         }
       } catch (err) {
-        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v10.4 is deployed.</p>";
+        content.innerHTML = "<p style='color: #ef4444;'>Network Error. Make sure Code.gs v10.8 is deployed.</p>";
       }
       btn.innerText = "🔄 Calculate Hours"; btn.disabled = false;
     }
@@ -2884,9 +2892,11 @@
         });
         const result = await response.json();
         if (result.status === "success") {
-          alert(`✅ Invoice ${orderId} voided and logged in the "Voided Invoices" audit tab.`);
+          let extraMsg = result.fleetRefundedCredits ? `\n\n🎟️ Automatically refunded ${result.fleetRefundedCredits} Prepaid Fleet credit(s)!` : "";
+          alert(`✅ Invoice ${orderId} voided and logged in the "Voided Invoices" audit tab.${extraMsg}`);
           if (activeTabName === 'txnlog') loadDashTxnLog();
           else if (activeTabName === 'ar') loadARReport();
+          else if (activeTabName === 'fleet') loadDashFleetReport();
           else if (activeTabName === 'invoices') searchGlobalInvoices();
           fetchData();
         } else {
