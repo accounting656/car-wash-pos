@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -23,7 +22,6 @@
 
     /* Aggressive Print Stylesheet for AirPrint & HP Printers */
     @media print {
-      /* THIS KILLS THE URL - Do not add !important here */
       @page { margin: 0; } 
       
       html, body { 
@@ -37,17 +35,14 @@
         -webkit-print-color-adjust: exact !important;
       }
       
-      /* SAFELY HIDE EVERYTHING EXCEPT THE ACTIVE PRINT SECTION */
       body > *:not(.active-print) { 
         display: none !important; 
       }
       
-      /* DOUBLE SAFEGUARD: Hide any print templates not currently active */
       .print-section:not(.active-print) {
         display: none !important;
       }
       
-      /* Detach the print section and snap it to the top-left of the page */
       .active-print { 
         display: block !important;
         position: absolute !important;
@@ -58,7 +53,6 @@
         margin: 0 !important;
       }
       
-      /* FORCE COMPOSITE BLACK: Bypasses the dead black ink printhead (except for the PAID watermark) */
       .active-print *:not(#invPaidWatermark) {
         color: #111827 !important; 
         font-family: Arial, Helvetica, sans-serif !important;
@@ -68,7 +62,6 @@
         opacity: 1 !important;
       }
 
-      /* Protect Tables from collapsing on HP Printers */
       table { width: 100% !important; border-collapse: collapse !important; table-layout: fixed !important; }
       td, th { padding: 3px 6px !important; word-wrap: break-word !important; }
     }    
@@ -96,11 +89,9 @@
     .clock-out-btn { background: #f59e0b; color: white; border: none; }
     .clock-out-btn:hover { background: #d97706; color: white; }
 
-    /* Square Loading Spinner */
     .spinner { border: 4px solid #e5e7eb; border-top: 4px solid #3b82f6; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 20px auto; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-    /* FLUID LAYOUT CHANGES HERE */
     .menu-section { flex: 1; padding: 30px 40px; overflow-y: auto; display: flex; flex-direction: column; min-width: 0; }
     .cart-section { flex: 0 0 35%; max-width: 440px; min-width: 320px; background: #ffffff; margin: 14px 16px 14px 0; border-radius: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; border: 1px solid #f3f4f6; }
     
@@ -118,7 +109,6 @@
     .timeclock-btn { background: #e0e7ff; color: #4338ca; }
     .timeclock-btn:hover { background: #c7d2fe; }
     
-    /* Grid fluid sizing updated */
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 24px; padding-bottom: 40px; }
     .card { background: white; border-radius: 20px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); border: 2px solid transparent; display: flex; flex-direction: column; justify-content: space-between; height: 100%; position: relative; overflow: hidden; }
     .card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: #e5e7eb; transition: 0.3s; }
@@ -132,7 +122,6 @@
     .dealer-banner { background: #fef08a; padding: 10px; border-radius: 12px; text-align: center; font-weight: 600; color: #854d0e; margin-bottom: 15px; display: none; }
     .promo-banner { background: #ecfeff; padding: 10px; border-radius: 12px; text-align: center; font-weight: 600; color: #0e7490; margin-bottom: 20px; display: none; border: 1px solid #a5f3fc; }
 
-    /* COMPACT IPAD CART & SCROLLABLE FOOTER */
     .cart-header { padding: 12px 20px; border-bottom: 1px solid #e5e7eb; background: #f9fafb; flex-shrink: 0; }
     .cart-title { font-size: 18px; font-weight: 700; color: #111827; display: flex; justify-content: space-between; align-items: center; }
     .cart-items { flex: 1 1 auto; min-height: 60px; overflow-y: auto; padding: 10px 20px; }
@@ -168,7 +157,6 @@
     .submit-btn:disabled { background: #9ca3af; box-shadow: none; cursor: not-allowed; }
     .status-msg { margin-top: 4px; text-align: center; font-weight: 600; font-size: 12px; height: 15px; }
 
-    /* MOBILE / SMALL IPAD STACKING */
     @media (max-width: 900px) {
         body { flex-direction: column; overflow-y: auto; }
         .menu-section { flex: none; height: auto; overflow: visible; padding: 20px; }
@@ -208,7 +196,7 @@
   <div id="paymentModalOverlay" class="modal-overlay">
     <div class="modal-box" style="max-height: 92vh; overflow-y: auto;">
       <h2>Select Payment Method</h2>
-      <button id="gcBtn" onclick="redeemGiftCard()" style="width: 100%; padding: 14px; background: #f59e0b; color: white; border: none; border-radius: 10px; font-size: 16px; margin-bottom: 10px; cursor: pointer; font-weight: bold;">🎁 Redeem Gift Card</button>
+      <button id="gcBtn" onclick="openRedeemGiftCardModal()" style="width: 100%; padding: 14px; background: #f59e0b; color: white; border: none; border-radius: 10px; font-size: 16px; margin-bottom: 10px; cursor: pointer; font-weight: bold;">🎁 Scan / Redeem Gift Card</button>
       <button id="payModalFleetBtn" onclick="openFleetModal(true)" style="display: none; width: 100%; padding: 14px; background: #4f46e5; color: white; border: none; border-radius: 10px; font-size: 16px; margin-bottom: 12px; cursor: pointer; font-weight: bold;">🎟️ Prepaid Fleet Account (Deane's LLC)</button>
       <button class="modal-btn" onclick="openCashCalculator()">💵 Cash</button>
       
@@ -222,6 +210,49 @@
       <button class="modal-btn" onclick="processOrder('Check')">📝 Check</button>
       <button class="modal-btn" onclick="processOrder('Pending')">⏳ Pending / Bill Later (Prints Invoice)</button>
       <button class="modal-btn btn-cancel" onclick="closeModals()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- SELL / ACTIVATE PHYSICAL BARCODE GIFT CARD MODAL -->
+  <div id="sellGiftCardModalOverlay" class="modal-overlay">
+    <div class="modal-box" style="max-width: 440px;">
+      <h2 style="color: #b45309; margin-bottom: 6px;">💳 Activate / Load Gift Card</h2>
+      <p style="margin-bottom: 14px; color: #4b5563; font-size: 13px;">Select or enter the load amount, then scan the barcode on the physical gift card (or tap 🎲 Auto ID).</p>
+
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px;">
+        <button class="modal-btn" style="margin: 0; padding: 10px; font-size: 15px; font-weight: 800;" onclick="setGcLoadAmount(25)">$25</button>
+        <button class="modal-btn" style="margin: 0; padding: 10px; font-size: 15px; font-weight: 800;" onclick="setGcLoadAmount(50)">$50</button>
+        <button class="modal-btn" style="margin: 0; padding: 10px; font-size: 15px; font-weight: 800;" onclick="setGcLoadAmount(75)">$75</button>
+        <button class="modal-btn" style="margin: 0; padding: 10px; font-size: 15px; font-weight: 800;" onclick="setGcLoadAmount(100)">$100</button>
+      </div>
+
+      <input type="number" id="gcLoadAmountInput" class="input-field" placeholder="💵 Load Amount ($)" step="0.01" style="font-size: 18px; font-weight: 800; text-align: center; background: white; margin-bottom: 10px;">
+
+      <div style="display: flex; gap: 8px; margin-bottom: 14px;">
+        <input type="text" id="gcBarcodeInput" class="input-field" placeholder="🔫 Scan Card Barcode (e.g. GC-1001)" style="flex: 1; margin: 0; font-size: 16px; font-weight: 800; text-align: center; background: #fffbeb; border-color: #f59e0b; letter-spacing: 1px;" onkeydown="if(event.key==='Enter'){ event.preventDefault(); confirmAddGiftCardToTicket(); }">
+        <button type="button" onclick="generateRandomGcBarcode()" style="padding: 8px 12px; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap;">🎲 Auto ID</button>
+      </div>
+
+      <div style="margin-bottom: 16px; text-align: left; background: #f9fafb; padding: 8px 12px; border-radius: 8px; border: 1px solid #e5e7eb;">
+        <input type="checkbox" id="gcPrintCardCheck" style="transform: scale(1.3); margin-right: 8px; cursor: pointer;">
+        <label for="gcPrintCardCheck" style="font-size: 13px; font-weight: 700; color: #374151; cursor: pointer;">🖨️ Print 3.5" × 2" barcode card slip (if no pre-printed card)</label>
+      </div>
+
+      <button class="modal-btn clock-in-btn" style="background: #d97706;" onclick="confirmAddGiftCardToTicket()">➕ Add Gift Card to Ticket</button>
+      <button class="modal-btn btn-cancel" onclick="closeModals()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- REDEEM BARCODE GIFT CARD MODAL -->
+  <div id="redeemGiftCardModalOverlay" class="modal-overlay">
+    <div class="modal-box" style="max-width: 420px;">
+      <h2 style="color: #d97706; margin-bottom: 6px;">🎁 Redeem Gift Card</h2>
+      <p style="margin-bottom: 14px; color: #4b5563; font-size: 13px;">Scan the barcode on the customer's Gift Card (or type the code below) to check balance and apply to this ticket.</p>
+
+      <input type="text" id="redeemGcCodeInput" class="input-field" placeholder="🔫 Scan Barcode or Type Code (e.g. GC-1001)" style="font-size: 18px; font-weight: 800; text-align: center; background: #fffbeb; border-color: #f59e0b; letter-spacing: 1px; margin-bottom: 16px;" onkeydown="if(event.key==='Enter'){ event.preventDefault(); submitRedeemGiftCard(); }">
+
+      <button class="modal-btn clock-in-btn" style="background: #f59e0b;" onclick="submitRedeemGiftCard()" id="btnSubmitRedeemGc">🔍 Check Balance & Apply</button>
+      <button class="modal-btn btn-cancel" onclick="document.getElementById('redeemGiftCardModalOverlay').style.display='none'; document.getElementById('paymentModalOverlay').style.display='flex';">Back to Payment</button>
     </div>
   </div>
 
@@ -425,10 +456,8 @@
         </div>
       </div>
       
-      <!-- Side-by-Side Bulletproof Table Layout -->
       <table style="width: 100%; border-collapse: collapse; border: none;">
         <tr>
-          <!-- LEFT COLUMN: Financials & Tender -->
           <td style="width: 40%; vertical-align: top; padding-right: 24px; border-right: 1px dashed #ccc;">
             
             <table style="width: 100%; text-align: left; font-size: 14px; margin-bottom: 18px;">
@@ -458,12 +487,9 @@
             <p id="eodEmployees" style="font-size: 11px; margin: 0; line-height: 1.35;"></p>
           </td>
           
-          <!-- RIGHT COLUMN: Categorized Services Breakdown -->
           <td style="width: 60%; vertical-align: top; padding-left: 18px;">
             <h3 style="font-size: 15px; border-bottom: 1px solid #111827; padding-bottom: 3px; margin-top: 0; margin-bottom: 6px;">Items Sold Breakdown</h3>
-            <table style="width: 100%; text-align: left; font-size: 12px; border-collapse: collapse;" id="eodCategorizedTable">
-              <!-- Dynamically populated grouped list -->
-            </table>
+            <table style="width: 100%; text-align: left; font-size: 12px; border-collapse: collapse;" id="eodCategorizedTable"></table>
           </td>
         </tr>
       </table>
@@ -482,7 +508,6 @@
           </div>
         </div>
 
-        <!-- DAY INFORMATION -->
         <div style="background: #e5e7eb; padding: 3px 6px; font-size: 10px; font-weight: 900; border: 1px solid #111827; margin-bottom: 4px;">DAY INFORMATION</div>
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px; font-size: 11px;">
           <tr>
@@ -495,10 +520,8 @@
           </tr>
         </table>
 
-        <!-- OPERATIONS & CASH CLOSING SIDE-BY-SIDE -->
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px;">
           <tr>
-            <!-- LEFT: OPERATIONS & COMMISSION SUMMARY -->
             <td style="width: 48%; vertical-align: top; padding-right: 8px;">
               <div style="background: #e5e7eb; padding: 3px 6px; font-size: 10px; font-weight: 900; border: 1px solid #111827; margin-bottom: 4px;">OPERATIONS & COMMISSION BASE (WASH ONLY)</div>
               <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
@@ -537,7 +560,6 @@
               </table>
             </td>
 
-            <!-- RIGHT: CASH CLOSING (WASH ONLY) -->
             <td style="width: 52%; vertical-align: top; padding-left: 8px;">
               <div style="background: #e5e7eb; padding: 3px 6px; font-size: 10px; font-weight: 900; border: 1px solid #111827; margin-bottom: 4px;">WASH REVENUE CLOSING (WASH ONLY — CREATION DATE)</div>
               <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
@@ -578,7 +600,6 @@
           </tr>
         </table>
 
-        <!-- NEW SECTION: COMPLETE CASH DRAWER RECONCILIATION & OWNER DEPOSIT (WASH + STORE) -->
         <div style="background: #e5e7eb; padding: 3px 6px; font-size: 10px; font-weight: 900; border: 1px solid #111827; margin-bottom: 4px;">💵 COMPLETE CASH DRAWER RECONCILIATION & OWNER DEPOSIT (INCLUDES STORE / RETAIL CASH)</div>
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px; font-size: 11px;">
           <tr>
@@ -595,15 +616,12 @@
           </tr>
         </table>
 
-        <!-- EMPLOYEES WHO WORKED (1 TO 12 GRID) -->
         <div style="background: #e5e7eb; padding: 3px 6px; font-size: 10px; font-weight: 900; border: 1px solid #111827; margin-bottom: 4px;">EMPLOYEES WHO WORKED</div>
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px; font-size: 10px;" id="mgrSlipEmployeesGrid"></table>
 
-        <!-- DAILY NOTES -->
         <div style="background: #e5e7eb; padding: 3px 6px; font-size: 10px; font-weight: 900; border: 1px solid #111827; margin-bottom: 4px;">DAILY NOTES</div>
         <div style="border: 1px solid #9ca3af; min-height: 34px; margin-bottom: 10px; padding: 4px 6px; font-size: 11px; white-space: pre-wrap;" id="mgrSlipNotesBox"></div>
 
-        <!-- SIGNATURE FOOTER -->
         <div style="display: flex; justify-content: space-between; align-items: flex-end; font-size: 10px; padding-top: 6px;">
           <div><em>Owner Cash Deposit = Total Cash Sales (Wash + Store) minus Cash Payouts. Any overage above Float + Deposit = Cash Tips.</em></div>
           <div style="text-align: center; width: 240px; border-top: 2px solid #111827; padding-top: 3px; font-weight: 900;">RESPONSIBLE PERSON'S SIGNATURE</div>
@@ -1001,7 +1019,7 @@
       <div class="totals-breakdown">
         <div class="total-line"><span>Subtotal</span><span id="subtotalAmount">$0.00</span></div>
         <div class="total-line"><span>Tax (7.5%)</span><span id="taxAmount">$0.00</span></div>
-        <div class="total-box"><span class="total-label">Total</span><span class="total-amount" id="grandTotal">$0.00</span></div>
+        <div class="total-box"><span class="total-label">Total</span><span id="grandTotal">$0.00</span></div>
       </div>
       
       <button id="submitBtn" class="submit-btn" onclick="promptPayment()">RECORD SALE</button>
@@ -1078,6 +1096,35 @@
   let selectedRegularCustomer = null;
   let pendingEodReportData = null;
   let pendingEodPrintAction = "print";
+
+  // Pure SVG Code-39 Barcode Generator (Scannable by any 1D/2D laser or camera scanner)
+  function buildCode39BarcodeSVG(text) {
+    const patterns = {
+      '0':'nnnwwnwnn','1':'wnnwnnnnw','2':'nnwwnnnnw','3':'wnwwnnnnn','4':'nnnwwnnnw',
+      '5':'wnnwwnnnn','6':'nnwwwnnnn','7':'nnnwnnwnw','8':'wnnwnnwnn','9':'nnwwnnwnn',
+      'A':'wnnnnwnnw','B':'nnwnnwnnw','C':'wnwnnwnnn','D':'nnnnwwnnw','E':'wnnnwwnnn',
+      'F':'nnwnwwnnn','G':'nnnnnwwnw','H':'wnnnnwwnn','I':'nnwnnwwnn','J':'nnnnwwwnn',
+      'K':'wnnnnnnww','L':'nnwnnnnww','M':'wnwnnnnwn','N':'nnnnwnnww','O':'wnnnwnnwn',
+      'P':'nnwnwnnwn','Q':'nnnnnnwww','R':'wnnnnnwwn','S':'nnwnnnwwn','T':'nnnnwnwwn',
+      'U':'wwnnnnnnw','V':'nwwnnnnnw','W':'wwwnnnnnn','X':'nwnnwnnnw','Y':'wwnnwnnnn',
+      'Z':'nwwnwnnnn','-':'nwnnnnwnw','.':'wwnnnnwnn',' ':'nwwnnnwnn','*':'nwnnwnwnn'
+    };
+    const clean = '*' + String(text || '').toUpperCase().replace(/[^0-9A-Z\-. ]/g, '') + '*';
+    let x = 0;
+    let rects = '';
+    for (let c of clean) {
+      const pat = patterns[c] || patterns['-'];
+      for (let i = 0; i < 9; i++) {
+        const w = pat[i] === 'w' ? 3 : 1;
+        if (i % 2 === 0) {
+          rects += `<rect x="${x}" y="0" width="${w}" height="36" fill="#111827"/>`;
+        }
+        x += w;
+      }
+      x += 1;
+    }
+    return `<svg viewBox="0 0 ${x} 36" style="width: 2.55in; height: 0.42in; display: block; margin: 3px auto;">${rects}</svg>`;
+  }
 
   async function executeSearch() {
     const term = document.getElementById("searchInput").value;
@@ -1718,15 +1765,21 @@
 
     document.getElementById("invReceiptItems").innerHTML = "";
     
+    // Compact 3.5" x 2.0" Business-Card-Sized Barcode Gift Card Cutout
     let giftCardHTML = "";
     (transaction.cart || []).forEach(item => {
-      if (item.isGiftCard && item.gcCode) {
+      if (item.isGiftCard && item.gcCode && item.wantsPrint) {
         giftCardHTML += `
-          <div style="border: 2px dashed #000; padding: 20px; margin-top: 30px; text-align: center; page-break-inside: avoid;">
-            <h2 style="margin: 0; font-size: 24px;">A+ WashOS Gift Certificate</h2>
-            <p style="font-size: 18px; margin: 10px 0;">Amount: <strong>$${item.price.toFixed(2)}</strong></p>
-            <div style="font-size: 32px; font-weight: 900; letter-spacing: 2px; margin: 15px 0;">${item.gcCode}</div>
-            <p style="font-size: 12px; color: #555;">Present this code at checkout to redeem.</p>
+          <div style="width: 3.5in; height: 2.0in; border: 2px dashed #111827; border-radius: 10px; padding: 0.14in 0.2in; margin: 20px auto 0 auto; text-align: center; page-break-inside: avoid; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div style="font-size: 13px; font-weight: 900; letter-spacing: 0.5px; text-transform: uppercase;">A Plus Car Wash & Detailing</div>
+              <div style="font-size: 10px; color: #4b5563;">GIFT CARD • VALUE: <strong style="font-size: 14px; color: #111827;">$${item.price.toFixed(2)}</strong></div>
+            </div>
+            <div>
+              ${buildCode39BarcodeSVG(item.gcCode)}
+              <div style="font-size: 12px; font-weight: 800; letter-spacing: 2px; font-family: monospace;">${item.gcCode}</div>
+            </div>
+            <div style="font-size: 8px; color: #6b7280;">Scan barcode at any A+ Car Wash location to redeem</div>
           </div>
         `;
       }
@@ -1986,6 +2039,8 @@
   function closeModals() { 
     const modals = [
       "paymentModalOverlay", 
+      "sellGiftCardModalOverlay",
+      "redeemGiftCardModalOverlay",
       "fleetModalOverlay",
       "timeclockModalOverlay", 
       "promoModalOverlay", 
@@ -2461,32 +2516,57 @@
     updateCart(); 
   }
 
+  // --- BARCODE GIFT CARD ACTIVATION & LOADING ---
   function addGiftCard() {
-    let amountStr = prompt("Enter Gift Card Amount ($):");
-    if (!amountStr) return;
-    
-    let amount = parseFloat(amountStr);
+    document.getElementById("gcLoadAmountInput").value = "";
+    document.getElementById("gcBarcodeInput").value = "";
+    document.getElementById("gcPrintCardCheck").checked = false;
+    document.getElementById("sellGiftCardModalOverlay").style.display = "flex";
+    setTimeout(() => { document.getElementById("gcLoadAmountInput").focus(); }, 150);
+  }
+
+  function setGcLoadAmount(amt) {
+    document.getElementById("gcLoadAmountInput").value = amt;
+    document.getElementById("gcBarcodeInput").focus();
+  }
+
+  function generateRandomGcBarcode() {
+    const chars = '0123456789';
+    let code = 'GC-';
+    for (let i = 0; i < 6; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+    document.getElementById("gcBarcodeInput").value = code;
+    document.getElementById("gcPrintCardCheck").checked = true;
+  }
+
+  function confirmAddGiftCardToTicket() {
+    const amount = parseFloat(document.getElementById("gcLoadAmountInput").value);
+    const code = document.getElementById("gcBarcodeInput").value.trim().toUpperCase();
+    const wantsPrint = document.getElementById("gcPrintCardCheck").checked;
+
     if (isNaN(amount) || amount <= 0) {
-      alert("Please enter a valid amount.");
-      return;
+      return alert("Please select or enter a valid Gift Card dollar amount.");
+    }
+    if (!code) {
+      return alert("Please scan the barcode on the physical gift card (or tap '🎲 Auto ID').");
     }
 
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let code = 'GC-';
-    for (let i = 0; i < 4; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
-    code += '-';
-    for (let i = 0; i < 4; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+    if (cart.some(it => it.gcCode === code)) {
+      return alert(`Gift Card ${code} is already on this ticket.`);
+    }
 
-    cart.push({ 
-      id: 'giftcard-' + Date.now(), 
-      name: `Gift Card (${code})`, 
+    cart.push({
+      id: 'giftcard-' + Date.now(),
+      name: `Gift Card (${code})`,
       price: amount,
       isGiftCard: true,
-      gcCode: code
+      gcCode: code,
+      wantsPrint: wantsPrint
     });
-    
+
     updateCart();
+    closeModals();
   }
+
   function removeFromCart(index) { cart.splice(index, 1); updateCart(); }
 
   function updateCart() {
@@ -2518,7 +2598,7 @@
     remainingGcBalance = 0;
     const gcBtn = document.getElementById("gcBtn");
     if (gcBtn) {
-      gcBtn.innerText = "🎁 Redeem Gift Card";
+      gcBtn.innerText = "🎁 Scan / Redeem Gift Card";
       gcBtn.style.background = "#f59e0b";
       gcBtn.disabled = false;
     }
@@ -2776,10 +2856,10 @@
     statusMsg.style.color = "#10b981"; 
     statusMsg.innerText = "Order logged successfully!";
     
-    const hasGiftCard = cart.some(item => item.isGiftCard);
+    const hasGiftCardToPrint = cart.some(item => item.isGiftCard && item.wantsPrint);
     let shouldPrint = false;
     
-    if (hasGiftCard || selectedPaymentType === 'Pending') {
+    if (hasGiftCardToPrint || selectedPaymentType === 'Pending') {
       shouldPrint = true;
     } else if (selectedPaymentType === 'Cash' || appliedGcCode || (splitOpts && splitOpts.isSplitPayment) || selectedRegularCustomer) {
       shouldPrint = confirm("Does the customer want a printed receipt / invoice?");
@@ -3062,7 +3142,6 @@
     const savedFloat = parseFloat(localStorage.getItem("washos_drawer_float")) || 0;
     document.getElementById("wizStartingFloat").value = savedFloat > 0 ? savedFloat.toFixed(2) : "0.00";
 
-    // Pre-fill physical cash count with (Float + Expected Deposit + Existing Cash Tips) so if they already entered Cash Tips, it's ready
     const defaultPhysicalCount = +(savedFloat + expectedOwnerDeposit + existingCashTips).toFixed(2);
     document.getElementById("wizPhysicalCount").value = defaultPhysicalCount > 0 ? defaultPhysicalCount.toFixed(2) : "";
     document.getElementById("wizManagerNotes").value = "";
@@ -3132,7 +3211,6 @@
     btn.innerText = "⏳ Saving & Preparing Print...";
     btn.disabled = true;
 
-    // Save the calculated Cash Tips to Google Sheets if it changed
     if (Math.abs(overageTips - (Number(rData.cashTips) || 0)) > 0.009) {
       try {
         await fetch(GOOGLE_SCRIPT_URL, {
@@ -3153,7 +3231,6 @@
       } catch (e) {}
     }
 
-    // If action is 'both', also trigger the automated EOD email now that Cash Tips are saved
     if (pendingEodPrintAction === 'both') {
       try {
         await fetch(GOOGLE_SCRIPT_URL, {
@@ -3370,7 +3447,6 @@
     document.getElementById("mgrSlipNonTaxablePaid").innerText = `$${(ms.nonTaxableDailyPayment || 0).toFixed(2)}`;
     document.getElementById("mgrSlipTotalSale").innerText = `$${(ms.totalSaleWash || 0).toFixed(2)}`;
 
-    // Populate Drawer Reconciliation & Owner Deposit Box
     document.getElementById("mgrDrawerWashCash").innerText = `$${drawerInfo.washCash.toFixed(2)}`;
     document.getElementById("mgrDrawerStoreCash").innerText = `$${drawerInfo.storeAndOtherCash.toFixed(2)}`;
     document.getElementById("mgrDrawerPayouts").innerText = `-$${drawerInfo.payouts.toFixed(2)}`;
@@ -3588,53 +3664,69 @@
     }, 300);
   }
 
-  async function redeemGiftCard() {
-    const code = prompt("Enter Gift Card Code (e.g., GC-XXXX-XXXX):");
-    if (!code) return; 
+  // --- BARCODE GIFT CARD REDEMPTION ---
+  function openRedeemGiftCardModal() {
+    document.getElementById("paymentModalOverlay").style.display = "none";
+    document.getElementById("redeemGcCodeInput").value = "";
+    document.getElementById("redeemGiftCardModalOverlay").style.display = "flex";
+    setTimeout(() => { document.getElementById("redeemGcCodeInput").focus(); }, 150);
+  }
 
-    const btn = document.getElementById("gcBtn");
-    const originalText = btn.innerText;
-    btn.innerText = "⏳ Checking Balance...";
-    btn.disabled = true;
+  async function submitRedeemGiftCard() {
+    const code = document.getElementById("redeemGcCodeInput").value.trim().toUpperCase();
+    if (!code) return alert("Please scan or enter the Gift Card Barcode.");
+
+    const submitBtn = document.getElementById("btnSubmitRedeemGc");
+    const origText = submitBtn.innerText;
+    submitBtn.innerText = "⏳ Checking Balance...";
+    submitBtn.disabled = true;
 
     try {
       const response = await fetch(GOOGLE_SCRIPT_URL, {
         method: "POST",
+        headers: { "Content-Type": "text/plain" },
         body: JSON.stringify({
           recordType: "check_giftcard",
           location: document.getElementById("locationSelect").value,
-          code: code.trim().toUpperCase()
+          code: code
         })
       });
       const result = await response.json();
 
       if (result.status === "success") {
-        let balance = result.balance;
+        let balance = parseFloat(result.balance) || 0;
         if (balance <= 0) {
-          alert("This gift card has a zero balance.");
+          alert(`Gift Card (${code}) has a $0.00 balance.`);
         } else {
           let cartTotal = cart.reduce((sum, item) => sum + item.price, 0); 
           let taxAmt = isTaxExempt ? 0 : (cartTotal * TOTAL_TAX_RATE); 
           let actualGrandTotal = cartTotal + taxAmt;
           
-          appliedGcCode = code.trim().toUpperCase();
+          appliedGcCode = code;
           appliedGcAmount = Math.min(balance, actualGrandTotal);
-          remainingGcBalance = balance - appliedGcAmount;
+          remainingGcBalance = +(balance - appliedGcAmount).toFixed(2);
           
-          alert(`Gift Card Found! \nBalance: $${balance.toFixed(2)}\nApplied: $${appliedGcAmount.toFixed(2)}`);
-          btn.innerText = `✅ Applied ($${appliedGcAmount.toFixed(2)})`;
-          btn.style.background = "#10b981"; 
-          return; 
+          alert(`✅ Gift Card (${code}) Applied!\n\nCard Balance: $${balance.toFixed(2)}\nApplied to Ticket: -$${appliedGcAmount.toFixed(2)}\nRemaining Card Balance: $${remainingGcBalance.toFixed(2)}`);
+          
+          const gcBtn = document.getElementById("gcBtn");
+          gcBtn.innerText = `✅ GC ${code} (-$${appliedGcAmount.toFixed(2)})`;
+          gcBtn.style.background = "#10b981";
+          
+          document.getElementById("redeemGiftCardModalOverlay").style.display = "none";
+          document.getElementById("paymentModalOverlay").style.display = "flex";
+          submitBtn.innerText = origText;
+          submitBtn.disabled = false;
+          return;
         }
       } else {
-        alert("Error: " + result.message);
+        alert("❌ " + result.message);
       }
     } catch (err) {
-      alert("Network error while checking card. Try again.");
+      alert("Network error while checking gift card. Try again.");
     }
     
-    btn.innerText = originalText;
-    btn.disabled = false;
+    submitBtn.innerText = origText;
+    submitBtn.disabled = false;
   }
 
   // --- ZERO-TOUCH PWA AUTO-UPDATER & CACHE BUSTER ---
