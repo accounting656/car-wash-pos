@@ -164,6 +164,7 @@
         .cart-footer { max-height: none; }
     }
 </style>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 </head>
 <body>
 
@@ -215,9 +216,9 @@
 
   <!-- SELL / ACTIVATE PHYSICAL BARCODE GIFT CARD MODAL -->
   <div id="sellGiftCardModalOverlay" class="modal-overlay">
-    <div class="modal-box" style="max-width: 440px;">
+    <div class="modal-box" style="max-width: 460px; max-height: 92vh; overflow-y: auto;">
       <h2 style="color: #b45309; margin-bottom: 6px;">💳 Activate / Load Gift Card</h2>
-      <p style="margin-bottom: 14px; color: #4b5563; font-size: 13px;">Select or enter the load amount, then scan the barcode on the physical gift card (or tap 🎲 Auto ID).</p>
+      <p style="margin-bottom: 14px; color: #4b5563; font-size: 13px;">Select the load amount, then tap <strong>📷 Camera</strong> to scan the card's barcode with the iPad camera (or use a handheld scanner).</p>
 
       <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px;">
         <button class="modal-btn" style="margin: 0; padding: 10px; font-size: 15px; font-weight: 800;" onclick="setGcLoadAmount(25)">$25</button>
@@ -228,9 +229,19 @@
 
       <input type="number" id="gcLoadAmountInput" class="input-field" placeholder="💵 Load Amount ($)" step="0.01" style="font-size: 18px; font-weight: 800; text-align: center; background: white; margin-bottom: 10px;">
 
-      <div style="display: flex; gap: 8px; margin-bottom: 14px;">
-        <input type="text" id="gcBarcodeInput" class="input-field" placeholder="🔫 Scan Card Barcode (e.g. GC-1001)" style="flex: 1; margin: 0; font-size: 16px; font-weight: 800; text-align: center; background: #fffbeb; border-color: #f59e0b; letter-spacing: 1px;" onkeydown="if(event.key==='Enter'){ event.preventDefault(); confirmAddGiftCardToTicket(); }">
-        <button type="button" onclick="generateRandomGcBarcode()" style="padding: 8px 12px; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap;">🎲 Auto ID</button>
+      <div style="display: flex; gap: 6px; margin-bottom: 10px;">
+        <input type="text" id="gcBarcodeInput" class="input-field" placeholder="🔫 Barcode ID (e.g. GC-1001)" style="flex: 1; margin: 0; font-size: 16px; font-weight: 800; text-align: center; background: #fffbeb; border-color: #f59e0b; letter-spacing: 1px;" onkeydown="if(event.key==='Enter'){ event.preventDefault(); confirmAddGiftCardToTicket(); }">
+        <button type="button" onclick="startIpadCameraScanner('sell')" style="padding: 8px 12px; background: #2563eb; color: white; border: none; border-radius: 10px; font-size: 13px; font-weight: 800; cursor: pointer; white-space: nowrap;">📷 Camera</button>
+        <button type="button" onclick="generateRandomGcBarcode()" style="padding: 8px 10px; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap;">🎲 Auto</button>
+      </div>
+
+      <!-- LIVE IPAD CAMERA VIEWFINDER (SELL MODAL) -->
+      <div id="gcSellCameraBox" style="display: none; margin-bottom: 12px; background: #111827; padding: 10px; border-radius: 12px; text-align: center;">
+        <div id="gcSellCameraReader" style="width: 100%; border-radius: 8px; overflow: hidden;"></div>
+        <div style="display: flex; gap: 8px; margin-top: 8px;">
+          <button type="button" onclick="flipIpadCamera('sell')" style="flex: 1; padding: 8px; background: #374151; color: white; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;">🔄 Flip Camera (Front/Back)</button>
+          <button type="button" onclick="stopIpadCameraScanner()" style="flex: 1; padding: 8px; background: #ef4444; color: white; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;">✖ Close Camera</button>
+        </div>
       </div>
 
       <div style="margin-bottom: 16px; text-align: left; background: #f9fafb; padding: 8px 12px; border-radius: 8px; border: 1px solid #e5e7eb;">
@@ -245,14 +256,25 @@
 
   <!-- REDEEM BARCODE GIFT CARD MODAL -->
   <div id="redeemGiftCardModalOverlay" class="modal-overlay">
-    <div class="modal-box" style="max-width: 420px;">
+    <div class="modal-box" style="max-width: 440px; max-height: 92vh; overflow-y: auto;">
       <h2 style="color: #d97706; margin-bottom: 6px;">🎁 Redeem Gift Card</h2>
-      <p style="margin-bottom: 14px; color: #4b5563; font-size: 13px;">Scan the barcode on the customer's Gift Card (or type the code below) to check balance and apply to this ticket.</p>
+      <p style="margin-bottom: 12px; color: #4b5563; font-size: 13px;">Tap <strong>📷 Scan Barcode with iPad Camera</strong> below (or type the code) to check the balance and apply it to this ticket.</p>
 
-      <input type="text" id="redeemGcCodeInput" class="input-field" placeholder="🔫 Scan Barcode or Type Code (e.g. GC-1001)" style="font-size: 18px; font-weight: 800; text-align: center; background: #fffbeb; border-color: #f59e0b; letter-spacing: 1px; margin-bottom: 16px;" onkeydown="if(event.key==='Enter'){ event.preventDefault(); submitRedeemGiftCard(); }">
+      <button type="button" onclick="startIpadCameraScanner('redeem')" style="width: 100%; padding: 12px; margin-bottom: 10px; background: #2563eb; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 800; cursor: pointer;">📷 Scan Barcode with iPad Camera</button>
+
+      <!-- LIVE IPAD CAMERA VIEWFINDER (REDEEM MODAL) -->
+      <div id="gcRedeemCameraBox" style="display: none; margin-bottom: 12px; background: #111827; padding: 10px; border-radius: 12px; text-align: center;">
+        <div id="gcRedeemCameraReader" style="width: 100%; border-radius: 8px; overflow: hidden;"></div>
+        <div style="display: flex; gap: 8px; margin-top: 8px;">
+          <button type="button" onclick="flipIpadCamera('redeem')" style="flex: 1; padding: 8px; background: #374151; color: white; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;">🔄 Flip Camera (Front/Back)</button>
+          <button type="button" onclick="stopIpadCameraScanner()" style="flex: 1; padding: 8px; background: #ef4444; color: white; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;">✖ Close Camera</button>
+        </div>
+      </div>
+
+      <input type="text" id="redeemGcCodeInput" class="input-field" placeholder="🔫 Or Type Code (e.g. GC-1001)" style="font-size: 18px; font-weight: 800; text-align: center; background: #fffbeb; border-color: #f59e0b; letter-spacing: 1px; margin-bottom: 14px;" onkeydown="if(event.key==='Enter'){ event.preventDefault(); submitRedeemGiftCard(); }">
 
       <button class="modal-btn clock-in-btn" style="background: #f59e0b;" onclick="submitRedeemGiftCard()" id="btnSubmitRedeemGc">🔍 Check Balance & Apply</button>
-      <button class="modal-btn btn-cancel" onclick="document.getElementById('redeemGiftCardModalOverlay').style.display='none'; document.getElementById('paymentModalOverlay').style.display='flex';">Back to Payment</button>
+      <button class="modal-btn btn-cancel" onclick="stopIpadCameraScanner(); document.getElementById('redeemGiftCardModalOverlay').style.display='none'; document.getElementById('paymentModalOverlay').style.display='flex';">Back to Payment</button>
     </div>
   </div>
 
@@ -2037,6 +2059,7 @@
   }
   function openPromoModal() { document.getElementById("promoModalOverlay").style.display = "flex"; }
   function closeModals() { 
+     stopIpadCameraScanner();
     const modals = [
       "paymentModalOverlay", 
       "sellGiftCardModalOverlay",
@@ -3663,7 +3686,63 @@
       closeModals();
     }, 300);
   }
+// --- IPAD LIVE CAMERA BARCODE SCANNER (CODE-39 / CODE-128 / QR) ---
+  let html5QrScanner = null;
+  let currentCameraFacing = "environment"; // 'environment' = back camera, 'user' = front camera
 
+  async function startIpadCameraScanner(mode) {
+    await stopIpadCameraScanner();
+
+    const boxId = mode === 'sell' ? 'gcSellCameraBox' : 'gcRedeemCameraBox';
+    const readerId = mode === 'sell' ? 'gcSellCameraReader' : 'gcRedeemCameraReader';
+    document.getElementById(boxId).style.display = "block";
+
+    try {
+      html5QrScanner = new Html5Qrcode(readerId);
+      await html5QrScanner.start(
+        { facingMode: currentCameraFacing },
+        { fps: 12, qrbox: { width: 250, height: 100 } },
+        async (decodedText) => {
+          const cleanCode = String(decodedText || "").trim().toUpperCase();
+          if (!cleanCode) return;
+
+          await stopIpadCameraScanner();
+
+          if (mode === 'sell') {
+            document.getElementById("gcBarcodeInput").value = cleanCode;
+          } else {
+            document.getElementById("redeemGcCodeInput").value = cleanCode;
+            submitRedeemGiftCard();
+          }
+        },
+        () => {} // ignore frame-by-frame scan misses
+      );
+    } catch (err) {
+      alert("Camera access required: Please tap 'Allow' when Safari asks to use the camera.");
+      document.getElementById(boxId).style.display = "none";
+    }
+  }
+
+  async function flipIpadCamera(mode) {
+    currentCameraFacing = (currentCameraFacing === "environment") ? "user" : "environment";
+    await startIpadCameraScanner(mode);
+  }
+
+  async function stopIpadCameraScanner() {
+    if (html5QrScanner) {
+      try {
+        if (html5QrScanner.isScanning) {
+          await html5QrScanner.stop();
+        }
+        html5QrScanner.clear();
+      } catch (e) {}
+      html5QrScanner = null;
+    }
+    const sellBox = document.getElementById("gcSellCameraBox");
+    if (sellBox) sellBox.style.display = "none";
+    const redeemBox = document.getElementById("gcRedeemCameraBox");
+    if (redeemBox) redeemBox.style.display = "none";
+  }
   // --- BARCODE GIFT CARD REDEMPTION ---
   function openRedeemGiftCardModal() {
     document.getElementById("paymentModalOverlay").style.display = "none";
