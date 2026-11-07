@@ -201,7 +201,7 @@
     </div>
     <div id="systemStatus">🟢 System Initializing...</div>
     <button onclick="forceAppUpdate()" style="margin-top: 15px; background: rgba(255,255,255,0.08); color: #9ca3af; border: 1px solid rgba(255,255,255,0.15); padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;">🔄 Update App</button>
-    <div id="appVersionBadge" style="margin-top: 12px; font-size: 12px; font-weight: 700; color: #60a5fa; background: rgba(37,99,235,0.15); border: 1px solid rgba(96,165,250,0.3); padding: 4px 12px; border-radius: 20px; letter-spacing: 0.5px;">WashOS v10.4</div>
+    <div id="appVersionBadge" style="margin-top: 12px; font-size: 12px; font-weight: 700; color: #60a5fa; background: rgba(37,99,235,0.15); border: 1px solid rgba(96,165,250,0.3); padding: 4px 12px; border-radius: 20px; letter-spacing: 0.5px;">WashOS v10.8</div>
   </div>
 
   <!-- PAYMENT MODAL -->
@@ -497,6 +497,10 @@
                 <tr>
                   <td style="padding: 6px 8px; border: 1px solid #9ca3af; font-weight: 700;">ATM / Credit Card (Wash)</td>
                   <td style="padding: 6px 8px; border: 1px solid #9ca3af; text-align: right; font-weight: 800;" id="mgrSlipAtmCard">$0.00</td>
+                </tr>
+                <tr>
+                  <td style="padding: 6px 8px; border: 1px solid #9ca3af; color: #4b5563;">CC Surcharge (Non-Commission)</td>
+                  <td style="padding: 6px 8px; border: 1px solid #9ca3af; text-align: right; font-weight: 700; color: #4b5563;" id="mgrSlipCcSurcharge">$0.00</td>
                 </tr>
                 <tr>
                   <td style="padding: 6px 8px; border: 1px solid #9ca3af;">Pending Taxable (Created Today)</td>
@@ -804,7 +808,7 @@
       <div style="display: flex; gap: 15px; align-items: center;">
         <img src="logo.png" alt="A+ Logo" style="height: 100px; border-radius: 8px; object-fit: contain;">
         <h2 class="header-title">A+ WashOS</h2>
-        <span style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 4px 10px; border-radius: 14px; font-size: 11px; font-weight: 800;">v10.4</span>
+        <span style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 4px 10px; border-radius: 14px; font-size: 11px; font-weight: 800;">v10.8</span>
         <button id="backBtn" style="display:none; background: #e5e7eb; color: #374151; border: none; padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;" onclick="clearVehicleType()">⬅ Back</button>
       </div>
       <div class="controls">
@@ -3124,6 +3128,7 @@
             washNet: result.data.washRevenue || 0,
             washTax: +((result.data.washRevenue || 0) * 0.075).toFixed(2),
             washGrossWithTax: +((result.data.washRevenue || 0) * 1.075).toFixed(2),
+            ccFees: result.data.ccFees || 0,
             ccTips: result.data.totalTips || 0,
             cashTips: result.data.cashTips || 0,
             totalTips: (result.data.totalTips || 0) + (result.data.cashTips || 0),
@@ -3166,6 +3171,7 @@
           document.getElementById("mgrSlipCashTaxes").innerText = `$${(ms.cashTaxesWash || 0).toFixed(2)}`;
           document.getElementById("mgrSlipTipsSplit").innerText = `$${(ms.ccTips || 0).toFixed(2)} CC / $${(ms.cashTips || 0).toFixed(2)} Cash`;
           document.getElementById("mgrSlipAtmCard").innerText = `$${(ms.atmCardWash || 0).toFixed(2)}`;
+          document.getElementById("mgrSlipCcSurcharge").innerText = `$${(ms.ccFees !== undefined ? ms.ccFees : (result.data.ccFees || 0)).toFixed(2)}`;
           document.getElementById("mgrSlipPendingTaxable").innerText = `$${(ms.pendingTaxable || 0).toFixed(2)}`;
           document.getElementById("mgrSlipPendingNonTaxable").innerText = `$${(ms.pendingNonTaxable || 0).toFixed(2)}`;
           document.getElementById("mgrSlipNonTaxablePaid").innerText = `$${(ms.nonTaxableDailyPayment || 0).toFixed(2)}`;
