@@ -408,6 +408,16 @@
       <h2 style="text-align: center; margin-bottom: 4px; color: #0f766e;">💵 Manager Drawer Closing</h2>
       <p style="text-align: center; font-size: 13px; color: #6b7280; margin-bottom: 14px;">Count all cash in your drawer to calculate the exact <strong>Owner Cash Deposit</strong> and <strong>Cash Tips (Overage)</strong>.</p>
 
+      <!-- LOCKED CLOSING WARNING BANNER -->
+      <div id="wizLockedBanner" style="display: none; background: #fef2f2; border: 2px solid #ef4444; color: #991b1b; padding: 10px 12px; border-radius: 10px; margin-bottom: 12px; font-size: 12px; line-height: 1.4;">
+        <strong>🔒 DRAWER ALREADY CLOSED TODAY (<span id="wizClosedByText">Manager</span>):</strong><br>
+        Today's closing numbers are locked so another manager cannot accidentally alter them. You can <strong>🖨️ Reprint</strong> below, or tap <strong>🔓 Unlock with Admin PIN</strong> to edit.
+        <div style="margin-top: 8px; display: flex; gap: 8px;">
+          <button type="button" onclick="reprintLockedEOD()" style="flex: 1; padding: 8px; background: #0f766e; color: white; border: none; border-radius: 8px; font-weight: 800; cursor: pointer;">🖨️ Reprint Locked Slip</button>
+          <button type="button" onclick="unlockDrawerClosingWithAdminPin()" style="flex: 1; padding: 8px; background: #dc2626; color: white; border: none; border-radius: 8px; font-weight: 800; cursor: pointer;">🔓 Unlock with Admin PIN</button>
+        </div>
+      </div>
+
       <!-- SYSTEM EXPECTED CASH SUMMARY -->
       <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; font-size: 13px;">
         <div style="font-weight: 800; color: #1e293b; margin-bottom: 6px; text-transform: uppercase; font-size: 11px;">1. System Expected Cash Sales (All Cash):</div>
@@ -548,11 +558,11 @@
               <div style="background: #e5e7eb; padding: 3px 6px; font-size: 10px; font-weight: 900; border: 1px solid #111827; margin-bottom: 4px;">OPERATIONS & COMMISSION BASE (WASH ONLY)</div>
               <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
                 <tr>
-                  <td style="padding: 4px 6px; border: 1px solid #9ca3af; font-weight: 700;">Number of cars</td>
+                  <td style="padding: 4px 6px; border: 1px solid #9ca3af; font-weight: 700;">Total Number of Cars</td>
                   <td style="padding: 4px 6px; border: 1px solid #9ca3af; text-align: right; font-weight: 900; font-size: 13px;" id="mgrSlipNumCars">0</td>
                 </tr>
                 <tr>
-                  <td style="padding: 4px 6px; border: 1px solid #9ca3af; font-weight: 700;">Number of detailing services</td>
+                  <td style="padding: 4px 6px; border: 1px solid #9ca3af; font-weight: 700;">Cars with Detailing Service<br><span style="font-size: 8.5px; font-weight: normal; color: #4b5563;">(Clay Bar, Ext &amp; Shampoo, Supreme, House Pack)</span></td>
                   <td style="padding: 4px 6px; border: 1px solid #9ca3af; text-align: right; font-weight: 900; font-size: 13px;" id="mgrSlipNumDetailing">0</td>
                 </tr>
                 <tr style="background: #f3f4f6;">
@@ -578,6 +588,10 @@
                 <tr style="background: #f3f4f6;">
                   <td style="padding: 4px 6px; border: 1px solid #111827; font-weight: 900;">Total Tips (CC + Cash)</td>
                   <td style="padding: 4px 6px; border: 1px solid #111827; text-align: right; font-weight: 900; font-size: 13px;" id="mgrSlipTotalTips">$0.00</td>
+                </tr>
+                <tr style="background: #dcfce7; border: 2px solid #111827;">
+                  <td style="padding: 6px 6px; border: 2px solid #111827; font-weight: 900; font-size: 12px;">TOTAL WITH TIP &amp; WITHOUT TAX<br><span style="font-size: 9px; font-weight: 700;">(Net Wash Revenue + Total Tips)</span></td>
+                  <td style="padding: 6px 6px; border: 2px solid #111827; text-align: right; font-weight: 900; font-size: 16px;" id="mgrSlipNetPlusTips">$0.00</td>
                 </tr>
               </table>
             </td>
@@ -1252,6 +1266,8 @@
           body: JSON.stringify({
             recordType: "square_checkout",
             location: location,
+            orderId: pendingPayOrderId,
+            isPendingPay: true,
             subtotal: cleanSub,
             taxAmount: cleanTax,
             ccFee: ccFee,
@@ -2059,7 +2075,7 @@
   }
   function openPromoModal() { document.getElementById("promoModalOverlay").style.display = "flex"; }
   function closeModals() { 
-     stopIpadCameraScanner();
+    stopIpadCameraScanner();
     const modals = [
       "paymentModalOverlay", 
       "sellGiftCardModalOverlay",
@@ -3141,8 +3157,13 @@
     }
   }
 
+  let unlockedDrawerAdminPin = "";
+
   function openDrawerClosingWizard(rData) {
+    unlockedDrawerAdminPin = "";
+    const location = document.getElementById("locationSelect").value;
     const ms = rData.managerSlip || {};
+    const dc = rData.drawerClosing || {};
     const washCash = Number(ms.totalCashWash) || 0;
     const allSalesCash = Number(rData.cash) || 0;
     const paidPendingCash = Number(rData.paidPendingCash) || 0;
@@ -3162,19 +3183,78 @@
     }
     document.getElementById("wizExpectedDeposit").innerText = `$${expectedOwnerDeposit.toFixed(2)}`;
 
-    const savedFloat = parseFloat(localStorage.getItem("washos_drawer_float")) || 0;
-    document.getElementById("wizStartingFloat").value = savedFloat > 0 ? savedFloat.toFixed(2) : "0.00";
+    // Remember Starting Drawer Float per location (from Google Sheets or localStorage fallback)
+    const localFloat = parseFloat(localStorage.getItem("washos_drawer_float_" + location)) || parseFloat(localStorage.getItem("washos_drawer_float")) || 0;
+    const rememberedFloat = (dc.savedFloat !== undefined && dc.savedFloat > 0) ? Number(dc.savedFloat) : localFloat;
+    document.getElementById("wizStartingFloat").value = rememberedFloat > 0 ? rememberedFloat.toFixed(2) : "0.00";
 
-    const defaultPhysicalCount = +(savedFloat + expectedOwnerDeposit + existingCashTips).toFixed(2);
+    const defaultPhysicalCount = (dc.physicalCount && dc.physicalCount > 0)
+      ? Number(dc.physicalCount)
+      : +(rememberedFloat + expectedOwnerDeposit + existingCashTips).toFixed(2);
     document.getElementById("wizPhysicalCount").value = defaultPhysicalCount > 0 ? defaultPhysicalCount.toFixed(2) : "";
-    document.getElementById("wizManagerNotes").value = "";
+    document.getElementById("wizManagerNotes").value = dc.managerNotes || "";
+
+    // Check if today's closing is already locked
+    const lockedBanner = document.getElementById("wizLockedBanner");
+    const savePrintBtn = document.getElementById("btnConfirmDrawerPrint");
+    const isLocked = dc.isLocked === true;
+
+    document.getElementById("wizStartingFloat").disabled = isLocked;
+    document.getElementById("wizPhysicalCount").disabled = isLocked;
+    document.getElementById("wizManagerNotes").disabled = isLocked;
+
+    if (isLocked) {
+      document.getElementById("wizClosedByText").innerText = dc.closedBy || "Manager";
+      lockedBanner.style.display = "block";
+      savePrintBtn.style.display = "none";
+    } else {
+      lockedBanner.style.display = "none";
+      savePrintBtn.style.display = "block";
+    }
 
     updateDrawerClosingMath();
     document.getElementById("drawerClosingModalOverlay").style.display = "flex";
   }
 
+  function unlockDrawerClosingWithAdminPin() {
+    const pin = prompt("🔒 ADMIN OVERRIDE REQUIRED:\n\nToday's closing was already completed for this location. Enter the Owner / Admin PIN to unlock and edit today's drawer closing:");
+    if (!pin || !pin.trim()) return;
+    unlockedDrawerAdminPin = pin.trim();
+    document.getElementById("wizStartingFloat").disabled = false;
+    document.getElementById("wizPhysicalCount").disabled = false;
+    document.getElementById("wizManagerNotes").disabled = false;
+    document.getElementById("wizLockedBanner").style.display = "none";
+    document.getElementById("btnConfirmDrawerPrint").style.display = "block";
+  }
+
+  function reprintLockedEOD() {
+    if (!pendingEodReportData) return;
+    const location = document.getElementById("locationSelect").value;
+    const rData = pendingEodReportData;
+    const ms = rData.managerSlip || {};
+    const washCash = Number(ms.totalCashWash) || 0;
+    const allSalesCash = Number(rData.cash) || 0;
+    const paidPendingCash = Number(rData.paidPendingCash) || 0;
+    const totalExpectedCashIn = +(allSalesCash + paidPendingCash).toFixed(2);
+    const storeAndOtherCash = Math.max(0, +(totalExpectedCashIn - washCash).toFixed(2));
+    const payouts = Number(rData.payoutTotal) || 0;
+    const expectedOwnerDeposit = +(totalExpectedCashIn - payouts).toFixed(2);
+    const floatAmt = Math.max(0, parseFloat(document.getElementById("wizStartingFloat").value) || 0);
+    const physicalCount = parseFloat(document.getElementById("wizPhysicalCount").value) || (floatAmt + expectedOwnerDeposit);
+    const netAfterFloat = +(physicalCount - floatAmt).toFixed(2);
+    const overageTips = Math.max(0, +(netAfterFloat - expectedOwnerDeposit).toFixed(2));
+    const managerNotes = document.getElementById("wizManagerNotes").value.trim();
+
+    closeModals();
+    populateAndPrintEOD(location, rData, {
+      washCash, storeAndOtherCash, payouts, ownerDeposit: expectedOwnerDeposit,
+      floatAmt, physicalCount, netAfterFloat, cashTips: overageTips, notes: managerNotes
+    }, pendingEodPrintAction);
+  }
+
   function updateDrawerClosingMath() {
     if (!pendingEodReportData) return;
+    const location = document.getElementById("locationSelect").value;
     const rData = pendingEodReportData;
     const allSalesCash = Number(rData.cash) || 0;
     const paidPendingCash = Number(rData.paidPendingCash) || 0;
@@ -3182,6 +3262,7 @@
     const expectedOwnerDeposit = +(allSalesCash + paidPendingCash - payouts).toFixed(2);
 
     const floatAmt = Math.max(0, parseFloat(document.getElementById("wizStartingFloat").value) || 0);
+    localStorage.setItem("washos_drawer_float_" + location, floatAmt);
     localStorage.setItem("washos_drawer_float", floatAmt);
 
     const physicalCountRaw = document.getElementById("wizPhysicalCount").value;
@@ -3229,30 +3310,43 @@
     const overageTips = Math.max(0, +(netAfterFloat - expectedOwnerDeposit).toFixed(2));
     const managerNotes = document.getElementById("wizManagerNotes").value.trim();
 
+    localStorage.setItem("washos_drawer_float_" + location, floatAmt);
+    localStorage.setItem("washos_drawer_float", floatAmt);
+
     const btn = document.getElementById("btnConfirmDrawerPrint");
     const origText = btn.innerText;
-    btn.innerText = "⏳ Saving & Preparing Print...";
+    btn.innerText = "⏳ Saving & Locking Closing...";
     btn.disabled = true;
 
-    if (Math.abs(overageTips - (Number(rData.cashTips) || 0)) > 0.009) {
-      try {
-        await fetch(GOOGLE_SCRIPT_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain" },
-          body: JSON.stringify({
-            recordType: "record_cash_tips",
-            location: location,
-            amount: overageTips,
-            attendant: activeAttendant || "Manager"
-          })
-        });
-        rData.cashTips = overageTips;
-        if (rData.managerSlip) {
-          rData.managerSlip.cashTips = overageTips;
-          rData.managerSlip.totalTips = (Number(rData.totalTips) || 0) + overageTips;
-        }
-      } catch (e) {}
-    }
+    try {
+      const lockRes = await fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({
+          recordType: "record_cash_tips",
+          location: location,
+          amount: overageTips,
+          floatAmt: floatAmt,
+          physicalCount: physicalCount,
+          managerNotes: managerNotes,
+          lockClosing: true,
+          adminPin: unlockedDrawerAdminPin,
+          attendant: activeAttendant || "Manager"
+        })
+      });
+      const lockJson = await lockRes.json();
+      if (lockJson.status === "locked") {
+        alert(lockJson.message);
+        btn.innerText = origText;
+        btn.disabled = false;
+        return;
+      }
+      rData.cashTips = overageTips;
+      if (rData.managerSlip) {
+        rData.managerSlip.cashTips = overageTips;
+        rData.managerSlip.totalTips = (Number(rData.totalTips) || 0) + overageTips;
+      }
+    } catch (e) {}
 
     if (pendingEodPrintAction === 'both') {
       try {
@@ -3458,7 +3552,10 @@
     document.getElementById("mgrSlipWashGross").innerText = `$${(ms.washGrossWithTax || 0).toFixed(2)}`;
     document.getElementById("mgrSlipCcTips").innerText = `$${(ms.ccTips || 0).toFixed(2)}`;
     document.getElementById("mgrSlipCashTips").innerText = `$${(drawerInfo.cashTips || 0).toFixed(2)}`;
-    document.getElementById("mgrSlipTotalTips").innerText = `$${((ms.ccTips || 0) + (drawerInfo.cashTips || 0)).toFixed(2)}`;
+    const totalTipsVal = (ms.ccTips || 0) + (drawerInfo.cashTips || 0);
+    document.getElementById("mgrSlipTotalTips").innerText = `$${totalTipsVal.toFixed(2)}`;
+    const netWashPlusTips = (ms.washNet || 0) + totalTipsVal;
+    document.getElementById("mgrSlipNetPlusTips").innerText = `$${netWashPlusTips.toFixed(2)}`;
 
     document.getElementById("mgrSlipTotalCash").innerText = `$${(ms.totalCashWash || 0).toFixed(2)}`;
     document.getElementById("mgrSlipCashTaxes").innerText = `$${(ms.cashTaxesWash || 0).toFixed(2)}`;
