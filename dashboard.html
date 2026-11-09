@@ -374,6 +374,15 @@
 
       <div id="dashWizStatusBanner" style="display: none; text-align: center; font-size: 12px; font-weight: 700; color: #2563eb; margin-bottom: 10px;">⏳ Loading data for selected date...</div>
 
+      <!-- LOCKED CLOSING WARNING BANNER ON DASHBOARD -->
+      <div id="dashWizLockedBanner" style="display: none; background: #fef2f2; border: 2px solid #ef4444; color: #991b1b; padding: 10px 12px; border-radius: 10px; margin-bottom: 12px; font-size: 12px; line-height: 1.4;">
+        <strong>🔒 DRAWER ALREADY CLOSED (<span id="dashWizClosedByText">Manager</span>):</strong><br>
+        This date's closing is locked. You can print below without changing the locked numbers, or click <strong>🔓 Unlock with Admin PIN</strong> to edit the drawer count/notes.
+        <div style="margin-top: 8px;">
+          <button type="button" onclick="unlockDashDrawerWithAdminPin()" style="width: 100%; padding: 8px; background: #dc2626; color: white; border: none; border-radius: 8px; font-weight: 800; cursor: pointer;">🔓 Unlock with Admin PIN to Edit</button>
+        </div>
+      </div>
+
       <!-- SYSTEM EXPECTED CASH SUMMARY -->
       <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; font-size: 13px;">
         <div style="font-weight: 800; color: #1e293b; margin-bottom: 6px; text-transform: uppercase; font-size: 11px;">1. System Expected Cash Sales (All Cash):</div>
@@ -1190,8 +1199,9 @@
             <div class="fin-row" style="font-size: 13px; margin-bottom: 4px;"><span>Wash Tax (7.5%):</span> <strong>$${ms.washTax.toFixed(2)}</strong></div>
             <div class="fin-row" style="font-size: 13px; margin-bottom: 4px;"><span>Wash Gross (With Tax):</span> <strong>$${ms.washGrossWithTax.toFixed(2)}</strong></div>
             <div class="fin-row" style="font-size: 13px; margin-bottom: 4px; color: #4b5563;"><span>CC Surcharge (Square Bridge):</span> <strong>$${(lData.ccFees || 0).toFixed(2)}</strong></div>
-            <div class="fin-row" style="font-size: 13px; margin-bottom: 4px;"><span>Detailing Services Count:</span> <strong>${ms.numDetailing}</strong></div>
-            <div class="fin-row" style="font-size: 13px; margin-bottom: 0; padding-top: 4px; border-top: 1px dashed #99f6e4;"><span style="color:#059669; font-weight:700;">Total Tips (CC + Cash):</span> <strong style="color:#059669;">$${totalTipsCombined.toFixed(2)}</strong></div>
+            <div class="fin-row" style="font-size: 13px; margin-bottom: 4px;"><span>Cars w/ Detailing Service:</span> <strong>${ms.numDetailing}</strong></div>
+            <div class="fin-row" style="font-size: 13px; margin-bottom: 4px; padding-top: 4px; border-top: 1px dashed #99f6e4;"><span style="color:#059669; font-weight:700;">Total Tips (CC + Cash):</span> <strong style="color:#059669;">$${totalTipsCombined.toFixed(2)}</strong></div>
+            <div class="fin-row" style="font-size: 14px; margin-bottom: 0; padding: 6px 8px; background: #dcfce7; border: 1px solid #86efac; border-radius: 6px;"><span style="color:#111827; font-weight:900;">Total w/ Tip &amp; w/o Tax:</span> <strong style="color:#111827; font-size:16px; font-weight:900;">$${(ms.washNet + totalTipsCombined).toFixed(2)}</strong></div>
           </div>
         `;
 
@@ -1396,12 +1406,16 @@
       if (fetchBtn) { fetchBtn.innerText = "🔄 Load"; fetchBtn.disabled = false; }
     }
 
+    let dashWizardUnlockedPin = "";
+
     function loadDashWizardLocationData() {
+      dashWizardUnlockedPin = "";
       const loc = document.getElementById("dashWizLocation").value;
       const lData = activeWizardLocData || currentDashboardData?.locations[loc];
       if (!lData) return;
 
       const ms = lData.managerSlip || {};
+      const dc = lData.drawerClosing || {};
       const washCash = Number(ms.totalCashWash) || 0;
       const allSalesCash = Number(lData.tenders.cash) || 0;
       const paidPendingCash = Number(lData.paidPendingCash) || 0;
@@ -1421,14 +1435,41 @@
       }
       document.getElementById("dashWizExpectedDeposit").innerText = `$${expectedOwnerDeposit.toFixed(2)}`;
 
-      const savedFloat = parseFloat(localStorage.getItem("washos_dash_float_" + loc)) || 0;
+      const localFloat = parseFloat(localStorage.getItem("washos_dash_float_" + loc)) || 0;
+      const savedFloat = (dc.savedFloat !== undefined && dc.savedFloat > 0) ? Number(dc.savedFloat) : localFloat;
       document.getElementById("dashWizFloat").value = savedFloat > 0 ? savedFloat.toFixed(2) : "0.00";
 
-      const defaultPhysical = +(savedFloat + expectedOwnerDeposit + existingCashTips).toFixed(2);
+      const defaultPhysical = (dc.physicalCount && dc.physicalCount > 0)
+        ? Number(dc.physicalCount)
+        : +(savedFloat + expectedOwnerDeposit + existingCashTips).toFixed(2);
       document.getElementById("dashWizPhysicalCount").value = defaultPhysical > 0 ? defaultPhysical.toFixed(2) : "";
-      document.getElementById("dashWizNotes").value = "";
+      document.getElementById("dashWizNotes").value = dc.managerNotes || "";
+
+      const isLocked = dc.isLocked === true;
+      const lockedBanner = document.getElementById("dashWizLockedBanner");
+      document.getElementById("dashWizFloat").disabled = isLocked;
+      document.getElementById("dashWizPhysicalCount").disabled = isLocked;
+      document.getElementById("dashWizNotes").disabled = isLocked;
+
+      if (isLocked) {
+        document.getElementById("dashWizClosedByText").innerText = dc.closedBy || "Manager";
+        if (lockedBanner) lockedBanner.style.display = "block";
+      } else {
+        if (lockedBanner) lockedBanner.style.display = "none";
+      }
 
       updateDashDrawerMath();
+    }
+
+    function unlockDashDrawerWithAdminPin() {
+      const entered = prompt("🔒 ADMIN OVERRIDE REQUIRED:\n\nThis date's drawer closing is already locked. Enter the Owner / Admin PIN to unlock and edit the closing numbers:");
+      if (!entered || !entered.trim()) return;
+      dashWizardUnlockedPin = entered.trim();
+      document.getElementById("dashWizFloat").disabled = false;
+      document.getElementById("dashWizPhysicalCount").disabled = false;
+      document.getElementById("dashWizNotes").disabled = false;
+      const lockedBanner = document.getElementById("dashWizLockedBanner");
+      if (lockedBanner) lockedBanner.style.display = "none";
     }
 
     function updateDashDrawerMath() {
@@ -1495,10 +1536,13 @@
       btn.innerText = "⏳ Saving & Printing...";
       btn.disabled = true;
 
-      // Save updated Cash Tips to Google Sheets for the selected date if changed
-      if (Math.abs(overageTips - (Number(lData.cashTips) || 0)) > 0.009) {
+      localStorage.setItem("washos_dash_float_" + loc, floatAmt);
+      const dc = lData.drawerClosing || {};
+      const shouldSaveClosing = !dc.isLocked || dashWizardUnlockedPin !== "";
+
+      if (shouldSaveClosing) {
         try {
-          await fetch(GOOGLE_SCRIPT_URL, {
+          const saveRes = await fetch(GOOGLE_SCRIPT_URL, {
             method: "POST",
             headers: { "Content-Type": "text/plain" },
             body: JSON.stringify({
@@ -1506,12 +1550,26 @@
               location: loc,
               dateStr: dateStr,
               amount: overageTips,
+              floatAmt: floatAmt,
+              physicalCount: physicalCount,
+              managerNotes: notes,
+              lockClosing: true,
+              adminPin: dashWizardUnlockedPin || document.getElementById("adminPin").value,
               attendant: "Owner Dashboard"
             })
           });
+          const saveJson = await saveRes.json();
+          if (saveJson.status === "locked") {
+            alert(saveJson.message);
+            btn.innerText = origText;
+            btn.disabled = false;
+            return;
+          }
           lData.cashTips = overageTips;
+          lData.drawerClosing = { isLocked: true, closedBy: "Owner Dashboard", savedFloat: floatAmt, physicalCount: physicalCount, managerNotes: notes };
           if (currentDashboardData && document.getElementById("startDate").value === dateStr && document.getElementById("endDate").value === dateStr && currentDashboardData.locations[loc]) {
             currentDashboardData.locations[loc].cashTips = overageTips;
+            currentDashboardData.locations[loc].drawerClosing = lData.drawerClosing;
             renderOverviewFromMemory();
           }
         } catch (e) {}
@@ -1685,11 +1743,11 @@
                     <div style="background: #e5e7eb; padding: 3px 6px; font-size: 10px; font-weight: 900; border: 1px solid #111827; margin-bottom: 4px;">OPERATIONS & COMMISSION BASE (WASH ONLY)</div>
                     <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
                       <tr>
-                        <td style="padding: 4px 6px; border: 1px solid #9ca3af; font-weight: 700;">Number of cars</td>
+                        <td style="padding: 4px 6px; border: 1px solid #9ca3af; font-weight: 700;">Total Number of Cars</td>
                         <td style="padding: 4px 6px; border: 1px solid #9ca3af; text-align: right; font-weight: 900; font-size: 13px;">${ms.numCars || lData.cars || 0}</td>
                       </tr>
                       <tr>
-                        <td style="padding: 4px 6px; border: 1px solid #9ca3af; font-weight: 700;">Number of detailing services</td>
+                        <td style="padding: 4px 6px; border: 1px solid #9ca3af; font-weight: 700;">Cars with Detailing Service<br><span style="font-size: 8.5px; font-weight: normal; color: #4b5563;">(Clay Bar, Ext &amp; Shampoo, Supreme, House Pack)</span></td>
                         <td style="padding: 4px 6px; border: 1px solid #9ca3af; text-align: right; font-weight: 900; font-size: 13px;">${ms.numDetailing || 0}</td>
                       </tr>
                       <tr style="background: #f3f4f6;">
@@ -1715,6 +1773,10 @@
                       <tr style="background: #f3f4f6;">
                         <td style="padding: 4px 6px; border: 1px solid #111827; font-weight: 900;">Total Tips (CC + Cash)</td>
                         <td style="padding: 4px 6px; border: 1px solid #111827; text-align: right; font-weight: 900; font-size: 13px;">$${totalTips.toFixed(2)}</td>
+                      </tr>
+                      <tr style="background: #dcfce7; border: 2px solid #111827;">
+                        <td style="padding: 6px 6px; border: 2px solid #111827; font-weight: 900; font-size: 12px;">TOTAL WITH TIP &amp; WITHOUT TAX<br><span style="font-size: 9px; font-weight: 700;">(Net Wash Revenue + Total Tips)</span></td>
+                        <td style="padding: 6px 6px; border: 2px solid #111827; text-align: right; font-weight: 900; font-size: 16px;">$${((ms.washNet || 0) + totalTips).toFixed(2)}</td>
                       </tr>
                     </table>
                   </td>
@@ -3700,6 +3762,8 @@
             body: JSON.stringify({
               recordType: "square_checkout",
               location: activeDashPendingTxn.location,
+              orderId: activeDashPendingTxn.orderId,
+              isPendingPay: true,
               subtotal: cleanSub,
               taxAmount: cleanTax,
               ccFee: ccFee,
