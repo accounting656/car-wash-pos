@@ -431,10 +431,13 @@
         <textarea id="dashWizNotes" class="modal-input" rows="2" placeholder="Optional: Enter shift notes, deposit notes, or explanations..." style="background: white; font-size: 13px; resize: vertical; margin-bottom: 0;"></textarea>
       </div>
 
-      <!-- PRINT ACTION BUTTONS -->
+      <!-- PRINT & EMAIL ACTION BUTTONS -->
       <div style="display: flex; flex-direction: column; gap: 8px;">
         <button class="modal-btn" style="background: #4f46e5; color: white; border: none; margin-bottom: 0; font-size: 15px; padding: 14px;" onclick="confirmDashDrawerAndPrint('both_pages')" id="btnDashPrintBothEodAndSlip">
           🖨️ Print Full EOD Summary + Manager Slip (2 Pages)
+        </button>
+        <button class="modal-btn" style="background: #7c3aed; color: white; border: none; margin-bottom: 0; font-size: 14px; padding: 12px;" onclick="confirmDashDrawerAndPrint('email_both')" id="btnDashEmailBothEodAndSlip">
+          ✉️ Save &amp; Email Full EOD + Manager Slip to Owners
         </button>
         <div style="display: flex; gap: 8px;">
           <button class="modal-btn" style="flex: 1; background: #0f766e; color: white; border: none; margin-bottom: 0; font-size: 13px; padding: 12px;" onclick="confirmDashDrawerAndPrint('slip_only')" id="btnDashConfirmDrawerPrint">
@@ -506,6 +509,37 @@
 
       <button class="modal-btn" style="background: #d97706; color: white; border: none; margin-bottom: 8px; font-size: 15px; padding: 14px;" onclick="printAveryGiftCardSheets()">
         🖨️ Generate & Print 10-Up Card Sheet(s)
+      </button>
+      <button class="modal-btn btn-cancel" style="margin-top: 0; padding: 11px;" onclick="closeDashModals()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- DASHBOARD EMAIL REPORT MODAL (DR-15 TAX, MASTER FINANCIAL, EOD + MANAGER SLIP) -->
+  <div id="dashEmailReportModal" class="modal-overlay">
+    <div class="modal-box" style="max-width: 500px; text-align: left;">
+      <h2 style="text-align: center; color: #1e3a8a; margin-bottom: 6px;">✉️ Email Dashboard Report</h2>
+      <p style="text-align: center; font-size: 13px; color: #6b7280; margin-bottom: 14px;">Email the formatted <strong>DR-15 Sales Tax Report</strong>, <strong>Master Financial Report</strong>, or <strong>EOD &amp; Manager Slip</strong> for the selected dates and location filter.</p>
+
+      <div style="margin-bottom: 12px;">
+        <label style="font-size: 11px; font-weight: 800; color: #374151; display: block; margin-bottom: 4px; text-transform: uppercase;">1. Select Report to Email:</label>
+        <select id="dashEmailReportType" class="modal-input" style="font-weight: 800; color: #1e3a8a; background: #eff6ff; border-color: #93c5fd; cursor: pointer; margin-bottom: 0;">
+          <option value="tax">📄 DR-15 Master Sales Tax Report (For Selected Date Range)</option>
+          <option value="financial">📊 Master Financial Report (For Selected Date Range)</option>
+          <option value="both">📑 Both: DR-15 Tax Report + Master Financial Report</option>
+        </select>
+      </div>
+
+      <div style="margin-bottom: 14px;">
+        <label style="font-size: 11px; font-weight: 800; color: #374151; display: block; margin-bottom: 4px; text-transform: uppercase;">2. Recipient Email Address(es) (Comma-Separated):</label>
+        <textarea id="dashEmailRecipients" class="modal-input" rows="2" style="background: white; font-size: 13px; font-weight: 600; margin-bottom: 6px;">osmany@aplustampa.com, ray@aplustampa.com, lazaro@aplustampa.com, lazaroal47@gmail.com</textarea>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+          <button type="button" class="preset-btn" onclick="setDefaultEmailRecipients()">👥 Reset to All 4 Owners</button>
+          <button type="button" class="preset-btn" onclick="applyLastMonthAndEmailDR15()">📅 Load Last Month (DR-15 Period)</button>
+        </div>
+      </div>
+
+      <button class="modal-btn" style="background: #1e3a8a; color: white; border: none; margin-bottom: 8px; font-size: 15px; padding: 14px;" onclick="sendDashEmailReportFromModal()" id="btnSendDashEmailReport">
+        ✉️ Send Report Email Now
       </button>
       <button class="modal-btn btn-cancel" style="margin-top: 0; padding: 11px;" onclick="closeDashModals()">Cancel</button>
     </div>
@@ -590,6 +624,7 @@
           <button class="btn" style="background: #0f766e; color: white;" onclick="openEodByDateModal()">📋 EOD & Manager Slip</button>
           <button class="btn" style="background: #d97706; color: white;" onclick="openGiftCardPrintModal()">💳 Print 10-Up Gift Cards</button>
           <button class="btn btn-tax" onclick="printTax()">📄 Print DR-15 Tax</button>
+          <button class="btn" style="background: #7c3aed; color: white;" onclick="openDashEmailReportModal('tax')">✉️ Email DR-15 / Reports</button>
         </div>
       </div>
     </div>
@@ -1621,7 +1656,7 @@
 
       // --- BUILD PAGE 1: ACCOUNTING EOD SUMMARY HTML ---
       let eodPageHTML = "";
-      if (printMode === 'both_pages' || printMode === 'eod_only') {
+      if (printMode === 'both_pages' || printMode === 'eod_only' || printMode === 'email_both') {
         let servicesRows = buildPrintCategorizedRows(lData.services);
 
         if (lData.openPending && lData.openPending.length > 0) {
@@ -1711,7 +1746,7 @@
 
       // --- BUILD PAGE 2: SINGLE-PAGE MANAGER CLOSING SLIP HTML ---
       let mgrSlipPageHTML = "";
-      if (printMode === 'both_pages' || printMode === 'slip_only') {
+      if (printMode === 'both_pages' || printMode === 'slip_only' || printMode === 'email_both') {
         let empGridHTML = "";
         for (let r = 0; r < 6; r++) {
           let leftIdx = r;
@@ -1875,17 +1910,26 @@
         `;
       }
 
+      if (printMode === 'email_both') {
+        const defaultOwners = localStorage.getItem("washos_email_recipients") || "osmany@aplustampa.com, ray@aplustampa.com, lazaro@aplustampa.com, lazaroal47@gmail.com";
+        const toAddr = prompt("✉️ EMAIL FULL EOD & MANAGER SLIP (" + loc + " — " + dateStr + "):\n\nConfirm or edit recipient email addresses:", defaultOwners);
+        if (!toAddr || !toAddr.trim()) return;
+        localStorage.setItem("washos_email_recipients", toAddr.trim());
+        await sendHtmlReportEmail(
+          `A+ WashOS - EOD & Manager Closing Slip (${loc} — ${dateStr})`,
+          eodPageHTML + "<hr style='margin: 28px 0; border: 2px solid #111827;'>" + mgrSlipPageHTML,
+          toAddr.trim()
+        );
+        return;
+      }
+
       document.getElementById("managerSlipReportView").innerHTML = eodPageHTML + mgrSlipPageHTML;
       document.body.classList.add("print-mgr-slip");
       window.print();
       setTimeout(() => { document.body.classList.remove("print-mgr-slip"); }, 500);
     }
 
-    function printFinancial() {
-      if (!currentDashboardData) {
-        alert("Please click 'Load Report' first.");
-        return;
-      }
+    function buildFinancialReportHTML() {
 
       const startDate = document.getElementById("startDate").value;
       const endDate = document.getElementById("endDate").value;
@@ -2057,19 +2101,21 @@
       });
       
       html += `</div>`;
-      
-      document.getElementById("financialReportView").innerHTML = html;
+      return html;
+    }
+
+    function printFinancial() {
+      if (!currentDashboardData) {
+        alert("Please click 'Load Report' first.");
+        return;
+      }
+      document.getElementById("financialReportView").innerHTML = buildFinancialReportHTML();
       document.body.classList.add("print-financial");
       window.print();
       setTimeout(() => { document.body.classList.remove("print-financial"); }, 500);
     }
 
-    function printTax() {
-      if (!currentDashboardData) {
-        alert("Please click 'Load Report' first.");
-        return;
-      }
-
+    function buildTaxReportHTML() {
       const startDate = document.getElementById("startDate").value;
       const endDate = document.getElementById("endDate").value;
       const payFilter = document.getElementById("paymentFilter").value;
@@ -2120,11 +2166,113 @@
           </table>
         </div>`;
       });
+      return html;
+    }
 
-      document.getElementById("taxReportView").innerHTML = html;
+    function printTax() {
+      if (!currentDashboardData) {
+        alert("Please click 'Load Report' first.");
+        return;
+      }
+      document.getElementById("taxReportView").innerHTML = buildTaxReportHTML();
       document.body.classList.add("print-tax");
       window.print();
       setTimeout(() => { document.body.classList.remove("print-tax"); }, 500);
+    }
+
+    function openDashEmailReportModal(defaultType = 'tax') {
+      if (!currentDashboardData) {
+        alert("Please click '🔄 Load Report' first so the report data is loaded.");
+        return;
+      }
+      document.getElementById("dashEmailReportType").value = defaultType;
+      const savedRecips = localStorage.getItem("washos_email_recipients") || "osmany@aplustampa.com, ray@aplustampa.com, lazaro@aplustampa.com, lazaroal47@gmail.com";
+      document.getElementById("dashEmailRecipients").value = savedRecips;
+      document.getElementById("dashEmailReportModal").style.display = "flex";
+    }
+
+    function setDefaultEmailRecipients() {
+      const def = "osmany@aplustampa.com, ray@aplustampa.com, lazaro@aplustampa.com, lazaroal47@gmail.com";
+      document.getElementById("dashEmailRecipients").value = def;
+      localStorage.setItem("washos_email_recipients", def);
+    }
+
+    async function applyLastMonthAndEmailDR15() {
+      closeDashModals();
+      await applyDatePreset('lastMonth');
+      setTimeout(() => { openDashEmailReportModal('tax'); }, 600);
+    }
+
+    async function sendDashEmailReportFromModal() {
+      if (!currentDashboardData) return alert("Please click '🔄 Load Report' first.");
+      const reportType = document.getElementById("dashEmailReportType").value;
+      const recipients = document.getElementById("dashEmailRecipients").value.trim();
+      if (!recipients) return alert("Please enter at least one email address.");
+
+      localStorage.setItem("washos_email_recipients", recipients);
+
+      const startDate = document.getElementById("startDate").value;
+      const endDate = document.getElementById("endDate").value;
+      const locFilter = document.getElementById("locationFilter").value;
+      const locLabel = locFilter === "All" ? "All Locations" : locFilter;
+
+      // Ensure financialReportView has the latest financial HTML if needed
+      let finHTML = "";
+      if (reportType === "financial" || reportType === "both") {
+        finHTML = buildFinancialReportHTML();
+      }
+      let taxHTML = "";
+      if (reportType === "tax" || reportType === "both") {
+        taxHTML = buildTaxReportHTML();
+      }
+
+      let subjectStr = "";
+      let combinedHTML = "";
+      if (reportType === "tax") {
+        subjectStr = `A+ WashOS - DR-15 Sales Tax Report (${startDate} to ${endDate} • ${locLabel})`;
+        combinedHTML = taxHTML;
+      } else if (reportType === "financial") {
+        subjectStr = `A+ WashOS - Master Financial Report (${startDate} to ${endDate} • ${locLabel})`;
+        combinedHTML = finHTML;
+      } else {
+        subjectStr = `A+ WashOS - DR-15 Tax & Master Financial Report (${startDate} to ${endDate} • ${locLabel})`;
+        combinedHTML = taxHTML + `<hr style="margin: 35px 0; border: 2px solid #111827;">` + finHTML;
+      }
+
+      const btn = document.getElementById("btnSendDashEmailReport");
+      const origText = btn.innerText;
+      btn.innerText = "✉️ Sending Email...";
+      btn.disabled = true;
+
+      await sendHtmlReportEmail(subjectStr, combinedHTML, recipients);
+
+      btn.innerText = origText;
+      btn.disabled = false;
+      closeDashModals();
+    }
+
+    async function sendHtmlReportEmail(subjectStr, htmlBody, recipients) {
+      try {
+        const res = await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({
+            recordType: "dashboard_email_report",
+            subject: subjectStr,
+            htmlBody: htmlBody,
+            recipients: recipients,
+            pin: document.getElementById("adminPin").value
+          })
+        });
+        const result = await res.json();
+        if (result.status === "success") {
+          alert(`✅ Email Sent Successfully!\n\nSubject: ${subjectStr}\nSent To: ${result.recipients}`);
+        } else {
+          alert("❌ Email Error: " + result.message);
+        }
+      } catch (err) {
+        alert("Network error while sending email. Make sure the latest Code.gs is deployed as a New Version.");
+      }
     }
 
     function switchTab(tabName) {
@@ -3703,6 +3851,8 @@
       if (dcm) dcm.style.display = "none";
       const gcm = document.getElementById("dashGiftCardPrintModal");
       if (gcm) gcm.style.display = "none";
+      const erm = document.getElementById("dashEmailReportModal");
+      if (erm) erm.style.display = "none";
     }
 
     async function submitDashCashPayout() {
